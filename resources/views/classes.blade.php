@@ -65,6 +65,9 @@
             $baseUrl = Str::beforeLast($baseUrl, '/public');
         }
         $html = file_get_contents(base_path('classes.html'));
+        // Remove Store and Register links if present in this static HTML too
+        $html = preg_replace('#<li class=\"nav-item\">\s*<a class=\"nav-link\" href=\"/products\">.*?</a>\s*</li>#s', '', $html);
+        $html = preg_replace('#<a[^>]*href=\"/register\"[^>]*>.*?</a>#s', '', $html);
         // Prefix leading slashes in src and href with base URL path
         $prefix = rtrim($baseUrl, '/');
         if ($prefix !== '') {

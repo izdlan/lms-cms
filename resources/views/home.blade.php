@@ -18,6 +18,10 @@
     $html = file_get_contents(base_path('laravel-lms-olympia/index.html'));
     // point Courses to /classes
     $html = str_replace('/classes?sort=newest', url('/classes').'?sort=newest', $html);
+    // Remove Store nav item (href="/products")
+    $html = preg_replace('#<li class="nav-item">\s*<a class="nav-link" href="/products">.*?</a>\s*</li>#s', '', $html);
+    // Remove Register links (href="/register")
+    $html = preg_replace('#<a[^>]*href="/register"[^>]*>.*?</a>#s', '', $html);
     // Prefix leading slash resources with base path for subdir installs
     $prefix = rtrim($baseUrl, '/');
     if ($prefix !== '') {
