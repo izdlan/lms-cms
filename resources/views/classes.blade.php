@@ -40,6 +40,11 @@
     <link rel="stylesheet" href="/assets/default/vendors/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
     <style>
+        /* Optional self-hosted Optima — place files at /public/store/1/fonts/ */
+        /* Uncomment if you upload the font files
+        @font-face { font-family: 'Optima'; src: url(/store/1/fonts/Optima.woff2) format('woff2'), url(/store/1/fonts/Optima.woff) format('woff'); font-weight:400; font-style:normal; font-display:swap; }
+        */
+        html, body { font-family: Optima, 'main-font-family', Arial, Helvetica, sans-serif; }
         @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: 400; font-display: swap; src: url(/store/1/fonts/montserrat-regular.woff2) format('woff2'); }
         @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: bold; font-display: swap; src: url(/store/1/fonts/montserrat-bold.woff2) format('woff2'); }
         @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: 500; font-display: swap; src: url(/store/1/fonts/montserrat-medium.woff2) format('woff2'); }

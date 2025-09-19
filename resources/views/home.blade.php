@@ -11,6 +11,20 @@
     <link rel="stylesheet" href="/assets/default/css/app.css">
     <link rel="stylesheet" href="/assets/default/vendors/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/owl-carousel2/owl.carousel.min.css">
+    <style>
+        /* Optional self-hosted Optima — place files at /public/store/1/fonts/ */
+        /* Uncomment if you upload the font files
+        @font-face {
+            font-family: 'Optima';
+            src: url('/store/1/fonts/Optima.woff2') format('woff2'),
+                 url('/store/1/fonts/Optima.woff') format('woff');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+        */
+        html, body { font-family: Optima, 'Inter', Arial, Helvetica, sans-serif; }
+    </style>
 </head>
 <body>
 @php
