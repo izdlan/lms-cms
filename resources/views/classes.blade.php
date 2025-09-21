@@ -1,100 +1,521 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name='robots' content="index, follow, all">
-    <meta name="description" content="Courses page Description">
-    <meta property="og:description" content="Courses page Description">
-    <meta name='twitter:description' content='Courses page Description'>
-    <link rel='shortcut icon' type='image/x-icon' href="/store/1/favicon.png">
-    <link rel="manifest" href="/mix-manifest.json?v=4">
-    <meta name="theme-color" content="#FFF">
-    <meta name="msapplication-starturl" content="/">
-    <meta name="msapplication-TileColor" content="#FFF">
-    <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
-    <meta name="apple-mobile-web-app-title" content="Olympia Education">
-    <link rel="apple-touch-icon" href="/store/1/favicon.png">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <link rel='icon' href='/store/1/favicon.png'>
-    <meta name="application-name" content="Olympia Education">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="layoutmode" content="fitscreen/standard">
-    <link rel="home" href="/">
-    <meta property='og:title' content='Courses'>
-    <meta name='twitter:card' content='summary'>
-    <meta name='twitter:title' content='Courses'>
-    <meta property='og:site_name' content='Olympia Education'>
-    <meta property='og:image' content='/store/1/favicon.png'>
-    <meta name='twitter:image' content='/store/1/favicon.png'>
-    <meta property='og:locale' content='en_US'>
-    <meta property='og:type' content='website'>
-    <title>Courses | Olympia Education</title>
-    <link rel="stylesheet" href="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.css">
-    <link rel="stylesheet" href="/assets/default/vendors/toast/jquery.toast.min.css">
-    <link rel="stylesheet" href="/assets/default/vendors/simplebar/simplebar.css">
-    <link rel="stylesheet" href="/assets/default/css/app.css">
-    <link rel="stylesheet" href="/assets/default/vendors/swiper/swiper-bundle.min.css">
-    <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
-    <style>
-        /* Optional self-hosted Optima — place files at /public/store/1/fonts/ */
-        /* Uncomment if you upload the font files
-        @font-face { font-family: 'Optima'; src: url(/store/1/fonts/Optima.woff2) format('woff2'), url(/store/1/fonts/Optima.woff) format('woff'); font-weight:400; font-style:normal; font-display:swap; }
-        */
-        html, body { font-family: Optima, 'main-font-family', Arial, Helvetica, sans-serif; }
-        @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: 400; font-display: swap; src: url(/store/1/fonts/montserrat-regular.woff2) format('woff2'); }
-        @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: bold; font-display: swap; src: url(/store/1/fonts/montserrat-bold.woff2) format('woff2'); }
-        @font-face { font-family: 'main-font-family'; font-style: normal; font-weight: 500; font-display: swap; src: url(/store/1/fonts/montserrat-medium.woff2) format('woff2'); }
-        @font-face { font-family: 'rtl-font-family'; font-style: normal; font-weight: 400; font-display: swap; src: url(/store/1/fonts/Vazir-Regular.woff2) format('woff2'); }
-        @font-face { font-family: 'rtl-font-family'; font-style: normal; font-weight: bold; font-display: swap; src: url(/store/1/fonts/Vazir-Bold.woff2) format('woff2'); }
-        @font-face { font-family: 'rtl-font-family'; font-style: normal; font-weight: 500; font-display: swap; src: url(/store/1/fonts/Vazir-Medium.woff2) format('woff2'); }
-        :root { --primary:#0056d2; --primary-border:#084aa0; --primary-hover:#0069ff; --primary-border-hover:#084aa0; --primary-btn-shadow:0 3px 6px rgba(0,86,210,.3); --primary-btn-shadow-hover:0 3px 6px rgba(0,86,210,.4); --primary-btn-color:#ffffff; --primary-btn-color-hover:#ffffff; }
-    </style>
-    <link rel="stylesheet" href="/assets/vendors/nprogress/nprogress.min.css">
-    <script src="/assets/vendors/nprogress/nprogress.min.js"></script>
-    <script>
-        NProgress.configure({ showSpinner: true, easing: 'ease', speed: 500 });
-        document.addEventListener('DOMContentLoaded', function(){ NProgress.start(); });
-        window.addEventListener('load', function(){ NProgress.done(); });
-    </script>
-</head>
-<body class="">
-<div id="app" class=" ">
-    @php
-        $baseUrl = request()->getBaseUrl();
-        // Remove trailing /public if present
-        if (Str::endsWith($baseUrl, '/public')) {
-            $baseUrl = Str::beforeLast($baseUrl, '/public');
-        }
-        $html = file_get_contents(base_path('classes.html'));
-        // Remove Store and Register links if present in this static HTML too
-        $html = preg_replace('#<li class=\"nav-item\">\s*<a class=\"nav-link\" href=\"/products\">.*?</a>\s*</li>#s', '', $html);
-        $html = preg_replace('#<a[^>]*href=\"/register\"[^>]*>.*?</a>#s', '', $html);
-        // Prefix leading slashes in src and href with base URL path
-        $prefix = rtrim($baseUrl, '/');
-        if ($prefix !== '') {
-            $html = preg_replace('#(\s(?:src|href)=\")/(?!/)([^\"]*)#', '$1' . $prefix . '/$2', $html);
-        }
-        echo $html;
-    @endphp
+@extends('layouts.app')
+
+@section('title', 'Courses')
+
+@section('content')
+<section class="site-top-banner search-top-banner opacity-04 position-relative">
+    <img src="/store/1/default_images/category_cover.png" class="img-cover" alt="" />
+
+    <div class="container h-100">
+        <div class="row h-100 align-items-center justify-content-center text-center">
+            <div class="col-12 col-md-9 col-lg-7">
+                <div class="top-search-categories-form">
+                    <h1 class="text-white font-30 mb-15">Courses</h1>
+                    <span class="course-count-badge py-5 px-10 text-white rounded">126 Courses</span>
+
+                    <div class="search-input bg-white p-10 flex-grow-1">
+                        <form action="/search" method="get">
+                            <div class="form-group d-flex align-items-center m-0">
+                                <input type="text" name="search" class="form-control border-0" placeholder="Search courses, instructors and organizations..." />
+                                <button type="submit" class="btn btn-primary rounded-pill">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div class="container mt-30">
+    <section class="mt-lg-50 pt-lg-20 mt-md-40 pt-md-40">
+        <form action="/classes" method="get" id="filtersForm">
+            <div id="topFilters" class="shadow-lg border border-gray300 rounded-sm p-10 p-md-20">
+                <div class="row align-items-center">
+                    <div class="col-lg-3 d-flex align-items-center">
+                        <div class="checkbox-button primary-selected">
+                            <input type="radio" name="card" id="gridView" value="grid" checked="checked">
+                            <label for="gridView" class="bg-white border-0 mb-0">
+                                <i data-feather="grid" width="25" height="25" class=" text-primary "></i>
+                            </label>
+                        </div>
+
+                        <div class="checkbox-button primary-selected ml-10">
+                            <input type="radio" name="card" id="listView" value="list">
+                            <label for="listView" class="bg-white border-0 mb-0">
+                                <i data-feather="list" width="25" height="25" class=""></i>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-6 d-block d-md-flex align-items-center justify-content-end my-25 my-lg-0">
+                        <div class="d-flex align-items-center justify-content-between justify-content-md-center mx-0 mx-md-20 my-20 my-md-0">
+                            <label class="mb-0 mr-10 cursor-pointer" for="upcoming">Upcoming</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" name="upcoming" class="custom-control-input" id="upcoming">
+                                <label class="custom-control-label" for="upcoming"></label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between justify-content-md-center">
+                            <label class="mb-0 mr-10 cursor-pointer" for="free">Free</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" name="free" class="custom-control-input" id="free">
+                                <label class="custom-control-label" for="free"></label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between justify-content-md-center mx-0 mx-md-20 my-20 my-md-0">
+                            <label class="mb-0 mr-10 cursor-pointer" for="discount">Discount</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" name="discount" class="custom-control-input" id="discount">
+                                <label class="custom-control-label" for="discount"></label>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between justify-content-md-center">
+                            <label class="mb-0 mr-10 cursor-pointer" for="download">Download</label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" name="downloadable" class="custom-control-input" id="download">
+                                <label class="custom-control-label" for="download"></label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-3 d-flex align-items-center">
+                        <select name="sort" class="form-control font-14">
+                            <option disabled selected>Sort by</option>
+                            <option value="">All</option>
+                            <option value="newest" selected="selected">Newest</option>
+                            <option value="expensive">Highest Price</option>
+                            <option value="inexpensive">Lowest Price</option>
+                            <option value="bestsellers">Bestsellers</option>
+                            <option value="best_rates">Best Rated</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-20">
+                <div class="col-12 col-lg-8">
+                    <div class="row">
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Bachelor-of-Education-in-Leadership-Management">
+                                            <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Bachelor of Education in Leadership Management-1.jpg" class="img-cover" alt="Industrial Bachelor of Education in Leadership Management">
+                                        </a>
+
+                                        <div class="progress">
+                                            <span class="progress-bar" style="width: 0%"></span>
+                                        </div>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Bachelor+of+Education+in+Leadership+Management" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1/Instructor/image 19766.png" class="img-cover" alt="Prof Madya Dr. Norreha Binti Othman">
+                                            </div>
+                                            <a href="/users/1047/profile" target="_blank" class="user-name ml-5 font-14">Prof Madya Dr. Norreha Binti Othman</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Bachelor-of-Education-in-Leadership-Management">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Industrial Bachelor of Education in Leadership Management</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/DOCTORATE-S-PROGRAMMES" target="_blank" class="text-decoration-underline">DOCTORATE'S PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">60:00 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">10 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Bachelor-of-Business-Administration-in-International-Business">
+                                            <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Bachelor of Business Administration in International Business-1.jpg" class="img-cover" alt="Industrial Bachelor of Business Administration in International Business">
+                                        </a>
+
+                                        <div class="progress">
+                                            <span class="progress-bar" style="width: 0%"></span>
+                                        </div>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Bachelor+of+Business+Administration+in+International+Business" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1/Instructor/image 19766.png" class="img-cover" alt="Prof Madya Dr. Norreha Binti Othman">
+                                            </div>
+                                            <a href="/users/1047/profile" target="_blank" class="user-name ml-5 font-14">Prof Madya Dr. Norreha Binti Othman</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Bachelor-of-Business-Administration-in-International-Business">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Industrial Bachelor of Business Administration in International Business</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/DOCTORATE-S-PROGRAMMES" target="_blank" class="text-decoration-underline">DOCTORATE'S PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">3:00 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">10 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Master-in-Sustainable-Education-Transformation">
+                                            <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Master in Sustainable Education Transformation-1.jpg" class="img-cover" alt="Industrial Master in Sustainable Education Transformation">
+                                        </a>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Master+in+Sustainable+Education+Transformation" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1016/avatar/617a4f17c8e72.png" class="img-cover" alt="Ricardo dave">
+                                            </div>
+                                            <a href="/users/1016/profile" target="_blank" class="user-name ml-5 font-14">Ricardo dave</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Master-in-Sustainable-Education-Transformation">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Industrial Master in Sustainable Education Transformation</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/DOCTORATE-S-PROGRAMMES" target="_blank" class="text-decoration-underline">DOCTORATE'S PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">1:00 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">10 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Master-in-Digital-Transformation-Management">
+                                            <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Master in Digital Transformation Management-1.jpg" class="img-cover" alt="Industrial Master in Digital Transformation Management">
+                                        </a>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Master+in+Digital+Transformation+Management" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1016/avatar/617a4f17c8e72.png" class="img-cover" alt="Ricardo dave">
+                                            </div>
+                                            <a href="/users/1016/profile" target="_blank" class="user-name ml-5 font-14">Ricardo dave</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Industrial-Master-in-Digital-Transformation-Management">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Industrial Master in Digital Transformation Management</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/DOCTORATE-S-PROGRAMMES" target="_blank" class="text-decoration-underline">DOCTORATE'S PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">1:00 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">10 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Diploma-in-Occupational-Safety-Health">
+                                            <img src="/store/1/Courses/DIPLOMA'S PROGRAMMES/Diploma in Occupational Safety & Health-1.jpg" class="img-cover" alt="Diploma in Occupational Safety & Health">
+                                        </a>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Diploma+in+Occupational+Safety+%26+Health" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1016/avatar/617a4f17c8e72.png" class="img-cover" alt="Ricardo dave">
+                                            </div>
+                                            <a href="/users/1016/profile" target="_blank" class="user-name ml-5 font-14">Ricardo dave</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Diploma-in-Occupational-Safety-Health">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Diploma in Occupational Safety & Health</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/diplomaproggrammes" target="_blank" class="text-decoration-underline">DIPLOMA PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">2:30 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">10 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-lg-6 mt-20">
+                            <div class="webinar-card">
+                                <figure>
+                                    <div class="image-box">
+                                        <div class="badges-lists">
+                                            <span class="badge badge-secondary">Finished</span>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Diploma-in-Information-Technology">
+                                            <img src="/store/1/Courses/DIPLOMA'S PROGRAMMES/Diploma in Information Technology-1.jpg" class="img-cover" alt="Diploma in Information Technology">
+                                        </a>
+
+                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250711T000000/20250711T000000&amp;ctz=UTC&amp;text=Diploma+in+Information+Technology" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
+                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
+                                        </a>
+                                    </div>
+
+                                    <figcaption class="webinar-card-body">
+                                        <div class="user-inline-avatar d-flex align-items-center">
+                                            <div class="avatar bg-gray200">
+                                                <img src="/store/1016/avatar/617a4f17c8e72.png" class="img-cover" alt="Ricardo dave">
+                                            </div>
+                                            <a href="/users/1016/profile" target="_blank" class="user-name ml-5 font-14">Ricardo dave</a>
+                                        </div>
+
+                                        <a href="https://lms.olympia-education.com/course/Diploma-in-Information-Technology">
+                                            <h3 class="mt-15 webinar-title font-weight-bold font-16 text-dark-blue">Diploma in Information Technology</h3>
+                                        </a>
+
+                                        <span class="d-block font-14 mt-10">in <a href="/categories/diplomaproggrammes" target="_blank" class="text-decoration-underline">DIPLOMA PROGRAMMES</a></span>
+
+                                        <div class="stars-card d-flex align-items-center  mt-15">
+                                        </div>
+
+                                        <div class="d-flex justify-content-between mt-20">
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="clock" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="duration font-14 ml-5">2:30 Hours</span>
+                                            </div>
+
+                                            <div class="vertical-line mx-15"></div>
+
+                                            <div class="d-flex align-items-center">
+                                                <i data-feather="calendar" width="20" height="20" class="webinar-icon"></i>
+                                                <span class="date-published font-14 ml-5">11 Jul 2025</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="webinar-price-box mt-25">
+                                            <span class="real font-14">Free</span>
+                                        </div>
+                                    </figcaption>
+                                </figure>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-4">
+                    <div class="sidebar">
+                        <div class="sidebar-card">
+                            <h3 class="sidebar-title font-weight-bold text-primary mb-20">Type</h3>
+                            <div class="sidebar-content">
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="bundle" id="typeBundle">
+                                    <label class="form-check-label" for="typeBundle">
+                                        Course Bundle
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="live" id="typeLive">
+                                    <label class="form-check-label" for="typeLive">
+                                        Live class
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="course" id="typeCourse">
+                                    <label class="form-check-label" for="typeCourse">
+                                        Course
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="text" id="typeText">
+                                    <label class="form-check-label" for="typeText">
+                                        Text course
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-card mt-30">
+                            <h3 class="sidebar-title font-weight-bold text-primary mb-20">More options</h3>
+                            <div class="sidebar-content">
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="subscribe" id="moreSubscribe">
+                                    <label class="form-check-label" for="moreSubscribe">
+                                        Show only subscribe
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="certificate" id="moreCertificate">
+                                    <label class="form-check-label" for="moreCertificate">
+                                        Show only certificate included
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="quiz" id="moreQuiz">
+                                    <label class="form-check-label" for="moreQuiz">
+                                        Show only courses with quiz
+                                    </label>
+                                </div>
+                                <div class="form-check mb-10">
+                                    <input class="form-check-input" type="checkbox" value="featured" id="moreFeatured">
+                                    <label class="form-check-label" for="moreFeatured">
+                                        Show only featured courses
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sidebar-card mt-30">
+                            <button type="button" class="btn btn-primary btn-block" id="filterItemsBtn">Filter items</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </section>
 </div>
-<script src="/assets/default/js/app.js"></script>
-<script src="/assets/default/vendors/feather-icons/dist/feather.min.js"></script>
-<script src="/assets/default/vendors/moment.min.js"></script>
-<script src="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.js"></script>
-<script src="/assets/default/vendors/toast/jquery.toast.min.js"></script>
-<script type="text/javascript" src="/assets/default/vendors/simplebar/simplebar.min.js"></script>
-<script src="/assets/default/vendors/select2/select2.min.js"></script>
-<script src="/assets/default/vendors/swiper/swiper-bundle.min.js"></script>
-<script src="/assets/default/js/parts/categories.min.js"></script>
-<link href="/assets/default/vendors/flagstrap/css/flags.css" rel="stylesheet">
-<script src="/assets/default/vendors/flagstrap/js/jquery.flagstrap.min.js"></script>
-<script src="/assets/default/js/parts/top_nav_flags.min.js"></script>
-<script src="/assets/default/js/parts/navbar.min.js"></script>
-<script src="/assets/default/js/parts/main.min.js"></script>
 
 <script>
 (function(){
@@ -217,6 +638,48 @@
   applyFilters(false);
 })();
 </script>
+@endsection
 
-</body>
-</html>
+@push('styles')
+<style>
+.sidebar {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.sidebar-card {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+.sidebar-title {
+    color: #0056d2;
+    font-size: 16px;
+    margin-bottom: 15px;
+}
+
+.sidebar-content .form-check {
+    margin-bottom: 10px;
+}
+
+.sidebar-content .form-check-label {
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+}
+
+.sidebar-content .form-check-input {
+    margin-right: 8px;
+}
+
+#filterItemsBtn {
+    width: 100%;
+    padding: 12px;
+    font-weight: bold;
+}
+</style>
+@endpush
