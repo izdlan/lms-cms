@@ -29,7 +29,7 @@
 <body>
 @php
     $baseUrl = request()->getBaseUrl();
-    $html = file_get_contents(base_path('laravel-lms-olympia/index.html'));
+    $html = file_get_contents(base_path('index.html'));
     // point Courses to /classes
     $html = str_replace('/classes?sort=newest', url('/classes').'?sort=newest', $html);
     // Remove Store nav item (href="/products")
