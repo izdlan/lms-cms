@@ -18,7 +18,7 @@ class ImportStudents extends Command
             return 1;
         }
 
-        Excel::import(new StudentsImport, $file);
+        Excel::import(new StudentsImport, $file, null, \Maatwebsite\Excel\Excel::XLSX, 'DHU LMS');
         $this->info('Import finished.');
         return 0;
     }

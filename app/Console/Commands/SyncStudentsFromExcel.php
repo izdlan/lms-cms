@@ -23,7 +23,7 @@ class SyncStudentsFromExcel extends Command
         $this->info('Starting student sync from: ' . $file);
         
         try {
-            Excel::import(new StudentsImport, $file);
+            Excel::import(new StudentsImport, $file, null, \Maatwebsite\Excel\Excel::XLSX, 'DHU LMS');
             $this->info('Student sync completed successfully!');
             return 0;
         } catch (\Exception $e) {

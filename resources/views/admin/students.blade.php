@@ -76,10 +76,11 @@
                                     <thead>
                                         <tr>
                                             <th>Name</th>
-                                            <th>IC</th>
+                                            <th>IC/Passport</th>
                                             <th>Email</th>
                                             <th>Phone</th>
-                                            <th>Courses</th>
+                                            <th>Student ID</th>
+                                            <th>Previous University</th>
                                             <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
@@ -95,16 +96,14 @@
                                                 <td>{{ $student->ic }}</td>
                                                 <td>{{ $student->email }}</td>
                                                 <td>{{ $student->phone ?? 'N/A' }}</td>
+                                                <td>{{ $student->student_id ?? 'N/A' }}</td>
                                                 <td>
-                                                    @if($student->courses && count($student->courses) > 0)
-                                                        @foreach(array_slice($student->courses, 0, 2) as $course)
-                                                            <span class="badge bg-primary me-1">{{ $course }}</span>
-                                                        @endforeach
-                                                        @if(count($student->courses) > 2)
-                                                            <span class="badge bg-secondary">+{{ count($student->courses) - 2 }} more</span>
-                                                        @endif
+                                                    @if($student->previous_university)
+                                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $student->previous_university }}">
+                                                            {{ $student->previous_university }}
+                                                        </span>
                                                     @else
-                                                        <span class="text-muted">No courses</span>
+                                                        <span class="text-muted">N/A</span>
                                                     @endif
                                                 </td>
                                                 <td>{{ $student->created_at->format('M d, Y') }}</td>

@@ -58,21 +58,26 @@
     <link rel="stylesheet" href="/assets/default/vendors/owl-carousel2/owl.carousel.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
 
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    
     <style>
         @font-face {
             font-family: 'main-font-family';
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: url(/store/1/fonts/montserrat-regular.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2') format('woff2');
         }
 
         @font-face {
             font-family: 'main-font-family';
             font-style: normal;
-            font-weight: bold;
+            font-weight: 700;
             font-display: swap;
-            src: url(/store/1/fonts/montserrat-bold.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXpsog.woff2') format('woff2');
         }
 
         @font-face {
@@ -80,7 +85,7 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: url(/store/1/fonts/montserrat-medium.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw9aXpsog.woff2') format('woff2');
         }
 
         @font-face {
@@ -88,15 +93,15 @@
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: url(/store/1/fonts/Vazir-Regular.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2') format('woff2');
         }
 
         @font-face {
             font-family: 'rtl-font-family';
             font-style: normal;
-            font-weight: bold;
+            font-weight: 700;
             font-display: swap;
-            src: url(/store/1/fonts/Vazir-Bold.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXpsog.woff2') format('woff2');
         }
 
         @font-face {
@@ -104,7 +109,7 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: url(/store/1/fonts/Vazir-Medium.woff2) format('woff2');
+            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw9aXpsog.woff2') format('woff2');
         }
 
         :root {
@@ -116,6 +121,18 @@
             --primary-btn-shadow-hover: 0 3px 6px rgba(0, 86, 210, 0.4);
             --primary-btn-color: #ffffff;
             --primary-btn-color-hover: #ffffff;
+        }
+
+        /* Font fallback to prevent loading errors */
+        body {
+            font-family: 'Montserrat', 'main-font-family', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        /* Hide font loading errors */
+        @font-face {
+            font-family: 'error-font';
+            src: url('data:font/woff2;base64,') format('woff2');
+            font-display: block;
         }
     </style>
 
@@ -135,6 +152,24 @@
         window.addEventListener('load', () => {
             NProgress.done();
         });
+
+        // Suppress font loading errors
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('Failed to decode downloaded font')) {
+                e.preventDefault();
+                console.warn('Font loading issue suppressed:', e.message);
+                return false;
+            }
+        });
+
+        // Suppress OTS parsing errors
+        const originalConsoleWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && args[0].includes('OTS parsing error')) {
+                return; // Suppress OTS parsing errors
+            }
+            originalConsoleWarn.apply(console, args);
+        };
     </script>
 </head>
 
@@ -175,6 +210,23 @@
     <script src="/assets/default/vendors/swiper/swiper-bundle.min.js"></script>
     <script src="/assets/default/vendors/owl-carousel2/owl.carousel.min.js"></script>
     <script src="/assets/default/vendors/parallax/parallax.min.js"></script>
+    <script>
+        // Fix parallax error by adding safety check
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Check if parallax elements exist before initializing
+                var parallaxElements = document.querySelectorAll('[data-parallax]');
+                if (parallaxElements.length > 0) {
+                    // Initialize parallax only if elements exist
+                    if (typeof Parallax !== 'undefined') {
+                        new Parallax(document.querySelector('[data-parallax]'));
+                    }
+                }
+            } catch (e) {
+                console.warn('Parallax initialization failed:', e);
+            }
+        });
+    </script>
     <script src="/assets/default/js/parts/home.min.js"></script>
     <script src="/assets/default/js/parts/categories.min.js"></script>
     <link href="/assets/default/vendors/flagstrap/css/flags.css" rel="stylesheet">

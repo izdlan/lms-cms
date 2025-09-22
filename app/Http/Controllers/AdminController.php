@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
 use App\Services\CsvImportService;
 
 class AdminController extends Controller
@@ -17,7 +18,7 @@ class AdminController extends Controller
 
     private function checkAdminAccess()
     {
-        if (!auth()->user()->isAdmin()) {
+        if (!Auth::user()->isAdmin()) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -113,6 +114,10 @@ class AdminController extends Controller
             'ic' => 'required|string|unique:users,ic',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'previous_university' => 'nullable|string',
+            'col_ref_no' => 'nullable|string',
+            'student_id' => 'nullable|string',
             'courses' => 'nullable|string',
         ]);
 
@@ -126,6 +131,10 @@ class AdminController extends Controller
             'ic' => $request->ic,
             'email' => $request->email,
             'phone' => $request->phone,
+            'address' => $request->address,
+            'previous_university' => $request->previous_university,
+            'col_ref_no' => $request->col_ref_no,
+            'student_id' => $request->student_id,
             'password' => Hash::make($request->ic), // Use IC as password
             'role' => 'student',
             'courses' => $courses,
@@ -158,6 +167,10 @@ class AdminController extends Controller
             'ic' => 'required|string|unique:users,ic,' . $student->id,
             'email' => 'required|email|unique:users,email,' . $student->id,
             'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+            'previous_university' => 'nullable|string',
+            'col_ref_no' => 'nullable|string',
+            'student_id' => 'nullable|string',
             'courses' => 'nullable|string',
         ]);
 
@@ -171,6 +184,10 @@ class AdminController extends Controller
             'ic' => $request->ic,
             'email' => $request->email,
             'phone' => $request->phone,
+            'address' => $request->address,
+            'previous_university' => $request->previous_university,
+            'col_ref_no' => $request->col_ref_no,
+            'student_id' => $request->student_id,
             'courses' => $courses,
         ]);
 

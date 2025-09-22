@@ -26,6 +26,10 @@ class User extends Authenticatable
         'role',
         'must_reset_password',
         'courses',
+        'address',
+        'previous_university',
+        'col_ref_no',
+        'student_id',
     ];
 
     /**
