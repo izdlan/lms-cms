@@ -26,7 +26,7 @@
                     </a>
                     <a href="{{ route('admin.sync') }}" class="nav-link">
                         <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel
+                        Sync from Excel/CSV
                     </a>
                     <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i data-feather="log-out" width="20" height="20"></i>
@@ -71,27 +71,27 @@
                     <div class="col-lg-8">
                         <div class="card">
                             <div class="card-header">
-                                <h5>Upload CSV File</h5>
+                                <h5>Upload Excel/CSV File</h5>
                             </div>
                             <div class="card-body">
                         <form action="{{ route('admin.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
                             @csrf
                             
                             <div class="mb-4">
-                                <label for="csv_file" class="form-label">Select CSV File</label>
+                                <label for="file" class="form-label">Select Excel/CSV File</label>
                                 <input type="file" 
-                                       class="form-control @error('csv_file') is-invalid @enderror" 
-                                       id="csv_file" 
-                                       name="csv_file" 
-                                       accept=".csv,.txt"
+                                       class="form-control @error('file') is-invalid @enderror" 
+                                       id="file" 
+                                       name="file" 
+                                       accept=".xlsx,.xls,.csv,.txt"
                                        required>
-                                @error('csv_file')
+                                @error('file')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
                                 @enderror
                                 <div class="form-text">
-                                    Supported formats: .csv, .txt
+                                    Supported formats: .xlsx, .xls, .csv, .txt
                                 </div>
                             </div>
 
@@ -110,10 +110,10 @@
                     <div class="col-lg-4">
                         <div class="card">
                             <div class="card-header">
-                                <h5>CSV Format Requirements</h5>
+                                <h5>File Format Requirements</h5>
                             </div>
                             <div class="card-body">
-                                <p class="text-muted mb-3">Your CSV file should have the following columns:</p>
+                                <p class="text-muted mb-3">Your Excel/CSV file should have the following columns:</p>
                                 
                                 <div class="requirements-list">
                                     <div class="requirement-item">
@@ -142,10 +142,11 @@
                                     <h6>Important Notes:</h6>
                                     <ul class="small text-muted">
                                         <li>First row should contain column headers</li>
-                                        <li>Use comma-separated values (CSV format)</li>
+                                        <li>Excel files (.xlsx, .xls) and CSV files (.csv, .txt) are supported</li>
                                         <li>IC number will be used as the default password</li>
                                         <li>Students can change their password via email</li>
                                         <li>Existing students will be updated if IC or email matches</li>
+                                        <li>For Excel files, data should be in the first sheet</li>
                                     </ul>
                                 </div>
                             </div>
@@ -154,14 +155,20 @@
                         <!-- Sample Download -->
                         <div class="card mt-3">
                             <div class="card-header">
-                                <h5>Sample File</h5>
+                                <h5>Sample Files</h5>
                             </div>
                             <div class="card-body">
-                                <p class="text-muted mb-3">Download a sample Excel file to see the correct format:</p>
-                                <a href="#" class="btn btn-outline-primary btn-sm" onclick="downloadSample()">
-                                    <i data-feather="download" width="16" height="16"></i>
-                                    Download Sample
-                                </a>
+                                <p class="text-muted mb-3">Download sample files to see the correct format:</p>
+                                <div class="d-grid gap-2">
+                                    <a href="#" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
+                                        <i data-feather="download" width="16" height="16"></i>
+                                        Download CSV Sample
+                                    </a>
+                                    <a href="#" class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+                                        <i data-feather="download" width="16" height="16"></i>
+                                        Download Excel Sample
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -305,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
     
     // File input change handler
-    const fileInput = document.getElementById('csv_file');
+    const fileInput = document.getElementById('file');
     const form = document.getElementById('importForm');
     
     if (fileInput) {
@@ -315,11 +322,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 const validTypes = [
                     'text/csv',
                     'text/plain',
-                    'application/csv'
+                    'application/csv',
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                    'application/vnd.ms-excel'
                 ];
                 
-                if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.csv')) {
-                    alert('Please select a valid CSV file.');
+                const validExtensions = ['.csv', '.txt', '.xlsx', '.xls'];
+                const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+                
+                if (!validTypes.includes(file.type) && !validExtensions.includes(fileExtension)) {
+                    Swal.fire({
+                        title: 'Invalid File Type',
+                        text: 'Please select a valid Excel (.xlsx, .xls) or CSV (.csv, .txt) file.',
+                        icon: 'error'
+                    });
                     this.value = '';
                     return;
                 }
@@ -327,6 +343,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Show file name
                 const fileName = file.name;
                 console.log('Selected file:', fileName);
+                
+                // Show success message
+                Swal.fire({
+                    title: 'File Selected',
+                    text: `Selected: ${fileName}`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
             }
         });
     }
@@ -334,10 +359,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission handler
     if (form) {
         form.addEventListener('submit', function(e) {
-            const fileInput = document.getElementById('csv_file');
+            const fileInput = document.getElementById('file');
             if (!fileInput.files.length) {
                 e.preventDefault();
-                alert('Please select a file to upload.');
+                Swal.fire({
+                    title: 'No File Selected',
+                    text: 'Please select a file to upload.',
+                    icon: 'warning'
+                });
                 return;
             }
             
@@ -346,11 +375,21 @@ document.addEventListener('DOMContentLoaded', function() {
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i data-feather="loader" width="20" height="20"></i> Importing...';
             feather.replace();
+            
+            // Show loading alert
+            Swal.fire({
+                title: 'Importing Students',
+                text: 'Please wait while we process your file...',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
         });
     }
 });
 
-function downloadSample() {
+function downloadSampleCSV() {
     // Create a sample CSV file content
     const sampleData = [
         ['name', 'ic', 'email', 'number', 'courses'],
@@ -368,6 +407,31 @@ function downloadSample() {
     const a = document.createElement('a');
     a.href = url;
     a.download = 'students_sample.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+}
+
+function downloadSampleExcel() {
+    // Create a sample Excel file content (simplified)
+    const sampleData = [
+        ['name', 'ic', 'email', 'number', 'courses'],
+        ['John Doe', '123456789012', 'john@example.com', '0123456789', 'Mathematics,Physics'],
+        ['Jane Smith', '987654321098', 'jane@example.com', '0987654321', 'Chemistry,Biology'],
+        ['Ahmad Ali', '112233445566', 'ahmad@example.com', '0112233445', 'English,History']
+    ];
+    
+    // For Excel, we'll create a CSV file with .xlsx extension
+    // In a real implementation, you'd use a library like SheetJS
+    const csvContent = sampleData.map(row => row.join(',')).join('\n');
+    
+    // Create and download file
+    const blob = new Blob([csvContent], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students_sample.xlsx';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

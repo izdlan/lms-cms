@@ -15,8 +15,17 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // Auto-sync students from Excel file every hour
-        $schedule->command('students:auto-sync')->hourly();
+        // Auto-import students from Excel file every minute
+        $schedule->command('students:auto-import')
+                 ->everyMinute()
+                 ->withoutOverlapping()
+                 ->runInBackground();
+        
+        // Optional: Also run every 5 minutes with email notification for important updates
+        $schedule->command('students:auto-import --email=admin@example.com')
+                 ->everyFiveMinutes()
+                 ->withoutOverlapping()
+                 ->runInBackground();
     }
 
     /**

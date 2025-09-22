@@ -20,13 +20,20 @@ class StudentAuthController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'ic' => 'required|string',
+            'login' => 'required|string', // Changed from 'ic' to 'login' to support both IC and email
             'password' => 'required|string',
         ]);
 
-        $user = User::where('ic', $request->ic)
+        // Try to find user by IC/Passport first, then by email
+        $user = User::where('ic', $request->login)
                    ->where('role', 'student')
                    ->first();
+        
+        if (!$user) {
+            $user = User::where('email', $request->login)
+                       ->where('role', 'student')
+                       ->first();
+        }
 
         if ($user && Hash::check($request->password, $user->password)) {
             Auth::login($user, $request->filled('remember'));
@@ -39,8 +46,8 @@ class StudentAuthController extends Controller
         }
 
         return back()->withErrors([
-            'ic' => 'The provided credentials do not match our records.',
-        ])->onlyInput('ic');
+            'login' => 'The provided credentials do not match our records.',
+        ])->onlyInput('login');
     }
 
     public function logout(Request $request)

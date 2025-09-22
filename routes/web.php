@@ -68,5 +68,7 @@ Route::prefix('admin')->group(function () {
         Route::post('/import', [AdminController::class, 'importStudents'])->name('admin.import');
         Route::get('/sync', [AdminController::class, 'showImportForm'])->name('admin.sync');
         Route::post('/sync', [AdminController::class, 'syncFromCsv'])->name('admin.sync');
+        Route::get('/automation', [AdminController::class, 'automation'])->name('admin.automation');
+        Route::post('/automation/trigger-import', [AdminController::class, 'triggerImport'])->name('admin.automation.trigger');
     });
 });

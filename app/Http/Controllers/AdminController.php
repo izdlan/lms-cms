@@ -7,7 +7,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
-use App\Services\CsvImportService;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
+use CsvImportService;
 
 class AdminController extends Controller
 {
@@ -52,24 +54,64 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('csv_file');
-            $filePath = $file->getRealPath();
+            $file = $request->file('file');
+            $fileExtension = $file->getClientOriginalExtension();
             
-            $csvService = new CsvImportService();
+            if (in_array($fileExtension, ['xlsx', 'xls'])) {
+                // Handle Excel files
+                return $this->importFromExcel($file);
+            } else {
+                // Handle CSV files
+                return $this->importFromCsv($file);
+            }
+        } catch (\Exception $e) {
+            Log::error('Import error', [
+                'error' => $e->getMessage(),
+                'file' => $file->getClientOriginalName()
+            ]);
+            return back()->withErrors(['file' => 'Error importing file: ' . $e->getMessage()]);
+        }
+    }
+
+    private function importFromExcel($file)
+    {
+        try {
+            // Use the existing Excel import functionality
+            $import = new \App\Imports\StudentsImport();
+            $import->setCurrentSheet('Sheet1'); // Default sheet for single file upload
+            
+            \Maatwebsite\Excel\Facades\Excel::import($import, $file);
+            
+            $stats = $import->getStats();
+            $message = "Excel import completed! Created: {$stats['created']}, Updated: {$stats['updated']}, Errors: {$stats['errors']}";
+            
+            return redirect()->route('admin.students')->with('success', $message);
+        } catch (\Exception $e) {
+            Log::error('Excel import error', ['error' => $e->getMessage()]);
+            return back()->withErrors(['file' => 'Error importing Excel file: ' . $e->getMessage()]);
+        }
+    }
+
+    private function importFromCsv($file)
+    {
+        try {
+            $filePath = $file->getRealPath();
+            $csvService = new \App\Services\CsvImportService();
             $result = $csvService->importFromCsv($filePath);
             
             if ($result['success']) {
-                $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                $message = "CSV import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
                 return redirect()->route('admin.students')->with('success', $message);
             } else {
-                return back()->withErrors(['csv_file' => 'Error importing file.']);
+                return back()->withErrors(['file' => 'Error importing CSV file.']);
             }
         } catch (\Exception $e) {
-            return back()->withErrors(['csv_file' => 'Error importing file: ' . $e->getMessage()]);
+            Log::error('CSV import error', ['error' => $e->getMessage()]);
+            return back()->withErrors(['file' => 'Error importing CSV file: ' . $e->getMessage()]);
         }
     }
 
@@ -78,24 +120,26 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
+            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('csv_file');
-            $filePath = $file->getRealPath();
+            $file = $request->file('file');
+            $fileExtension = $file->getClientOriginalExtension();
             
-            $csvService = new CsvImportService();
-            $result = $csvService->importFromCsv($filePath);
-            
-            if ($result['success']) {
-                $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
-                return redirect()->route('admin.students')->with('success', $message);
+            if (in_array($fileExtension, ['xlsx', 'xls'])) {
+                // Handle Excel files
+                return $this->importFromExcel($file);
             } else {
-                return back()->withErrors(['csv_file' => 'Error syncing file.']);
+                // Handle CSV files
+                return $this->importFromCsv($file);
             }
         } catch (\Exception $e) {
-            return back()->withErrors(['csv_file' => 'Error syncing file: ' . $e->getMessage()]);
+            Log::error('Sync error', [
+                'error' => $e->getMessage(),
+                'file' => $file->getClientOriginalName()
+            ]);
+            return back()->withErrors(['file' => 'Error syncing file: ' . $e->getMessage()]);
         }
     }
 
@@ -202,8 +246,25 @@ class AdminController extends Controller
             abort(404);
         }
 
-        $student->delete();
-        return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
+        try {
+            $studentName = $student->name;
+            $student->delete();
+            
+            Log::info('Student deleted successfully', [
+                'student_id' => $student->id,
+                'student_name' => $studentName,
+                'deleted_by' => Auth::user()->name
+            ]);
+            
+            return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
+        } catch (\Exception $e) {
+            Log::error('Error deleting student', [
+                'student_id' => $student->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return redirect()->route('admin.students')->with('error', 'Error deleting student: ' . $e->getMessage());
+        }
     }
 
     public function bulkDeleteStudents(Request $request)
@@ -231,5 +292,116 @@ class AdminController extends Controller
             : "{$deletedCount} students deleted successfully!";
 
         return redirect()->route('admin.students')->with('success', $message);
+    }
+
+    public function automation()
+    {
+        $this->checkAdminAccess();
+        
+        // Get real automation status
+        $automationConfig = $this->getAutomationConfig();
+        $lastImportTime = cache()->get('last_auto_import_time', null);
+        $totalStudents = User::where('role', 'student')->count();
+        $filePath = $automationConfig['excel_file'] ?? storage_path('app/students/Enrollment OEM.xlsx');
+        $fileExists = file_exists($filePath);
+        $fileStatus = $fileExists ? 'Watching' : 'File Not Found';
+        $lastModified = $fileExists ? filemtime($filePath) : null;
+        
+        // Get recent import logs
+        $recentLogs = $this->getRecentImportLogs();
+        
+        return view('admin.automation', compact(
+            'automationConfig',
+            'lastImportTime', 
+            'totalStudents',
+            'fileStatus',
+            'lastModified',
+            'recentLogs'
+        ));
+    }
+    
+    private function getAutomationConfig()
+    {
+        $configPath = storage_path('app/automation.json');
+        if (file_exists($configPath)) {
+            return json_decode(file_get_contents($configPath), true);
+        }
+        
+        return [
+            'excel_file' => storage_path('app/students/Enrollment OEM.xlsx'),
+            'notification_email' => 'admin@example.com',
+            'import_frequency' => 'every-minute',
+            'status' => 'Enabled'
+        ];
+    }
+    
+    private function getRecentImportLogs()
+    {
+        // Read recent log entries related to auto import
+        $logFile = storage_path('logs/laravel.log');
+        $logs = [];
+        
+        if (file_exists($logFile)) {
+            $logContent = file_get_contents($logFile);
+            $lines = explode("\n", $logContent);
+            
+            // Get last 20 lines that contain auto import info
+            $autoImportLines = array_filter($lines, function($line) {
+                return strpos($line, 'AutoImportStudents') !== false || 
+                       strpos($line, 'Auto import') !== false ||
+                       strpos($line, 'students:auto-import') !== false;
+            });
+            
+            $recentLines = array_slice(array_reverse($autoImportLines), 0, 10);
+            
+            foreach ($recentLines as $line) {
+                if (preg_match('/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\].*?(\w+):\s*(.+)/', $line, $matches)) {
+                    $logs[] = [
+                        'time' => $matches[1],
+                        'level' => strtolower($matches[2]),
+                        'message' => trim($matches[3])
+                    ];
+                }
+            }
+        }
+        
+        return $logs;
+    }
+
+    public function triggerImport(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $filePath = $request->input('file_path', storage_path('app/students/Enrollment OEM.xlsx'));
+            $email = $request->input('email');
+            
+            // Run the auto-import command
+            $exitCode = Artisan::call('students:auto-import', [
+                '--file' => $filePath,
+                '--email' => $email,
+                '--force' => true
+            ]);
+            
+            if ($exitCode === 0) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Import completed successfully!',
+                    'output' => Artisan::output()
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Import failed with exit code: ' . $exitCode,
+                    'output' => Artisan::output()
+                ]);
+            }
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Import error: ' . $e->getMessage()
+            ]);
+        }
     }
 }

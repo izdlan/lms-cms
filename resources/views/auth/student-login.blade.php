@@ -19,23 +19,23 @@
                     <div class="login-card">
                         <div class="login-header text-center mb-4">
                             <h2 class="login-title">Student Login</h2>
-                            <p class="login-subtitle">Enter your IC and password to continue</p>
+                            <p class="login-subtitle">Enter your IC/Passport or Email and password to continue</p>
                         </div>
 
                         <form method="POST" action="{{ route('student.login') }}" class="login-form">
                             @csrf
                             
                             <div class="form-group mb-3">
-                                <label for="ic" class="form-label">IC Number</label>
+                                <label for="login" class="form-label">IC/Passport or Email</label>
                                 <input type="text" 
-                                       class="form-control @error('ic') is-invalid @enderror" 
-                                       id="ic" 
-                                       name="ic" 
-                                       value="{{ old('ic') }}" 
-                                       placeholder="Enter your IC number"
+                                       class="form-control @error('login') is-invalid @enderror" 
+                                       id="login" 
+                                       name="login" 
+                                       value="{{ old('login') }}" 
+                                       placeholder="Enter your IC/Passport or Email"
                                        required 
                                        autofocus>
-                                @error('ic')
+                                @error('login')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
