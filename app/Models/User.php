@@ -31,6 +31,24 @@ class User extends Authenticatable
         'col_ref_no',
         'student_id',
         'source_sheet',
+        // Academic Information
+        'category',
+        'programme_name',
+        'faculty',
+        'programme_code',
+        'semester_entry',
+        'programme_intake',
+        'date_of_commencement',
+        // Research Information
+        'research_title',
+        'supervisor',
+        'external_examiner',
+        'internal_examiner',
+        // Student Portal Information
+        'student_portal_username',
+        'student_portal_password',
+        // Additional Dates
+        'col_date',
     ];
 
     /**

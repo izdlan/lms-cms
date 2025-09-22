@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use App\Services\CsvImportService;
+use App\Services\XlsxImportService;
 
 class AdminController extends Controller
 {
@@ -52,24 +53,40 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('csv_file');
-            $filePath = $file->getRealPath();
+            $file = $request->file('excel_file');
+            $fileExtension = $file->getClientOriginalExtension();
             
-            $csvService = new CsvImportService();
-            $result = $csvService->importFromCsv($filePath);
-            
-            if ($result['success']) {
-                $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
-                return redirect()->route('admin.students')->with('success', $message);
+            if (in_array($fileExtension, ['xlsx', 'xls'])) {
+                // Handle Excel files using XlsxImportService
+                $xlsxService = new XlsxImportService();
+                $result = $xlsxService->importFromXlsx($file->getRealPath());
+                
+                if ($result['success']) {
+                    $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    $errorMessage = isset($result['message']) ? $result['message'] : 'Error importing Excel file.';
+                    return back()->withErrors(['excel_file' => $errorMessage]);
+                }
             } else {
-                return back()->withErrors(['csv_file' => 'Error importing file.']);
+                // Handle CSV files using existing service
+                $filePath = $file->getRealPath();
+                $csvService = new CsvImportService();
+                $result = $csvService->importFromCsv($filePath);
+                
+                if ($result['success']) {
+                    $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    return back()->withErrors(['excel_file' => 'Error importing file.']);
+                }
             }
         } catch (\Exception $e) {
-            return back()->withErrors(['csv_file' => 'Error importing file: ' . $e->getMessage()]);
+            return back()->withErrors(['excel_file' => 'Error importing file: ' . $e->getMessage()]);
         }
     }
 
@@ -78,24 +95,40 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('csv_file');
-            $filePath = $file->getRealPath();
+            $file = $request->file('excel_file');
+            $fileExtension = $file->getClientOriginalExtension();
             
-            $csvService = new CsvImportService();
-            $result = $csvService->importFromCsv($filePath);
-            
-            if ($result['success']) {
-                $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
-                return redirect()->route('admin.students')->with('success', $message);
+            if (in_array($fileExtension, ['xlsx', 'xls'])) {
+                // Handle Excel files using XlsxImportService
+                $xlsxService = new XlsxImportService();
+                $result = $xlsxService->importFromXlsx($file->getRealPath());
+                
+                if ($result['success']) {
+                    $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    $errorMessage = isset($result['message']) ? $result['message'] : 'Error syncing Excel file.';
+                    return back()->withErrors(['excel_file' => $errorMessage]);
+                }
             } else {
-                return back()->withErrors(['csv_file' => 'Error syncing file.']);
+                // Handle CSV files using existing service
+                $filePath = $file->getRealPath();
+                $csvService = new CsvImportService();
+                $result = $csvService->importFromCsv($filePath);
+                
+                if ($result['success']) {
+                    $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    return back()->withErrors(['excel_file' => 'Error syncing file.']);
+                }
             }
         } catch (\Exception $e) {
-            return back()->withErrors(['csv_file' => 'Error syncing file: ' . $e->getMessage()]);
+            return back()->withErrors(['excel_file' => 'Error syncing file: ' . $e->getMessage()]);
         }
     }
 

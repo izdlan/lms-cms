@@ -6,113 +6,139 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 
-class CsvImportService
+class XlsxImportService
 {
-    public function importFromCsv($filePath)
+    public function importFromXlsx($filePath)
     {
         $created = 0;
         $updated = 0;
         $errors = 0;
 
         if (!file_exists($filePath)) {
-            Log::error('CSV file not found: ' . $filePath);
-            return false;
+            Log::error('XLSX file not found: ' . $filePath);
+            return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
         }
 
-        $handle = fopen($filePath, 'r');
-        if (!$handle) {
-            Log::error('Could not open CSV file: ' . $filePath);
-            return false;
+        // Check if ZipArchive is available
+        if (!class_exists('ZipArchive')) {
+            Log::error('ZipArchive class not available. Please enable zip extension in PHP.');
+            return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1, 'message' => 'ZipArchive extension not available. Please convert your Excel file to CSV format.'];
         }
 
-        // Read header row
-        $header = fgetcsv($handle);
-        if (!$header) {
-            fclose($handle);
-            Log::error('Could not read header from CSV file');
-            return false;
-        }
-
-        // Remove BOM and normalize header names
-        $header = array_map(function($h) {
-            // Remove BOM and trim
-            $h = trim($h);
-            // Remove UTF-8 BOM if present
-            if (substr($h, 0, 3) === "\xEF\xBB\xBF") {
-                $h = substr($h, 3);
-            }
-            return trim($h);
-        }, $header);
-
-        Log::info('CSV Headers detected', ['headers' => $header]);
-
-        while (($row = fgetcsv($handle)) !== false) {
-            if (count($header) !== count($row)) {
-                Log::warning('Row column count mismatch', [
-                    'expected' => count($header),
-                    'actual' => count($row),
-                    'row' => $row
-                ]);
-                $errors++;
-                continue;
-            }
-
-            $data = array_combine($header, $row);
-            
-            // Skip empty rows
-            if (empty(array_filter($data))) {
-                continue;
-            }
-            
-            // Only process rows that contain "LMS" in any field (indicating student data)
-            $hasLmsData = false;
-            foreach ($data as $value) {
-                if (stripos($value, 'LMS') !== false) {
-                    $hasLmsData = true;
-                    break;
+        try {
+            // Read XLSX file using simple XML parsing
+            $zip = new \ZipArchive();
+            if ($zip->open($filePath) === TRUE) {
+                // Read the shared strings
+                $sharedStrings = [];
+                $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
+                if ($sharedStringsXml) {
+                    $xml = simplexml_load_string($sharedStringsXml);
+                    if ($xml && isset($xml->si)) {
+                        foreach ($xml->si as $si) {
+                            $sharedStrings[] = (string)$si->t;
+                        }
+                    }
                 }
-            }
-            
-            if (!$hasLmsData) {
-                continue; // Skip non-LMS rows
-            }
 
-            // Extract data with flexible column matching
-            $extractedData = $this->extractStudentData($data);
-            
-            if (!$extractedData) {
-                $errors++;
-                continue;
-            }
+                // Read the worksheet
+                $worksheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
+                if ($worksheetXml) {
+                    $xml = simplexml_load_string($worksheetXml);
+                    if ($xml && isset($xml->sheetData->row)) {
+                        $rows = [];
+                        foreach ($xml->sheetData->row as $row) {
+                            $rowData = [];
+                            if (isset($row->c)) {
+                                foreach ($row->c as $cell) {
+                                    $value = '';
+                                    if (isset($cell->v)) {
+                                        $cellValue = (string)$cell->v;
+                                        // Check if it's a shared string
+                                        if (isset($cell['t']) && $cell['t'] == 's') {
+                                            $value = isset($sharedStrings[$cellValue]) ? $sharedStrings[$cellValue] : '';
+                                        } else {
+                                            $value = $cellValue;
+                                        }
+                                    }
+                                    $rowData[] = $value;
+                                }
+                            }
+                            $rows[] = $rowData;
+                        }
 
-            // Process the student data
-            $result = $this->processStudent($extractedData);
-            if ($result['success']) {
-                if ($result['action'] === 'created') {
-                    $created++;
-                } else {
-                    $updated++;
+                        // Process the rows
+                        if (!empty($rows)) {
+                            $header = array_shift($rows); // First row is header
+                            
+                            // Remove BOM and normalize headers
+                            $header = array_map(function($h) {
+                                $h = trim($h);
+                                if (substr($h, 0, 3) === "\xEF\xBB\xBF") {
+                                    $h = substr($h, 3);
+                                }
+                                return trim($h);
+                            }, $header);
+
+                            Log::info('XLSX Headers detected', ['headers' => $header]);
+
+                            foreach ($rows as $rowIndex => $row) {
+                                if (count($header) !== count($row)) {
+                                    Log::warning('Row column count mismatch', [
+                                        'expected' => count($header),
+                                        'actual' => count($row),
+                                        'row' => $row
+                                    ]);
+                                    $errors++;
+                                    continue;
+                                }
+
+                                $data = array_combine($header, $row);
+                                
+                                // Skip empty rows
+                                if (empty(array_filter($data))) {
+                                    continue;
+                                }
+
+                                // Extract data with flexible column matching
+                                $extractedData = $this->extractStudentData($data);
+                                
+                                if (!$extractedData) {
+                                    $errors++;
+                                    continue;
+                                }
+
+                                // Process the student data
+                                $result = $this->processStudent($extractedData);
+                                if ($result['success']) {
+                                    if ($result['action'] === 'created') {
+                                        $created++;
+                                    } else {
+                                        $updated++;
+                                    }
+                                } else {
+                                    $errors++;
+                                }
+                            }
+                        }
+                    }
                 }
+                $zip->close();
             } else {
-                $errors++;
+                Log::error('Could not open XLSX file: ' . $filePath);
+                return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
             }
+
+        } catch (\Exception $e) {
+            Log::error('Error processing XLSX file: ' . $e->getMessage());
+            return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
         }
-
-        fclose($handle);
-
-        // Log import summary
-        Log::info('CSV import completed', [
-            'created' => $created,
-            'updated' => $updated,
-            'errors' => $errors,
-            'total_processed' => $created + $updated + $errors
-        ]);
 
         return [
+            'success' => true,
             'created' => $created,
             'updated' => $updated,
-            'errors' => $errors,
-            'success' => true
+            'errors' => $errors
         ];
     }
 
@@ -279,7 +305,7 @@ class CsvImportService
                     'col_date' => $data['colDate'] ?: null,
                 ]);
 
-                Log::info('Student created from CSV', ['name' => $data['name'], 'ic' => $data['ic']]);
+                Log::info('Student created from XLSX', ['name' => $data['name'], 'ic' => $data['ic']]);
                 return ['success' => true, 'action' => 'created'];
             } else {
                 // Update existing user
@@ -308,11 +334,11 @@ class CsvImportService
                     'col_date' => $data['colDate'] ?: $user->col_date,
                 ]);
 
-                Log::info('Student updated from CSV', ['name' => $data['name'], 'ic' => $data['ic']]);
+                Log::info('Student updated from XLSX', ['name' => $data['name'], 'ic' => $data['ic']]);
                 return ['success' => true, 'action' => 'updated'];
             }
         } catch (\Exception $e) {
-            Log::error('Error processing student from CSV', [
+            Log::error('Error processing student from XLSX', [
                 'data' => $data,
                 'error' => $e->getMessage()
             ]);
