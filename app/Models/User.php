@@ -30,6 +30,7 @@ class User extends Authenticatable
         'previous_university',
         'col_ref_no',
         'student_id',
+        'source_sheet',
     ];
 
     /**

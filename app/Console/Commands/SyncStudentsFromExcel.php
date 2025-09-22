@@ -22,13 +22,24 @@ class SyncStudentsFromExcel extends Command
 
         $this->info('Starting student sync from: ' . $file);
         
-        try {
-            Excel::import(new StudentsImport, $file, null, \Maatwebsite\Excel\Excel::XLSX, 'DHU LMS');
-            $this->info('Student sync completed successfully!');
-            return 0;
-        } catch (\Exception $e) {
-            $this->error('Error during sync: ' . $e->getMessage());
-            return 1;
+        $allowedSheets = ['DHU LMS', 'IUC LMS', 'VIVA-IUC LMS', 'LUC LMS'];
+        $totalCreated = 0;
+        $totalUpdated = 0;
+        $totalErrors = 0;
+
+        foreach ($allowedSheets as $sheetName) {
+            $this->info("Processing sheet: {$sheetName}");
+            try {
+                $import = new StudentsImport();
+                $import->setCurrentSheet($sheetName);
+                Excel::import($import, $file, null, \Maatwebsite\Excel\Excel::XLSX, $sheetName);
+                $this->info("Completed processing sheet: {$sheetName}");
+            } catch (\Exception $e) {
+                $this->warn("Error processing sheet {$sheetName}: " . $e->getMessage());
+            }
         }
+
+        $this->info('Student sync completed for all allowed sheets!');
+        return 0;
     }
 }

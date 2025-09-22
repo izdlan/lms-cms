@@ -63,6 +63,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/students/{student}/edit', [AdminController::class, 'editStudent'])->name('admin.students.edit');
         Route::put('/students/{student}', [AdminController::class, 'updateStudent'])->name('admin.students.update');
         Route::delete('/students/{student}', [AdminController::class, 'deleteStudent'])->name('admin.students.delete');
+        Route::post('/students/bulk-delete', [AdminController::class, 'bulkDeleteStudents'])->name('admin.students.bulk-delete');
         Route::get('/import', [AdminController::class, 'showImportForm'])->name('admin.import');
         Route::post('/import', [AdminController::class, 'importStudents'])->name('admin.import');
         Route::get('/sync', [AdminController::class, 'showImportForm'])->name('admin.sync');

@@ -205,4 +205,31 @@ class AdminController extends Controller
         $student->delete();
         return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
     }
+
+    public function bulkDeleteStudents(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $request->validate([
+            'student_ids' => 'required|array|min:1',
+            'student_ids.*' => 'integer|exists:users,id'
+        ]);
+
+        $studentIds = $request->input('student_ids');
+        $deletedCount = 0;
+
+        foreach ($studentIds as $studentId) {
+            $student = User::find($studentId);
+            if ($student && $student->role === 'student') {
+                $student->delete();
+                $deletedCount++;
+            }
+        }
+
+        $message = $deletedCount === 1 
+            ? '1 student deleted successfully!' 
+            : "{$deletedCount} students deleted successfully!";
+
+        return redirect()->route('admin.students')->with('success', $message);
+    }
 }

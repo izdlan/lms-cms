@@ -65,8 +65,14 @@
                 <div class="card">
                     <div class="card-header">
                         <h5>All Students ({{ $students->total() }})</h5>
-                        <div class="search-box">
-                            <input type="text" class="form-control" placeholder="Search students..." id="searchInput">
+                        <div class="d-flex gap-2">
+                            <div class="search-box">
+                                <input type="text" class="form-control" placeholder="Search students..." id="searchInput">
+                            </div>
+                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" disabled onclick="bulkDeleteStudents()">
+                                <i data-feather="trash-2" width="16" height="16"></i>
+                                Delete Selected
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -75,12 +81,15 @@
                                 <table class="table table-hover" id="studentsTable">
                                     <thead>
                                         <tr>
+                                            <th>
+                                                <input type="checkbox" id="selectAll" class="form-check-input">
+                                            </th>
                                             <th>Name</th>
                                             <th>IC/Passport</th>
                                             <th>Email</th>
                                             <th>Phone</th>
                                             <th>Student ID</th>
-                                            <th>Previous University</th>
+                                            <th>Source Sheet</th>
                                             <th>Created</th>
                                             <th>Actions</th>
                                         </tr>
@@ -88,6 +97,9 @@
                                     <tbody>
                                         @foreach($students as $student)
                                             <tr>
+                                                <td>
+                                                    <input type="checkbox" class="form-check-input student-checkbox" value="{{ $student->id }}">
+                                                </td>
                                                 <td>
                                                     <div class="student-info">
                                                         <strong>{{ $student->name }}</strong>
@@ -98,10 +110,8 @@
                                                 <td>{{ $student->phone ?? 'N/A' }}</td>
                                                 <td>{{ $student->student_id ?? 'N/A' }}</td>
                                                 <td>
-                                                    @if($student->previous_university)
-                                                        <span class="text-truncate d-inline-block" style="max-width: 150px;" title="{{ $student->previous_university }}">
-                                                            {{ $student->previous_university }}
-                                                        </span>
+                                                    @if($student->source_sheet)
+                                                        <span class="badge bg-info">{{ $student->source_sheet }}</span>
                                                     @else
                                                         <span class="text-muted">N/A</span>
                                                     @endif
@@ -112,7 +122,7 @@
                                                         <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-primary">
                                                             <i data-feather="edit" width="14" height="14"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStudent({{ $student->id }})">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStudent({{ $student->id }}, '{{ $student->name }}', '{{ $student->email }}')">
                                                             <i data-feather="trash-2" width="14" height="14"></i>
                                                         </button>
                                                     </div>
@@ -160,7 +170,20 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                Are you sure you want to delete this student? This action cannot be undone.
+                <div class="alert alert-warning">
+                    <i data-feather="alert-triangle" width="20" height="20"></i>
+                    <strong>Warning!</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to delete the following student?</p>
+                <div class="card">
+                    <div class="card-body">
+                        <h6 class="card-title" id="deleteStudentName"></h6>
+                        <p class="card-text">
+                            <strong>Email:</strong> <span id="deleteStudentEmail"></span><br>
+                            <strong>Student ID:</strong> <span id="deleteStudentId"></span>
+                        </p>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -169,6 +192,30 @@
                     @method('DELETE')
                     <button type="submit" class="btn btn-danger">Delete</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Bulk Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <i data-feather="alert-triangle" width="20" height="20"></i>
+                    <strong>Danger!</strong> This action cannot be undone.
+                </div>
+                <p>Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected students?</p>
+                <div id="bulkDeleteList"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="confirmBulkDelete()">Delete All Selected</button>
             </div>
         </div>
     </div>
@@ -277,6 +324,22 @@
     width: 300px;
 }
 
+.student-checkbox {
+    transform: scale(1.2);
+}
+
+#bulkDeleteBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.list-group-item {
+    border: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 0.375rem;
+}
+
 .table th {
     border-top: none;
     font-weight: 600;
@@ -343,14 +406,124 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+    
+    // Select all functionality
+    const selectAllCheckbox = document.getElementById('selectAll');
+    const studentCheckboxes = document.querySelectorAll('.student-checkbox');
+    const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+    
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', function() {
+            studentCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateBulkDeleteButton();
+        });
+    }
+    
+    // Individual checkbox functionality
+    studentCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateBulkDeleteButton();
+            updateSelectAllCheckbox();
+        });
+    });
+    
+    function updateBulkDeleteButton() {
+        const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+        bulkDeleteBtn.disabled = checkedBoxes.length === 0;
+        bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
+    }
+    
+    function updateSelectAllCheckbox() {
+        const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+        const totalBoxes = document.querySelectorAll('.student-checkbox');
+        
+        if (checkedBoxes.length === 0) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = false;
+        } else if (checkedBoxes.length === totalBoxes.length) {
+            selectAllCheckbox.indeterminate = false;
+            selectAllCheckbox.checked = true;
+        } else {
+            selectAllCheckbox.indeterminate = true;
+        }
+    }
 });
 
-function deleteStudent(studentId) {
+function deleteStudent(studentId, studentName, studentEmail) {
     const deleteForm = document.getElementById('deleteForm');
     deleteForm.action = `/admin/students/${studentId}`;
     
+    // Populate modal with student details
+    document.getElementById('deleteStudentName').textContent = studentName;
+    document.getElementById('deleteStudentEmail').textContent = studentEmail;
+    
+    // Get student ID from the table row (we'll need to pass this too)
+    const studentIdElement = document.querySelector(`button[onclick*="${studentId}"]`).closest('tr').querySelector('td:nth-child(5)`);
+    const studentIdValue = studentIdElement ? studentIdElement.textContent : 'N/A';
+    document.getElementById('deleteStudentId').textContent = studentIdValue;
+    
     const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
     modal.show();
+}
+
+function bulkDeleteStudents() {
+    const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+    const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    if (studentIds.length === 0) {
+        alert('Please select at least one student to delete.');
+        return;
+    }
+    
+    // Populate modal with selected students
+    document.getElementById('bulkDeleteCount').textContent = studentIds.length;
+    
+    const studentList = document.getElementById('bulkDeleteList');
+    studentList.innerHTML = '<ul class="list-group">';
+    
+    checkedBoxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const name = row.querySelector('td:nth-child(2) strong').textContent;
+        const email = row.querySelector('td:nth-child(4)').textContent;
+        studentList.innerHTML += `<li class="list-group-item">${name} - ${email}</li>`;
+    });
+    
+    studentList.innerHTML += '</ul>';
+    
+    const modal = new bootstrap.Modal(document.getElementById('bulkDeleteModal'));
+    modal.show();
+}
+
+function confirmBulkDelete() {
+    const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+    const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    // Create a form to submit multiple delete requests
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/admin/students/bulk-delete';
+    
+    // Add CSRF token
+    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = '_token';
+    csrfInput.value = csrfToken;
+    form.appendChild(csrfInput);
+    
+    // Add student IDs
+    studentIds.forEach(id => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'student_ids[]';
+        input.value = id;
+        form.appendChild(input);
+    });
+    
+    document.body.appendChild(form);
+    form.submit();
 }
 </script>
 @endpush
