@@ -98,4 +98,29 @@ class StudentAuthController extends Controller
             ? redirect()->route('student.login')->with('status', __($status))
             : back()->withErrors(['email' => [__($status)]]);
     }
+
+    public function showPasswordChangeForm()
+    {
+        return view('student.password-change');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required',
+            'password' => 'required|confirmed|min:6',
+        ]);
+
+        $user = Auth::user();
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
+        }
+
+        $user->update([
+            'password' => Hash::make($request->password),
+        ]);
+
+        return redirect()->route('student.dashboard')->with('success', 'Password changed successfully!');
+    }
 }

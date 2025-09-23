@@ -206,5 +206,3 @@ class AutoImportStudents extends Command
         return $content;
     }
 }
-
-

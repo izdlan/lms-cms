@@ -53,31 +53,39 @@
     <link rel="stylesheet" href="/assets/default/vendors/toast/jquery.toast.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/simplebar/simplebar.css">
     <link rel="stylesheet" href="/assets/default/css/app.css">
+    
+    <!-- Custom Optima Font Override -->
+    <style>
+        /* Override any existing font definitions with Optima */
+        html, body, div, span, applet, object, iframe,
+        h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+        a, abbr, acronym, address, big, cite, code,
+        del, dfn, em, img, ins, kbd, q, s, samp,
+        small, strike, strong, sub, sup, tt, var,
+        b, u, i, center, dl, dt, dd, ol, ul, li,
+        fieldset, form, label, legend, table, caption,
+        tbody, tfoot, thead, tr, th, td, article, aside,
+        canvas, details, embed, figure, figcaption, footer,
+        header, hgroup, menu, nav, output, ruby, section,
+        summary, time, mark, audio, video, input, textarea, select, button {
+            font-family: 'main-font-family', 'Optima', 'Optima-Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
+        }
+    </style>
 
     <link rel="stylesheet" href="/assets/default/vendors/swiper/swiper-bundle.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/owl-carousel2/owl.carousel.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
-    
     <style>
+        /* Optima Font Family */
         @font-face {
             font-family: 'main-font-family';
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2') format('woff2');
-        }
-
-        @font-face {
-            font-family: 'main-font-family';
-            font-style: normal;
-            font-weight: 700;
-            font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXpsog.woff2') format('woff2');
+            src: local('Optima'), local('Optima-Regular'), 
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
         }
 
         @font-face {
@@ -85,7 +93,19 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw9aXpsog.woff2') format('woff2');
+            src: local('Optima Medium'), local('Optima-Medium'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
+        }
+
+        @font-face {
+            font-family: 'main-font-family';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: local('Optima Bold'), local('Optima-Bold'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
         }
 
         @font-face {
@@ -93,15 +113,9 @@
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw5aXpsog.woff2') format('woff2');
-        }
-
-        @font-face {
-            font-family: 'rtl-font-family';
-            font-style: normal;
-            font-weight: 700;
-            font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw3aXpsog.woff2') format('woff2');
+            src: local('Optima'), local('Optima-Regular'), 
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
         }
 
         @font-face {
@@ -109,7 +123,19 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: url('https://fonts.gstatic.com/s/montserrat/v26/JTUHjIg1_i6t8kCHKm4532VJOt5-QNFgpCtr6Hw9aXpsog.woff2') format('woff2');
+            src: local('Optima Medium'), local('Optima-Medium'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
+        }
+
+        @font-face {
+            font-family: 'rtl-font-family';
+            font-style: normal;
+            font-weight: 700;
+            font-display: swap;
+            src: local('Optima Bold'), local('Optima-Bold'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
         }
 
         :root {
@@ -125,7 +151,12 @@
 
         /* Font fallback to prevent loading errors */
         body {
-            font-family: 'Montserrat', 'main-font-family', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'main-font-family', 'Optima', 'Optima-Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        /* Apply Optima font to all elements */
+        * {
+            font-family: 'main-font-family', 'Optima', 'Optima-Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif !important;
         }
 
         /* Hide font loading errors */

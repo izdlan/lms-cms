@@ -31,6 +31,8 @@ Route::prefix('student')->group(function () {
         return view('auth.student-password-reset', ['token' => $token]);
     })->name('student.password.reset.token');
     Route::post('/password/reset', [StudentAuthController::class, 'resetPassword'])->name('student.password.update');
+    Route::get('/password/change', [StudentAuthController::class, 'showPasswordChangeForm'])->name('student.password.change');
+    Route::post('/password/change', [StudentAuthController::class, 'changePassword'])->name('student.password.change.post');
     
     // Protected student routes
     Route::middleware('auth')->group(function () {
