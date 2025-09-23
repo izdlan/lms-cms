@@ -119,6 +119,7 @@ class StudentAuthController extends Controller
 
         $user->update([
             'password' => Hash::make($request->password),
+            'must_reset_password' => false,
         ]);
 
         return redirect()->route('student.dashboard')->with('success', 'Password changed successfully!');
