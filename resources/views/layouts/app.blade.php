@@ -54,6 +54,11 @@
     <link rel="stylesheet" href="/assets/default/vendors/simplebar/simplebar.css">
     <link rel="stylesheet" href="/assets/default/css/app.css">
     
+    <!-- Professional CSS Structure -->
+    <link rel="stylesheet" href="/assets/default/css/admin.css">
+    <link rel="stylesheet" href="/assets/default/css/auth.css">
+    <link rel="stylesheet" href="/assets/default/css/student.css">
+    
     <!-- Custom Optima Font Override -->
     <style>
         /* Override any existing font definitions with Optima */
