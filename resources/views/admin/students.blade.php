@@ -126,7 +126,10 @@
                                                         <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-primary">
                                                             <i data-feather="edit" width="14" height="14"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStudent({{ $student->id }}, '{{ addslashes($student->name) }}', '{{ $student->email }}')">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-student-btn" 
+                                                                data-student-id="{{ $student->id }}" 
+                                                                data-student-name="{{ $student->name }}" 
+                                                                data-student-email="{{ $student->email }}">
                                                             <i data-feather="trash-2" width="14" height="14"></i>
                                                         </button>
                                                     </div>
@@ -434,57 +437,65 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-function deleteStudent(studentId, studentName, studentEmail) {
-    console.log('Delete function called with:', studentId, studentName, studentEmail);
-    
-    Swal.fire({
-        title: 'Are you sure?',
-        html: `
-            <div class="text-start">
-                <p>You are about to delete the following student:</p>
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <h6 class="card-title">${studentName}</h6>
-                        <p class="card-text">
-                            <strong>Email:</strong> ${studentEmail}<br>
-                            <strong>Student ID:</strong> ${studentId}
-                        </p>
+// Event delegation for delete buttons
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.delete-student-btn')) {
+        const button = e.target.closest('.delete-student-btn');
+        const studentId = button.getAttribute('data-student-id');
+        const studentName = button.getAttribute('data-student-name');
+        const studentEmail = button.getAttribute('data-student-email');
+        
+        console.log('Delete function called with:', studentId, studentName, studentEmail);
+        
+        Swal.fire({
+            title: 'Are you sure?',
+            html: `
+                <div class="text-start">
+                    <p>You are about to delete the following student:</p>
+                    <div class="card mt-3">
+                        <div class="card-body">
+                            <h6 class="card-title">${studentName}</h6>
+                            <p class="card-text">
+                                <strong>Email:</strong> ${studentEmail}<br>
+                                <strong>Student ID:</strong> ${studentId}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
                     </div>
                 </div>
-                <div class="alert alert-warning mt-3">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Warning!</strong> This action cannot be undone.
-                </div>
-            </div>
-        `,
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Yes, delete it!',
-        cancelButtonText: 'Cancel',
-        width: '500px'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Create and submit the delete form
-            const deleteForm = document.getElementById('deleteForm');
-            deleteForm.action = `/admin/students/${studentId}`;
-            
-            // Show loading
-            Swal.fire({
-                title: 'Deleting...',
-                text: 'Please wait while we delete the student.',
-                allowOutsideClick: false,
-                didOpen: () => {
-                    Swal.showLoading();
-                }
-            });
-            
-            // Submit the form
-            deleteForm.submit();
-        }
-    });
-}
+            `,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, delete it!',
+            cancelButtonText: 'Cancel',
+            width: '500px'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Create and submit the delete form
+                const deleteForm = document.getElementById('deleteForm');
+                deleteForm.action = `/admin/students/${studentId}`;
+                
+                // Show loading
+                Swal.fire({
+                    title: 'Deleting...',
+                    text: 'Please wait while we delete the student.',
+                    allowOutsideClick: false,
+                    didOpen: () => {
+                        Swal.showLoading();
+                    }
+                });
+                
+                // Submit the form
+                deleteForm.submit();
+            }
+        });
+    }
+});
 
 function bulkDeleteStudents() {
     alert('Bulk delete function called!');
