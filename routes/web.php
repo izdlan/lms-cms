@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\StudentAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\StudentController;
 
 // Main routes
 Route::get('/', function () {
@@ -33,18 +34,14 @@ Route::prefix('student')->group(function () {
     
     // Protected student routes
     Route::middleware('auth')->group(function () {
-        Route::get('/dashboard', function () {
-            return view('student.dashboard');
-        })->name('student.dashboard');
-        Route::get('/courses', function () {
-            return view('student.courses');
-        })->name('student.courses');
-        Route::get('/assignments', function () {
-            return view('student.assignments');
-        })->name('student.assignments');
-        Route::get('/profile', function () {
-            return view('student.profile');
-        })->name('student.profile');
+        Route::get('/dashboard', [StudentController::class, 'dashboard'])->name('student.dashboard');
+        Route::get('/courses', [StudentController::class, 'courses'])->name('student.courses');
+        Route::get('/assignments', [StudentController::class, 'assignments'])->name('student.assignments');
+        Route::get('/profile', [StudentController::class, 'profile'])->name('student.profile');
+        Route::put('/profile', [StudentController::class, 'updateProfile'])->name('student.profile.update');
+        Route::get('/password/reset', [StudentController::class, 'showPasswordResetForm'])->name('student.password.reset');
+        Route::post('/password/update', [StudentController::class, 'updatePassword'])->name('student.password.update');
+        Route::get('/stats', [StudentController::class, 'getStats'])->name('student.stats');
     });
 });
 

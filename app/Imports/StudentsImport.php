@@ -50,7 +50,7 @@ class StudentsImport implements ToCollection
         // Skip the next 2 rows (program name and category rows)
         $rows = $rows->slice(2);
         Log::info('After skipping program name and category rows, remaining: ' . $rows->count() . ' rows');
-        Log::info('First row after headers (should be data):', $rows->first() ? $rows->first()->toArray() : []);
+        Log::info('First row after headers (should be data):', $rows->first() ? (is_array($rows->first()) ? $rows->first() : $rows->first()->toArray()) : []);
         
         Log::info('Detected headers:', $header);
         

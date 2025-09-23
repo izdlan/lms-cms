@@ -39,12 +39,26 @@ class ImportStudents extends Command
         
         $this->info("Processing first sheet (index 0)");
         try {
+            // Use toArray method instead of import method
+            $this->info('Reading Excel file: ' . $file);
+            $data = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
+                public function array(array $array): array
+                {
+                    return $array;
+                }
+            }, $file);
+            
+            if (empty($data) || !isset($data[0])) {
+                $this->error('No data found in Excel file');
+                return 1;
+            }
+            
+            $this->info('Found ' . count($data) . ' sheets, processing first sheet with ' . count($data[0]) . ' rows');
+            
+            // Process the data using our import class
             $import = new StudentsImport();
             $import->setCurrentSheet('Sheet 0');
-            
-            // Try using the storage disk
-            $this->info('Attempting import with file: ' . $file);
-            Excel::import($import, $file, 0); // Use index 0 for first sheet
+            $import->collection(collect($data[0]));
             
             $stats = $import->getStats();
             $totalCreated += $stats['created'];
@@ -54,6 +68,7 @@ class ImportStudents extends Command
             $this->info("Completed processing - Created: {$stats['created']}, Updated: {$stats['updated']}, Errors: {$stats['errors']}");
         } catch (\Exception $e) {
             $this->warn("Error processing sheet: " . $e->getMessage());
+            $this->warn("Stack trace: " . $e->getTraceAsString());
             $totalErrors++;
         }
 
