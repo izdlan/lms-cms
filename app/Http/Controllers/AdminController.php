@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
-use CsvImportService;
+use App\Services\CsvImportService;
+use App\Services\XlsxImportService;
 
 class AdminController extends Controller
 {
@@ -54,64 +55,44 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('file');
+            $file = $request->file('excel_file');
             $fileExtension = $file->getClientOriginalExtension();
             
             if (in_array($fileExtension, ['xlsx', 'xls'])) {
-                // Handle Excel files
-                return $this->importFromExcel($file);
+                // Handle Excel files using XlsxImportService
+                $xlsxService = new XlsxImportService();
+                $result = $xlsxService->importFromXlsx($file->getRealPath());
+                
+                if ($result['success']) {
+                    $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    $errorMessage = isset($result['message']) ? $result['message'] : 'Error importing Excel file.';
+                    return back()->withErrors(['excel_file' => $errorMessage]);
+                }
             } else {
-                // Handle CSV files
-                return $this->importFromCsv($file);
+                // Handle CSV files using existing service
+                $filePath = $file->getRealPath();
+                $csvService = new CsvImportService();
+                $result = $csvService->importFromCsv($filePath);
+                
+                if ($result['success']) {
+                    $message = "Import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    return back()->withErrors(['excel_file' => 'Error importing file.']);
+                }
             }
         } catch (\Exception $e) {
             Log::error('Import error', [
                 'error' => $e->getMessage(),
                 'file' => $file->getClientOriginalName()
             ]);
-            return back()->withErrors(['file' => 'Error importing file: ' . $e->getMessage()]);
-        }
-    }
-
-    private function importFromExcel($file)
-    {
-        try {
-            // Use the existing Excel import functionality
-            $import = new \App\Imports\StudentsImport();
-            $import->setCurrentSheet('Sheet1'); // Default sheet for single file upload
-            
-            \Maatwebsite\Excel\Facades\Excel::import($import, $file);
-            
-            $stats = $import->getStats();
-            $message = "Excel import completed! Created: {$stats['created']}, Updated: {$stats['updated']}, Errors: {$stats['errors']}";
-            
-            return redirect()->route('admin.students')->with('success', $message);
-        } catch (\Exception $e) {
-            Log::error('Excel import error', ['error' => $e->getMessage()]);
-            return back()->withErrors(['file' => 'Error importing Excel file: ' . $e->getMessage()]);
-        }
-    }
-
-    private function importFromCsv($file)
-    {
-        try {
-            $filePath = $file->getRealPath();
-            $csvService = new \App\Services\CsvImportService();
-            $result = $csvService->importFromCsv($filePath);
-            
-            if ($result['success']) {
-                $message = "CSV import completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
-                return redirect()->route('admin.students')->with('success', $message);
-            } else {
-                return back()->withErrors(['file' => 'Error importing CSV file.']);
-            }
-        } catch (\Exception $e) {
-            Log::error('CSV import error', ['error' => $e->getMessage()]);
-            return back()->withErrors(['file' => 'Error importing CSV file: ' . $e->getMessage()]);
+            return back()->withErrors(['excel_file' => 'Error importing file: ' . $e->getMessage()]);
         }
     }
 
@@ -120,26 +101,44 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $request->validate([
-            'file' => 'required|file|mimes:xlsx,xls,csv,txt'
+            'excel_file' => 'required|file|mimes:xlsx,xls,csv,txt'
         ]);
 
         try {
-            $file = $request->file('file');
+            $file = $request->file('excel_file');
             $fileExtension = $file->getClientOriginalExtension();
             
             if (in_array($fileExtension, ['xlsx', 'xls'])) {
-                // Handle Excel files
-                return $this->importFromExcel($file);
+                // Handle Excel files using XlsxImportService
+                $xlsxService = new XlsxImportService();
+                $result = $xlsxService->importFromXlsx($file->getRealPath());
+                
+                if ($result['success']) {
+                    $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    $errorMessage = isset($result['message']) ? $result['message'] : 'Error syncing Excel file.';
+                    return back()->withErrors(['excel_file' => $errorMessage]);
+                }
             } else {
-                // Handle CSV files
-                return $this->importFromCsv($file);
+                // Handle CSV files using existing service
+                $filePath = $file->getRealPath();
+                $csvService = new CsvImportService();
+                $result = $csvService->importFromCsv($filePath);
+                
+                if ($result['success']) {
+                    $message = "Sync completed! Created: {$result['created']}, Updated: {$result['updated']}, Errors: {$result['errors']}";
+                    return redirect()->route('admin.students')->with('success', $message);
+                } else {
+                    return back()->withErrors(['excel_file' => 'Error syncing file.']);
+                }
             }
         } catch (\Exception $e) {
             Log::error('Sync error', [
                 'error' => $e->getMessage(),
                 'file' => $file->getClientOriginalName()
             ]);
-            return back()->withErrors(['file' => 'Error syncing file: ' . $e->getMessage()]);
+            return back()->withErrors(['excel_file' => 'Error syncing file: ' . $e->getMessage()]);
         }
     }
 
@@ -271,27 +270,42 @@ class AdminController extends Controller
     {
         $this->checkAdminAccess();
         
-        $request->validate([
-            'student_ids' => 'required|array|min:1',
-            'student_ids.*' => 'integer|exists:users,id'
+        \Log::info('Bulk delete request received', [
+            'student_ids' => $request->input('student_ids'),
+            'all_input' => $request->all()
         ]);
+        
+        try {
+            $request->validate([
+                'student_ids' => 'required|array|min:1',
+                'student_ids.*' => 'integer|exists:users,id'
+            ]);
 
-        $studentIds = $request->input('student_ids');
-        $deletedCount = 0;
+            $studentIds = $request->input('student_ids');
+            $deletedCount = 0;
 
-        foreach ($studentIds as $studentId) {
-            $student = User::find($studentId);
-            if ($student && $student->role === 'student') {
-                $student->delete();
-                $deletedCount++;
+            \Log::info('Processing bulk delete', ['student_ids' => $studentIds]);
+
+            foreach ($studentIds as $studentId) {
+                $student = User::find($studentId);
+                if ($student && $student->role === 'student') {
+                    \Log::info('Deleting student', ['id' => $studentId, 'name' => $student->name]);
+                    $student->delete();
+                    $deletedCount++;
+                }
             }
+
+            $message = $deletedCount === 1 
+                ? '1 student deleted successfully!' 
+                : "{$deletedCount} students deleted successfully!";
+
+            \Log::info('Bulk delete completed', ['deleted_count' => $deletedCount]);
+
+            return redirect()->route('admin.students')->with('success', $message);
+        } catch (\Exception $e) {
+            \Log::error('Bulk delete error: ' . $e->getMessage());
+            return redirect()->route('admin.students')->with('error', 'Error deleting students: ' . $e->getMessage());
         }
-
-        $message = $deletedCount === 1 
-            ? '1 student deleted successfully!' 
-            : "{$deletedCount} students deleted successfully!";
-
-        return redirect()->route('admin.students')->with('success', $message);
     }
 
     public function automation()

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dbc86a6f782811f66df2ed7334565b55",
+    "content-hash": "5d883b04839cc6f22f622a551726ec79",
     "packages": [
         {
             "name": "brick/math",
@@ -2229,7 +2229,7 @@
         },
         {
             "name": "maatwebsite/excel",
-            "version": "3.1.x-dev",
+            "version": "3.1.67",
             "source": {
                 "type": "git",
                 "url": "https://github.com/SpartnerNL/Laravel-Excel.git",
@@ -2254,7 +2254,6 @@
                 "orchestra/testbench": "^6.0||^7.0||^8.0||^9.0||^10.0",
                 "predis/predis": "^1.1"
             },
-            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
@@ -9041,9 +9040,7 @@
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": {
-        "maatwebsite/excel": 20
-    },
+    "stability-flags": {},
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {

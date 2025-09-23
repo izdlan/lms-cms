@@ -78,14 +78,14 @@
                             @csrf
                             
                             <div class="mb-4">
-                                <label for="file" class="form-label">Select Excel/CSV File</label>
+                                <label for="excel_file" class="form-label">Select Excel/CSV File</label>
                                 <input type="file" 
-                                       class="form-control @error('file') is-invalid @enderror" 
-                                       id="file" 
-                                       name="file" 
+                                       class="form-control @error('excel_file') is-invalid @enderror" 
+                                       id="excel_file" 
+                                       name="excel_file" 
                                        accept=".xlsx,.xls,.csv,.txt"
                                        required>
-                                @error('file')
+                                @error('excel_file')
                                     <div class="invalid-feedback">
                                         {{ $message }}
                                     </div>
@@ -118,23 +118,83 @@
                                 <div class="requirements-list">
                                     <div class="requirement-item">
                                         <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
-                                        <span><strong>name</strong> - Student's full name</span>
+                                        <span><strong>NAME</strong> - Student's full name (required)</span>
                                     </div>
                                     <div class="requirement-item">
                                         <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
-                                        <span><strong>ic</strong> - IC number (used as password)</span>
+                                        <span><strong>EMAIL</strong> - Email address (required)</span>
                                     </div>
                                     <div class="requirement-item">
                                         <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
-                                        <span><strong>email</strong> - Email address</span>
+                                        <span><strong>IC / PASSPORT</strong> - IC number (required, used as password)</span>
                                     </div>
                                     <div class="requirement-item">
                                         <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
-                                        <span><strong>number</strong> - Phone number (optional)</span>
+                                        <span><strong>CONTACT NO.</strong> - Phone number (optional)</span>
                                     </div>
                                     <div class="requirement-item">
                                         <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
-                                        <span><strong>courses</strong> - Comma-separated courses (optional)</span>
+                                        <span><strong>ADDRESS</strong> - Student address (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>COL REF. NO.</strong> - College reference number (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>CATEGORY</strong> - Student category (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>PROGRAMME NAME</strong> - Academic program (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>FACULTY</strong> - Faculty name (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>PROGRAMME CODE</strong> - Program code (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>ID STUDENT</strong> - Student ID (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>SEMESTER ENTRY</strong> - Entry semester (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>RESEARCH TITLE</strong> - Research project title (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>SUPERVISOR</strong> - Academic supervisor (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>EXTERNAL EXAMINER</strong> - External examiner name (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>INTERNAL EXAMINER</strong> - Internal examiner name (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>STUDENT PORTAL</strong> - Portal credentials (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>PROGRAMME INTAKE</strong> - Intake period (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>DATE OF COMMENCEMENT</strong> - Start date (optional)</span>
+                                    </div>
+                                    <div class="requirement-item">
+                                        <i data-feather="check-circle" width="16" height="16" class="text-success"></i>
+                                        <span><strong>COL DATE</strong> - College date (optional)</span>
                                     </div>
                                 </div>
 
@@ -312,7 +372,7 @@ document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
     
     // File input change handler
-    const fileInput = document.getElementById('file');
+    const fileInput = document.getElementById('excel_file');
     const form = document.getElementById('importForm');
     
     if (fileInput) {
@@ -359,7 +419,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Form submission handler
     if (form) {
         form.addEventListener('submit', function(e) {
-            const fileInput = document.getElementById('file');
+            const fileInput = document.getElementById('excel_file');
             if (!fileInput.files.length) {
                 e.preventDefault();
                 Swal.fire({

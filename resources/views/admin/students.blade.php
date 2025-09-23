@@ -73,7 +73,7 @@
                             <div class="search-box">
                                 <input type="text" class="form-control" placeholder="Search students..." id="searchInput">
                             </div>
-                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" disabled onclick="bulkDeleteStudents()">
+                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="cursor: pointer;">
                                 <i data-feather="trash-2" width="16" height="16"></i>
                                 Delete Selected
                             </button>
@@ -392,10 +392,30 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Add event listener for bulk delete button
+    if (bulkDeleteBtn) {
+        bulkDeleteBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Bulk delete button clicked');
+            bulkDeleteStudents();
+        });
+    }
+    
     function updateBulkDeleteButton() {
         const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
-        bulkDeleteBtn.disabled = checkedBoxes.length === 0;
+        console.log('Updating bulk delete button. Checked boxes:', checkedBoxes.length);
+        // Always enable the button for testing
+        bulkDeleteBtn.disabled = false;
         bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
+        
+        // Add visual feedback
+        if (checkedBoxes.length > 0) {
+            bulkDeleteBtn.style.backgroundColor = '#dc3545';
+            bulkDeleteBtn.style.color = 'white';
+        } else {
+            bulkDeleteBtn.style.backgroundColor = '';
+            bulkDeleteBtn.style.color = '';
+        }
     }
     
     function updateSelectAllCheckbox() {
@@ -467,8 +487,13 @@ function deleteStudent(studentId, studentName, studentEmail) {
 }
 
 function bulkDeleteStudents() {
+    alert('Bulk delete function called!');
+    console.log('bulkDeleteStudents function called');
     const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
     const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    console.log('Checked boxes:', checkedBoxes.length);
+    console.log('Student IDs:', studentIds);
     
     if (studentIds.length === 0) {
         Swal.fire({
@@ -529,8 +554,11 @@ function bulkDeleteStudents() {
 }
 
 function confirmBulkDelete() {
+    console.log('confirmBulkDelete function called');
     const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
     const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
+    
+    console.log('Student IDs to delete:', studentIds);
     
     // Create a form to submit multiple delete requests
     const form = document.createElement('form');
@@ -539,6 +567,7 @@ function confirmBulkDelete() {
     
     // Add CSRF token
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    console.log('CSRF Token:', csrfToken);
     const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = '_token';
@@ -554,6 +583,7 @@ function confirmBulkDelete() {
         form.appendChild(input);
     });
     
+    console.log('Form created, submitting...');
     document.body.appendChild(form);
     form.submit();
 }
