@@ -24,6 +24,7 @@ class StudentAuthController extends Controller
             'password' => 'required|string',
         ]);
 
+        // Find user by IC number only (original LMS_Olympia logic)
         $user = User::where('ic', $request->ic)
                    ->where('role', 'student')
                    ->first();

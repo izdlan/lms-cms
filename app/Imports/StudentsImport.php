@@ -15,7 +15,12 @@ class StudentsImport implements ToCollection
     protected $allowedSheets = ['DHU LMS', 'IUC LMS', 'VIVA-IUC LMS', 'LUC LMS'];
     protected $currentSheet = '';
     
-    // Count tracking
+    // Statistics tracking
+    public $created = 0;
+    public $updated = 0;
+    public $errors = 0;
+    
+    // Count tracking (for backward compatibility)
     protected $createdCount = 0;
     protected $updatedCount = 0;
     protected $errorCount = 0;
@@ -24,11 +29,21 @@ class StudentsImport implements ToCollection
     {
         $this->currentSheet = $sheetName;
     }
+    
+    public function getStats()
+    {
+        return [
+            'created' => $this->created,
+            'updated' => $this->updated,
+            'errors' => $this->errors
+        ];
+    }
 
     public function collection(Collection $rows): void
     {
         Log::info('Starting import from sheet "' . $this->currentSheet . '" with ' . $rows->count() . ' total rows');
         
+        // For LMS sheets, headers are on row 7 (index 6), data starts from row 10 (index 9)
         // Skip first 6 rows (rows 1-6), start from row 7 which contains headers
         $rows = $rows->slice(6);
         Log::info('After skipping first 6 rows, remaining: ' . $rows->count() . ' rows');
@@ -48,46 +63,61 @@ class StudentsImport implements ToCollection
         // Skip the next 2 rows (program name and category rows)
         $rows = $rows->slice(2);
         Log::info('After skipping program name and category rows, remaining: ' . $rows->count() . ' rows');
+        Log::info('First row after headers (should be data):', $rows->first() ? (is_array($rows->first()) ? $rows->first() : $rows->first()->toArray()) : []);
         
         Log::info('Detected headers:', $header);
         
-        // Direct mapping based on known Excel structure
-        // Row 7: ["NO","NAME","ADDRESS","IC / PASSPORT","PREVIOUS UNIVERSITY","COL REF. NO. ","STUDENT ID","CONTACT NO.","EMAIL",...]
-        // We'll skip the NO column (index 0) and map the rest
-        $mappedHeader = [
-            0 => 'skip',                  // NO (skip this column)
-            1 => 'name',                  // NAME
-            2 => 'address',               // ADDRESS
-            3 => 'ic/passport',           // IC / PASSPORT
-            4 => 'previous university',   // PREVIOUS UNIVERSITY
-            5 => 'col ref. no.',          // COL REF. NO.
-            6 => 'student id',            // STUDENT ID
-            7 => 'contact no.',           // CONTACT NO.
-            8 => 'email',                 // EMAIL
-            9 => 'student portal',        // STUDENT PORTAL
-            10 => 'semester entry',       // SEMESTER ENTRY
-            11 => 'research title',       // RESEARCH TITLE
-            12 => 'supervisor',           // SUPERVISOR
-            13 => 'external examiner',    // EXTERNAL EXAMINER
-            14 => 'internal examiner',    // INTERNAL EXAMINER
-            15 => 'col date',             // COL DATE
-            16 => 'programme intake',     // PROGRAMME INTAKE
-            17 => 'date of commencement', // DATE OF COMMENCEMENT
-            18 => 'total fees',           // TOTAL FEES
-            19 => 'rm1 date',             // RM1 (DATE)
-            20 => 'rm2 date',             // RM2 (DATE)
-            21 => 'proposal defence',     // PROPOSAL DEFENCE
-            22 => 'unknown_22',           // null
-            23 => 'pre viva',             // PRE VIVA
-            24 => 'viva',                 // VIVA
-            25 => 'file status'           // FILE STATUS
-        ];
+        // Dynamic mapping based on actual header content
+        $mappedHeader = [];
+        foreach ($header as $index => $headerName) {
+            $originalHeader = $headerName;
+            $headerName = strtolower(trim($headerName));
+            
+            Log::info("Processing header {$index}: '{$originalHeader}' -> '{$headerName}'");
+            
+            // Map based on header content, not position
+            if (strpos($headerName, 'name') !== false && strpos($headerName, 'learners') === false) {
+                $mappedHeader[$index] = 'name';
+                Log::info("Mapped to 'name'");
+            } elseif (strpos($headerName, 'address') !== false) {
+                $mappedHeader[$index] = 'address';
+                Log::info("Mapped to 'address'");
+            } elseif (strpos($headerName, 'ic') !== false || strpos($headerName, 'passport') !== false) {
+                $mappedHeader[$index] = 'ic/passport';
+                Log::info("Mapped to 'ic/passport'");
+            } elseif (strpos($headerName, 'email') !== false) {
+                $mappedHeader[$index] = 'email';
+                Log::info("Mapped to 'email'");
+            } elseif (strpos($headerName, 'contact') !== false || strpos($headerName, 'phone') !== false) {
+                $mappedHeader[$index] = 'contact no.';
+                Log::info("Mapped to 'contact no.'");
+            } elseif (strpos($headerName, 'student id') !== false || strpos($headerName, 'id student') !== false) {
+                $mappedHeader[$index] = 'student id';
+                Log::info("Mapped to 'student id'");
+            } elseif (strpos($headerName, 'col ref') !== false) {
+                $mappedHeader[$index] = 'col ref. no.';
+                Log::info("Mapped to 'col ref. no.'");
+            } elseif (strpos($headerName, 'previous university') !== false) {
+                $mappedHeader[$index] = 'previous university';
+                Log::info("Mapped to 'previous university'");
+            } elseif (strpos($headerName, 'programme name') !== false || strpos($headerName, 'program name') !== false) {
+                $mappedHeader[$index] = 'programme name';
+                Log::info("Mapped to 'programme name'");
+            } elseif (strpos($headerName, 'category') !== false) {
+                $mappedHeader[$index] = 'category';
+                Log::info("Mapped to 'category'");
+            } else {
+                $mappedHeader[$index] = 'unknown_' . $index;
+                Log::info("Mapped to 'unknown_{$index}'");
+            }
+        }
         
         Log::info('Mapped headers:', $mappedHeader);
         
-        $created = 0;
-        $updated = 0;
-        $errors = 0;
+        // Reset statistics
+        $this->created = 0;
+        $this->updated = 0;
+        $this->errors = 0;
 
         foreach ($rows as $index => $row) {
             $rowArray = is_array($row) ? $row : $row->toArray();
@@ -98,15 +128,30 @@ class StudentsImport implements ToCollection
                 continue;
             }
             
+            // Skip rows that contain program names or categories instead of student data
+            $firstColumnValue = $rowArray[0] ?? '';
+            if (is_string($firstColumnValue) && (
+                stripos($firstColumnValue, 'PHILOSOPHY') !== false ||
+                stripos($firstColumnValue, 'INTERNATIONAL') !== false ||
+                stripos($firstColumnValue, 'LOCAL') !== false ||
+                stripos($firstColumnValue, 'PROGRAMME') !== false ||
+                stripos($firstColumnValue, 'DOCTOR') !== false ||
+                stripos($firstColumnValue, 'MASTER') !== false ||
+                stripos($firstColumnValue, 'BACHELOR') !== false
+            )) {
+                Log::info("Skipping program/category row " . ($index + 1) . " - contains: " . $firstColumnValue);
+                continue;
+            }
+            
             Log::info("Processing row " . ($index + 1) . " with " . count($rowArray) . " columns");
             Log::info("Row data:", $rowArray);
 
-            // skip rows that don't match header column count
-            if (count($header) !== count($rowArray)) {
-                Log::warning("Skipping row " . ($index + 1) . " - column count mismatch. Headers: " . count($header) . ", Row: " . count($rowArray));
-                $errors++;
-                continue;
-            }
+                   // skip rows that don't match header column count
+                   if (count($header) !== count($rowArray)) {
+                       Log::warning("Skipping row " . ($index + 1) . " - column count mismatch. Headers: " . count($header) . ", Row: " . count($rowArray));
+                       $this->errors++;
+                       continue;
+                   }
 
             // Create a flexible mapping that handles different column counts
             $data = [];
@@ -118,16 +163,16 @@ class StudentsImport implements ToCollection
             }
             Log::info("Combined data for row " . ($index + 1) . ":", $data);
 
-            // Check if we have required fields
-            if (empty($data['name']) || empty($data['ic/passport']) || empty($data['email'])) {
-                Log::warning("Missing required fields for row " . ($index + 1), [
-                    'name' => $data['name'] ?? 'MISSING',
-                    'ic/passport' => $data['ic/passport'] ?? 'MISSING', 
-                    'email' => $data['email'] ?? 'MISSING'
-                ]);
-                $errors++;
-                continue;
-            }
+                   // Check if we have required fields
+                   if (empty($data['name']) || empty($data['ic/passport']) || empty($data['email'])) {
+                       Log::warning("Missing required fields for row " . ($index + 1), [
+                           'name' => $data['name'] ?? 'MISSING',
+                           'ic/passport' => $data['ic/passport'] ?? 'MISSING', 
+                           'email' => $data['email'] ?? 'MISSING'
+                       ]);
+                       $this->errors++;
+                       continue;
+                   }
 
             // Check if we have the required fields with flexible matching
             $hasName = false;
@@ -158,15 +203,15 @@ class StudentsImport implements ToCollection
                 continue;
             }
 
-            if ($validator->fails()) {
-                Log::warning('Student import validation failed for row ' . ($index + 1), [
-                    'data' => $data,
-                    'errors' => $validator->errors()->toArray(),
-                    'available_keys' => array_keys($data)
-                ]);
-                $errors++;
-                continue;
-            }
+                   if ($validator->fails()) {
+                       Log::warning('Student import validation failed for row ' . ($index + 1), [
+                           'data' => $data,
+                           'errors' => $validator->errors()->toArray(),
+                           'available_keys' => array_keys($data)
+                       ]);
+                       $this->errors++;
+                       continue;
+                   }
 
             // Extract data with flexible column matching
             $name = '';
@@ -245,7 +290,7 @@ class StudentsImport implements ToCollection
             }
 
             // Use IC as password for all students
-            $icPassword = $ic;
+            $studentPassword = $ic;
 
             // Parse courses if provided (using programme name as course)
             $courses = [];
@@ -278,7 +323,7 @@ class StudentsImport implements ToCollection
                         'col_ref_no' => $colRefNo ?: null,
                         'student_id' => $studentId ?: null,
                         'source_sheet' => $this->currentSheet,
-                        'password' => Hash::make($icPassword),
+                        'password' => Hash::make($studentPassword),
                         'role' => 'student',
                         'must_reset_password' => false,
                         'courses' => $courses,
@@ -301,10 +346,10 @@ class StudentsImport implements ToCollection
                         // Additional Dates
                         'col_date' => $colDate ?: null,
                     ]);
-                    $created++;
+                    $this->created++;
                     Log::info('Student created', ['name' => $name, 'ic' => $ic, 'sheet' => $this->currentSheet]);
                 } else {
-                    // update fields if changed, keep IC as password
+                    // update fields if changed, keep password as "0000"
                     $user->update([
                         'name' => $name,
                         'phone' => $phone ?: $user->phone,
@@ -312,7 +357,7 @@ class StudentsImport implements ToCollection
                         'col_ref_no' => $colRefNo ?: $user->col_ref_no,
                         'student_id' => $studentId ?: $user->student_id,
                         'source_sheet' => $this->currentSheet,
-                        'password' => Hash::make($icPassword),
+                        'password' => Hash::make($studentPassword),
                         'courses' => $courses,
                         'must_reset_password' => false,
                         // Academic Information
@@ -334,31 +379,32 @@ class StudentsImport implements ToCollection
                         // Additional Dates
                         'col_date' => $colDate ?: $user->col_date,
                     ]);
-                    $updated++;
+                    $this->updated++;
                     Log::info('Student updated', ['name' => $name, 'ic' => $ic, 'sheet' => $this->currentSheet]);
                 }
-            } catch (\Exception $e) {
-                Log::error('Error processing student', [
-                    'data' => $data,
-                    'error' => $e->getMessage()
-                ]);
-                $errors++;
-                continue;
-            }
+                   } catch (\Exception $e) {
+                       Log::error('Error processing student', [
+                           'data' => $data,
+                           'error' => $e->getMessage()
+                       ]);
+                       $this->errors++;
+                       continue;
+                   }
         }
         
         // Log import summary
         Log::info('Student import completed', [
-            'created' => $created,
-            'updated' => $updated,
-            'errors' => $errors,
-            'total_processed' => $created + $updated + $errors
+            'created' => $this->created,
+            'updated' => $this->updated,
+            'errors' => $this->errors,
+            'total_processed' => $this->created + $this->updated + $this->errors,
+            'sheet' => $this->currentSheet
         ]);
         
-        // Store counts for retrieval
-        $this->createdCount = $created;
-        $this->updatedCount = $updated;
-        $this->errorCount = $errors;
+        // Store counts for retrieval (backward compatibility)
+        $this->createdCount = $this->created;
+        $this->updatedCount = $this->updated;
+        $this->errorCount = $this->errors;
     }
     
     public function getCreatedCount()

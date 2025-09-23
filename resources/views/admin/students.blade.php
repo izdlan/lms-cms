@@ -26,7 +26,11 @@
                     </a>
                     <a href="{{ route('admin.sync') }}" class="nav-link">
                         <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel
+                        Sync from Excel/CSV
+                    </a>
+                    <a href="{{ route('admin.automation') }}" class="nav-link">
+                        <i data-feather="settings" width="20" height="20"></i>
+                        Automation
                     </a>
                     <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i data-feather="log-out" width="20" height="20"></i>
@@ -122,7 +126,7 @@
                                                         <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-primary">
                                                             <i data-feather="edit" width="14" height="14"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStudent({{ $student->id }}, '{{ $student->name }}', '{{ $student->email }}')">
+                                                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteStudent({{ $student->id }}, '{{ addslashes($student->name) }}', '{{ $student->email }}')">
                                                             <i data-feather="trash-2" width="14" height="14"></i>
                                                         </button>
                                                     </div>
@@ -161,65 +165,12 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-warning">
-                    <i data-feather="alert-triangle" width="20" height="20"></i>
-                    <strong>Warning!</strong> This action cannot be undone.
-                </div>
-                <p>Are you sure you want to delete the following student?</p>
-                <div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title" id="deleteStudentName"></h6>
-                        <p class="card-text">
-                            <strong>Email:</strong> <span id="deleteStudentEmail"></span><br>
-                            <strong>Student ID:</strong> <span id="deleteStudentId"></span>
-                        </p>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <form id="deleteForm" method="POST" style="display: inline;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+<!-- Hidden form for delete action -->
+<form id="deleteForm" method="POST" style="display: none;">
+    @csrf
+    @method('DELETE')
+</form>
 
-<!-- Bulk Delete Confirmation Modal -->
-<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Bulk Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="alert alert-danger">
-                    <i data-feather="alert-triangle" width="20" height="20"></i>
-                    <strong>Danger!</strong> This action cannot be undone.
-                </div>
-                <p>Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected students?</p>
-                <div id="bulkDeleteList"></div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="confirmBulkDelete()">Delete All Selected</button>
-            </div>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('styles')
@@ -377,6 +328,18 @@
         width: 100%;
     }
 }
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+
+.btn-outline-primary:hover {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+    color: white;
+}
 </style>
 @endpush
 
@@ -472,33 +435,55 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function deleteStudent(studentId, studentName, studentEmail) {
-    console.log('deleteStudent function called', studentId, studentName, studentEmail);
+    console.log('Delete function called with:', studentId, studentName, studentEmail);
     
-    if (confirm(`Are you sure you want to delete student: ${studentName} (${studentEmail})?`)) {
-        // Create a form to submit delete request
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = `/admin/students/${studentId}`;
-        
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        // Add DELETE method
-        const methodInput = document.createElement('input');
-        methodInput.type = 'hidden';
-        methodInput.name = '_method';
-        methodInput.value = 'DELETE';
-        form.appendChild(methodInput);
-        
-        console.log('Submitting delete form for student:', studentId);
-        document.body.appendChild(form);
-        form.submit();
-    }
+    Swal.fire({
+        title: 'Are you sure?',
+        html: `
+            <div class="text-start">
+                <p>You are about to delete the following student:</p>
+                <div class="card mt-3">
+                    <div class="card-body">
+                        <h6 class="card-title">${studentName}</h6>
+                        <p class="card-text">
+                            <strong>Email:</strong> ${studentEmail}<br>
+                            <strong>Student ID:</strong> ${studentId}
+                        </p>
+                    </div>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning!</strong> This action cannot be undone.
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel',
+        width: '500px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Create and submit the delete form
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.action = `/admin/students/${studentId}`;
+            
+            // Show loading
+            Swal.fire({
+                title: 'Deleting...',
+                text: 'Please wait while we delete the student.',
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Submit the form
+            deleteForm.submit();
+        }
+    });
 }
 
 function bulkDeleteStudents() {
@@ -511,38 +496,61 @@ function bulkDeleteStudents() {
     console.log('Student IDs:', studentIds);
     
     if (studentIds.length === 0) {
-        alert('Please select at least one student to delete.');
+        Swal.fire({
+            title: 'No Selection',
+            text: 'Please select at least one student to delete.',
+            icon: 'warning'
+        });
         return;
     }
     
-    // Simple confirmation
-    if (confirm(`Are you sure you want to delete ${studentIds.length} selected student(s)?`)) {
-        // Create a form to submit multiple delete requests
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/admin/students/bulk-delete';
-        
-        // Add CSRF token
-        const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-        const csrfInput = document.createElement('input');
-        csrfInput.type = 'hidden';
-        csrfInput.name = '_token';
-        csrfInput.value = csrfToken;
-        form.appendChild(csrfInput);
-        
-        // Add student IDs
-        studentIds.forEach(id => {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'student_ids[]';
-            input.value = id;
-            form.appendChild(input);
-        });
-        
-        console.log('Submitting bulk delete form');
-        document.body.appendChild(form);
-        form.submit();
-    }
+    // Build student list for display
+    let studentListHtml = '<ul class="list-group">';
+    checkedBoxes.forEach(checkbox => {
+        const row = checkbox.closest('tr');
+        const name = row.querySelector('td:nth-child(2) strong').textContent;
+        const email = row.querySelector('td:nth-child(4)').textContent;
+        studentListHtml += `<li class="list-group-item">${name} - ${email}</li>`;
+    });
+    studentListHtml += '</ul>';
+    
+    Swal.fire({
+        title: 'Delete Multiple Students',
+        html: `
+            <div class="text-start">
+                <p>You are about to delete <strong>${studentIds.length}</strong> students:</p>
+                <div class="mt-3" style="max-height: 200px; overflow-y: auto;">
+                    ${studentListHtml}
+                </div>
+                <div class="alert alert-danger mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning!</strong> This action cannot be undone.
+                </div>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: `Yes, delete ${studentIds.length} students!`,
+        cancelButtonText: 'Cancel',
+        width: '600px'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Show loading
+            Swal.fire({
+                title: 'Deleting...',
+                text: `Please wait while we delete ${studentIds.length} students.`,
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading();
+                }
+            });
+            
+            // Submit bulk delete form
+            confirmBulkDelete();
+        }
+    });
 }
 
 function confirmBulkDelete() {
