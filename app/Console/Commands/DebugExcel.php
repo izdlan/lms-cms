@@ -22,13 +22,13 @@ class DebugExcel extends Command
         $this->info('Reading Excel file: ' . $file);
         
         try {
-            // Read the first 10 rows to see the structure
+            // Read all sheets
             $data = Excel::toArray(new class implements \Maatwebsite\Excel\Concerns\ToArray {
                 public function array(array $array): array
                 {
                     return $array;
                 }
-            }, $file, null, \Maatwebsite\Excel\Excel::XLSX, 'DHU LMS');
+            }, $file);
             
             $this->info('Total sheets: ' . count($data));
             

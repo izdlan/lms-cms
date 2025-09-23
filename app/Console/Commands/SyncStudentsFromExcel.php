@@ -32,7 +32,7 @@ class SyncStudentsFromExcel extends Command
             try {
                 $import = new StudentsImport();
                 $import->setCurrentSheet($sheetName);
-                Excel::import($import, $file, null, \Maatwebsite\Excel\Excel::XLSX, $sheetName);
+                Excel::import($import, $file, $sheetName);
                 $this->info("Completed processing sheet: {$sheetName}");
             } catch (\Exception $e) {
                 $this->warn("Error processing sheet {$sheetName}: " . $e->getMessage());

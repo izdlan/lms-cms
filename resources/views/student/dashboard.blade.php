@@ -20,13 +20,9 @@
                         <i data-feather="book-open" width="20" height="20"></i>
                         My Courses
                     </a>
-                    <a href="{{ route('student.assignments') }}" class="nav-link">
-                        <i data-feather="file-text" width="20" height="20"></i>
-                        Assignments
-                    </a>
-                    <a href="{{ route('student.profile') }}" class="nav-link">
-                        <i data-feather="user" width="20" height="20"></i>
-                        Profile
+                    <a href="{{ route('student.password.change') }}" class="nav-link">
+                        <i data-feather="key" width="20" height="20"></i>
+                        Change Password
                     </a>
                     <a href="{{ route('student.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i data-feather="log-out" width="20" height="20"></i>
@@ -40,117 +36,6 @@
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
-                <div class="dashboard-header">
-                    <div class="row align-items-center">
-                        <div class="col-md-8">
-                            <h1>Welcome back, {{ auth()->user()->name }}!</h1>
-                            <p class="mb-0">
-                                <span class="badge bg-primary me-2">{{ auth()->user()->programme_name ?? 'Student' }}</span>
-                                <span class="text-muted">{{ auth()->user()->faculty ?? 'Faculty' }}</span>
-                            </p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <div class="student-info">
-                                <small class="text-muted">Student ID: {{ auth()->user()->student_id ?? 'N/A' }}</small><br>
-                                <small class="text-muted">IC: {{ auth()->user()->ic ?? 'N/A' }}</small>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                @if(auth()->user()->must_reset_password)
-                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
-                        <i data-feather="alert-triangle" width="20" height="20"></i>
-                        <strong>Password Reset Required!</strong> Please change your password for security reasons.
-                        <a href="{{ route('student.password.reset') }}" class="btn btn-sm btn-warning ms-2">Change Password</a>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                @endif
-
-                <!-- Stats Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-3 col-sm-6 mb-3">
-                        <div class="stats-card">
-                            <div class="stats-icon bg-primary">
-                                <i data-feather="book-open" width="24" height="24"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3>{{ count(auth()->user()->courses ?? []) }}</h3>
-                                <p>My Courses</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-3">
-                        <div class="stats-card">
-                            <div class="stats-icon bg-success">
-                                <i data-feather="calendar" width="24" height="24"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3>{{ auth()->user()->semester_entry ?? 'N/A' }}</h3>
-                                <p>Current Semester</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-3">
-                        <div class="stats-card">
-                            <div class="stats-icon bg-info">
-                                <i data-feather="id-card" width="24" height="24"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3>{{ auth()->user()->student_id ?? 'N/A' }}</h3>
-                                <p>Student ID</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 col-sm-6 mb-3">
-                        <div class="stats-card">
-                            <div class="stats-icon bg-warning">
-                                <i data-feather="award" width="24" height="24"></i>
-                            </div>
-                            <div class="stats-content">
-                                <h3>{{ auth()->user()->category ?? 'Local' }}</h3>
-                                <p>Category</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- My Courses -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5>My Courses</h5>
-                        <a href="{{ route('student.courses') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                    </div>
-                    <div class="card-body">
-                        @if(auth()->user()->courses && count(auth()->user()->courses) > 0)
-                            <div class="row">
-                                @foreach(auth()->user()->courses as $course)
-                                    <div class="col-md-6 col-lg-4 mb-3">
-                                        <div class="course-card">
-                                            <div class="course-icon">
-                                                <i data-feather="book" width="32" height="32"></i>
-                                            </div>
-                                            <h6 class="course-title">{{ $course }}</h6>
-                                            <p class="course-description">Course description will be shown here</p>
-                                            <div class="course-progress">
-                                                <div class="progress">
-                                                    <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-                                                </div>
-                                                <small class="text-muted">0% Complete</small>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @endforeach
-                            </div>
-                        @else
-                            <div class="text-center py-4">
-                                <i data-feather="book-open" width="48" height="48" class="text-muted mb-3"></i>
-                                <h5 class="text-muted">No courses assigned</h5>
-                                <p class="text-muted">Contact your administrator to get enrolled in courses.</p>
-                            </div>
-                        @endif
-                    </div>
-                </div>
 
                 <!-- Academic Information -->
                 <div class="row mb-4">
@@ -174,7 +59,7 @@
                                 </div>
                                 <div class="info-item">
                                     <label>Category:</label>
-                                    <span class="badge bg-secondary">{{ auth()->user()->category ?? 'Not specified' }}</span>
+                                    <span class="badge">{{ auth()->user()->category ?? 'Not specified' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <label>Intake:</label>
@@ -197,7 +82,7 @@
                             <div class="card-body">
                                 <div class="info-item">
                                     <label>Student ID:</label>
-                                    <span class="badge bg-primary">{{ auth()->user()->student_id ?? 'Not assigned' }}</span>
+                                    <span class="badge">{{ auth()->user()->student_id ?? 'Not assigned' }}</span>
                                 </div>
                                 <div class="info-item">
                                     <label>IC Number:</label>
@@ -218,12 +103,12 @@
                                 @if(auth()->user()->student_portal_username)
                                 <div class="info-item">
                                     <label>Portal Username:</label>
-                                    <span class="badge bg-info">{{ auth()->user()->student_portal_username }}</span>
+                                    <span class="badge">{{ auth()->user()->student_portal_username }}</span>
                                 </div>
                                 @endif
                                 <div class="info-item">
                                     <label>Account Status:</label>
-                                    <span class="badge bg-success">Active</span>
+                                    <span class="badge">Active</span>
                                 </div>
                             </div>
                         </div>
@@ -256,7 +141,7 @@
                                 @endif
                                 <div class="info-item">
                                     <label>Login Method:</label>
-                                    <span class="badge bg-success">IC Number</span>
+                                    <span class="badge">IC Number</span>
                                 </div>
                             </div>
                         </div>
@@ -292,40 +177,6 @@
                     </div>
                 </div>
 
-                <!-- Quick Actions -->
-                <div class="card">
-                    <div class="card-header">
-                        <h5><i data-feather="zap" width="20" height="20" class="me-2"></i>Quick Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-3 col-sm-6 mb-3">
-                                <a href="{{ route('student.profile') }}" class="quick-action-btn">
-                                    <i data-feather="user" width="24" height="24"></i>
-                                    <span>Update Profile</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 col-sm-6 mb-3">
-                                <a href="#" class="quick-action-btn" onclick="alert('Feature coming soon!')">
-                                    <i data-feather="file-text" width="24" height="24"></i>
-                                    <span>View Assignments</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 col-sm-6 mb-3">
-                                <a href="#" class="quick-action-btn" onclick="alert('Feature coming soon!')">
-                                    <i data-feather="download" width="24" height="24"></i>
-                                    <span>Download Materials</span>
-                                </a>
-                            </div>
-                            <div class="col-md-3 col-sm-6 mb-3">
-                                <a href="#" class="quick-action-btn" onclick="alert('Feature coming soon!')">
-                                    <i data-feather="message-circle" width="24" height="24"></i>
-                                    <span>Contact Support</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
@@ -422,10 +273,10 @@
     margin-right: 1rem;
 }
 
-.stats-icon.bg-primary { background: #0056d2; }
-.stats-icon.bg-success { background: #28a745; }
-.stats-icon.bg-info { background: #17a2b8; }
-.stats-icon.bg-warning { background: #ffc107; color: #212529; }
+.stats-icon.bg-primary { background: #6c757d; }
+.stats-icon.bg-success { background: #6c757d; }
+.stats-icon.bg-info { background: #6c757d; }
+.stats-icon.bg-warning { background: #6c757d; color: #fff; }
 
 .stats-content h3 {
     font-size: 2rem;
@@ -461,52 +312,7 @@
     font-weight: bold;
 }
 
-.course-card {
-    background: #f8f9fa;
-    padding: 1.5rem;
-    border-radius: 10px;
-    text-align: center;
-    transition: all 0.3s ease;
-    border: 2px solid transparent;
-}
 
-.course-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    border-color: #0056d2;
-}
-
-.course-icon {
-    color: #0056d2;
-    margin-bottom: 1rem;
-}
-
-.course-title {
-    color: #2d3748;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.course-description {
-    color: #718096;
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.course-progress {
-    margin-top: 1rem;
-}
-
-.progress {
-    height: 6px;
-    border-radius: 3px;
-    background-color: #e9ecef;
-}
-
-.progress-bar {
-    background-color: #0056d2;
-    border-radius: 3px;
-}
 
 /* Info Items */
 .info-item {
@@ -540,57 +346,27 @@
     font-weight: 500;
 }
 
-/* Quick Action Buttons */
-.quick-action-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1.5rem 1rem;
-    background: #f8f9fa;
-    border: 2px solid #e9ecef;
-    border-radius: 10px;
-    text-decoration: none;
-    color: #495057;
-    transition: all 0.3s ease;
-    text-align: center;
-    min-height: 120px;
-    justify-content: center;
-}
-
-.quick-action-btn:hover {
-    background: #0056d2;
-    color: white;
-    border-color: #0056d2;
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 86, 210, 0.3);
-}
-
-.quick-action-btn i {
-    margin-bottom: 0.5rem;
-}
-
-.quick-action-btn span {
-    font-weight: 500;
-    font-size: 0.9rem;
-}
 
 /* Student Info */
 .student-info {
     background: #f8f9fa;
     padding: 0.75rem;
     border-radius: 8px;
-    border-left: 4px solid #0056d2;
+    border-left: 4px solid #6c757d;
 }
 
-/* Badge Styles */
-.badge {
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
-}
+    /* Badge Styles - No background */
+    .badge {
+        font-size: 0.75rem;
+        padding: 0;
+        background-color: transparent !important;
+        color: #6c757d !important;
+        font-weight: 500;
+    }
 
-/* Card Header Icons */
+/* Card Header Icons - Neutral color */
 .card-header h5 i {
-    color: #0056d2;
+    color: #6c757d;
 }
 
 @media (max-width: 768px) {

@@ -20,7 +20,7 @@ class TestExcelRow extends Command
                 {
                     return $array;
                 }
-            }, $file, null, \Maatwebsite\Excel\Excel::XLSX, 'DHU LMS');
+            }, $file, 'DHU LMS');
             
             if (isset($data[0])) {
                 $this->info('Row 7 (Headers): ' . json_encode($data[0][6]));
