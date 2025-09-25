@@ -32,12 +32,12 @@
                         <i data-feather="settings" width="20" height="20"></i>
                         Automation
                     </a>
-                    <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i data-feather="log-out" width="20" height="20"></i>
                         Logout
                     </a>
                 </nav>
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
             </div>

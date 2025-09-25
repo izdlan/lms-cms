@@ -1,4 +1,0 @@
-name,email,ic,phone,address,previous_university,col_ref_no,student_id,courses
-John Doe,john.doe@example.com,123456789012,0123456789,123 Main Street,University ABC,REF001,STU001,"Course A, Course B"
-Jane Smith,jane.smith@example.com,987654321098,0198765432,456 Oak Avenue,University XYZ,REF002,STU002,"Course C, Course D"
-Bob Johnson,bob.johnson@example.com,112233445566,0134567890,789 Pine Road,University DEF,REF003,STU003,"Course E"

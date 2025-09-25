@@ -80,7 +80,7 @@
                             </div>
 
                             <div class="text-center">
-                                <a href="#" class="forgot-password-link">Forgot your password?</a>
+                                <a href="/maintenance" class="forgot-password-link">Forgot your password?</a>
                             </div>
                         </form>
                     </div>

@@ -115,9 +115,6 @@
                                             <span class="progress-bar" style="width: 0%"></span>
                                         </div>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Bachelor+of+Education+in+Leadership+Management" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">
@@ -175,9 +172,6 @@
                                             <span class="progress-bar" style="width: 0%"></span>
                                         </div>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Bachelor+of+Business+Administration+in+International+Business" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">
@@ -231,9 +225,6 @@
                                             <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Master in Sustainable Education Transformation-1.jpg" class="img-cover" alt="Industrial Master in Sustainable Education Transformation">
                                         </a>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Master+in+Sustainable+Education+Transformation" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">
@@ -287,9 +278,6 @@
                                             <img src="/store/1/Courses/DOCTORATE'S PROGRAMMES/Industrial Master in Digital Transformation Management-1.jpg" class="img-cover" alt="Industrial Master in Digital Transformation Management">
                                         </a>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Master+in+Digital+Transformation+Management" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">
@@ -343,9 +331,6 @@
                                             <img src="/store/1/Courses/DIPLOMA'S PROGRAMMES/Diploma in Occupational Safety & Health-1.jpg" class="img-cover" alt="Diploma in Occupational Safety & Health">
                                         </a>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Diploma+in+Occupational+Safety+%26+Health" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">
@@ -399,9 +384,6 @@
                                             <img src="/store/1/Courses/DIPLOMA'S PROGRAMMES/Diploma in Information Technology-1.jpg" class="img-cover" alt="Diploma in Information Technology">
                                         </a>
 
-                                        <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250711T000000/20250711T000000&amp;ctz=UTC&amp;text=Diploma+in+Information+Technology" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                            <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                        </a>
                                     </div>
 
                                     <figcaption class="webinar-card-body">

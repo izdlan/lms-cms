@@ -29,7 +29,7 @@
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link active" href="#">
+                            <a class="nav-link active" href="/maintenance">
                                 <i data-feather="refresh-cw" width="16" height="16"></i> Automation
                             </a>
                         </li>

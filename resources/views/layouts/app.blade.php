@@ -53,6 +53,915 @@
     <link rel="stylesheet" href="/assets/default/vendors/toast/jquery.toast.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/simplebar/simplebar.css">
     <link rel="stylesheet" href="/assets/default/css/app.css">
+    <link rel="stylesheet" href="{{ asset('css/student-sidebar.css') }}?v=1.3">
+    <link rel="stylesheet" href="{{ asset('css/home-spacing-fix.css') }}?v=1.0">
+    
+    <!-- Student Sidebar Override Styles -->
+    <style>
+        .student-dashboard .sidebar {
+            background: #212529 !important;
+            min-height: 100vh !important;
+            padding: 0 !important;
+            position: fixed !important;
+            top: 80px !important;
+            left: 0 !important;
+            width: 200px !important;
+            z-index: 1000 !important;
+        }
+        
+        .student-dashboard .sidebar-header {
+            background: #212529 !important;
+            padding: 1.5rem 1rem !important;
+            color: white !important;
+            border-bottom: 1px solid #495057 !important;
+        }
+        
+        .profile-section {
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+        
+        .profile-picture-container {
+            flex-shrink: 0 !important;
+        }
+        
+        .profile-picture {
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
+            border: 2px solid #20c997 !important;
+            object-fit: cover !important;
+        }
+        
+        .profile-picture-placeholder {
+            width: 50px !important;
+            height: 50px !important;
+            border-radius: 50% !important;
+            border: 2px solid #20c997 !important;
+            background: #495057 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: white !important;
+            font-size: 1.2rem !important;
+        }
+        
+        .profile-info {
+            flex: 1 !important;
+            min-width: 0 !important;
+        }
+        
+        .profile-name {
+            margin: 0 0 0.25rem 0 !important;
+            font-weight: bold !important;
+            font-size: 0.9rem !important;
+            color: white !important;
+            letter-spacing: 0.3px !important;
+            line-height: 1.2 !important;
+            word-wrap: break-word !important;
+        }
+        
+        .profile-id {
+            margin: 0 !important;
+            color: #adb5bd !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .sidebar-nav {
+            padding: 0.5rem 0 !important;
+        }
+        
+        .sidebar .nav-link {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.875rem 1rem !important;
+            color: white !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
+            margin: 0.125rem 0.5rem !important;
+            border-radius: 6px !important;
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        
+        .sidebar .nav-link:hover {
+            background: #495057 !important;
+            color: white !important;
+            text-decoration: none !important;
+        }
+        
+        .sidebar .nav-link:focus {
+            background: #495057 !important;
+            color: white !important;
+            text-decoration: none !important;
+            outline: none !important;
+            box-shadow: none !important;
+        }
+        
+        .sidebar .nav-link.active,
+        .sidebar .nav-link.active:focus,
+        .sidebar .nav-link.active:hover {
+            background: #6610f2 !important;
+            color: white !important;
+            border: none !important;
+            box-shadow: none !important;
+            text-decoration: none !important;
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 0.75rem !important;
+            width: 20px !important;
+            text-align: center !important;
+            font-size: 1rem !important;
+        }
+        
+        /* Student Navbar Styling (from course page) */
+        .student-navbar {
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            padding: 0.5rem 0 !important;
+            margin-top: 0 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1000 !important;
+        }
+        
+        .navbar-brand {
+            display: flex !important;
+            align-items: center !important;
+            text-decoration: none !important;
+            color: #212529 !important;
+        }
+        
+        .navbar-brand img {
+            margin-right: 1rem !important;
+        }
+        
+        .brand-text {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .brand-text strong {
+            font-size: 1.2rem !important;
+            color: #0056d2 !important;
+            margin: 0 !important;
+        }
+        
+        .brand-text small {
+            font-size: 0.8rem !important;
+            color: #6c757d !important;
+            margin: 0 !important;
+        }
+        
+        .navbar-nav-right {
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        .courses-dropdown-btn, .student-profile-btn {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.5rem 1rem !important;
+            border: 1px solid #0056d2 !important;
+            background: white !important;
+            color: #0056d2 !important;
+            border-radius: 6px !important;
+            text-decoration: none !important;
+        }
+        
+        .courses-dropdown-btn:hover, .student-profile-btn:hover {
+            background: #0056d2 !important;
+            color: white !important;
+        }
+        
+        .profile-info {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        
+        .profile-pic-nav, .profile-pic-placeholder-nav {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+        }
+        
+        .profile-pic-placeholder-nav {
+            background: #0056d2 !important;
+            color: white !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .student-name {
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .dropdown-menu {
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 8px !important;
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        
+        .dropdown-item i {
+            width: 16px !important;
+            text-align: center !important;
+        }
+        
+        .courses-dropdown-menu {
+            min-width: 250px !important;
+            padding: 0.5rem 0 !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .courses-dropdown-menu .dropdown-header {
+            background: #20c997 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1rem !important;
+            margin: 0 !important;
+            border-radius: 12px 12px 0 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+
+        .course-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            transition: all 0.2s ease !important;
+            border: none !important;
+            background: none !important;
+        }
+
+        .course-item:hover {
+            background: #f8f9fa !important;
+            transform: translateX(4px) !important;
+        }
+
+        .course-icon {
+            width: 32px !important;
+            height: 32px !important;
+            background: #20c997 !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-right: 0.75rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        .course-icon i {
+            color: white !important;
+            font-size: 14px !important;
+        }
+
+        .course-code {
+            font-weight: 600 !important;
+            color: #333 !important;
+            font-size: 14px !important;
+        }
+        
+        .main-content {
+            margin-left: 200px !important;
+            padding: 2rem !important;
+            min-height: 100vh !important;
+            width: calc(100% - 200px) !important;
+            margin-top: 80px !important;
+        }
+        
+        .student-dashboard .container-fluid {
+            padding-left: 0 !important;
+            width: 100% !important;
+        }
+        
+        /* Make cards and content fill the available space */
+        .card {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        .password-change-card,
+        .dashboard-card,
+        .course-card,
+        .stats-card {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Remove max-width constraints from forms */
+        .login-card,
+        .password-change-card {
+            max-width: none !important;
+            width: 100% !important;
+        }
+        
+        /* Make form containers wider */
+        .form-container,
+        .card-body {
+            width: 100% !important;
+        }
+        
+        /* Ensure all student page content uses full width */
+        .student-dashboard .row,
+        .student-dashboard .container-fluid,
+        .student-dashboard .main-content {
+            width: 100% !important;
+            max-width: none !important;
+        }
+        
+        /* Make sure cards don't have artificial width limits */
+        .password-change-card,
+        .dashboard-card,
+        .course-card,
+        .stats-card,
+        .card {
+            margin-left: 0 !important;
+            margin-right: 0 !important;
+        }
+        
+        /* Student Navigation Bar Styles */
+        .student-navbar {
+            background: #f8f9fa !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            padding: 0.5rem 0 !important;
+            position: fixed !important;
+            top: 0 !important;
+            left: 0 !important;
+            right: 0 !important;
+            z-index: 1030 !important;
+        }
+        
+        .student-navbar .container-fluid {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            padding: 0 2rem !important;
+        }
+
+        /* Navbar Layout */
+        .navbar-nav-left {
+            flex: 1;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        .navbar-nav-right {
+            flex: 0 0 auto;
+            display: flex !important;
+            align-items: center !important;
+            gap: 1rem !important;
+        }
+
+        /* Courses Dropdown Right Positioning */
+        .courses-dropdown-right {
+            margin-right: 1rem !important;
+        }
+
+        /* Courses Dropdown Styles */
+        .courses-dropdown-btn {
+            background: #20c997 !important;
+            border: 1px solid #20c997 !important;
+            color: white !important;
+            border-radius: 8px !important;
+            padding: 0.5rem 1rem !important;
+            font-weight: 500 !important;
+            transition: all 0.3s ease !important;
+        }
+
+        .courses-dropdown-btn:hover,
+        .courses-dropdown-btn:focus {
+            background: #1ba085 !important;
+            border-color: #1ba085 !important;
+            color: white !important;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(32, 201, 151, 0.3) !important;
+        }
+
+        .courses-dropdown-menu {
+            min-width: 280px !important;
+            border: none !important;
+            border-radius: 12px !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+            padding: 0.5rem 0 !important;
+            margin-top: 0.5rem !important;
+        }
+
+        .courses-dropdown-menu .dropdown-header {
+            background: #20c997 !important;
+            color: white !important;
+            font-weight: 600 !important;
+            padding: 0.75rem 1rem !important;
+            margin: 0 !important;
+            border-radius: 12px 12px 0 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+
+        .course-item {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.75rem 1rem !important;
+            transition: all 0.2s ease !important;
+            border: none !important;
+            background: none !important;
+        }
+
+        .course-item:hover {
+            background: #f8f9fa !important;
+            transform: translateX(4px) !important;
+        }
+
+        .course-icon {
+            width: 32px !important;
+            height: 32px !important;
+            background: #20c997 !important;
+            border-radius: 50% !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            margin-right: 0.75rem !important;
+            flex-shrink: 0 !important;
+        }
+
+        .course-icon i {
+            color: white !important;
+            font-size: 14px !important;
+        }
+
+        .course-code {
+            font-weight: 600 !important;
+            color: #333 !important;
+            font-size: 14px !important;
+        }
+        
+        .navbar-nav-left {
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        .navbar-brand {
+            display: flex !important;
+            align-items: center !important;
+            text-decoration: none !important;
+            color: #212529 !important;
+        }
+        
+        .navbar-brand img {
+            margin-right: 1rem !important;
+        }
+        
+        .brand-text {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+        
+        .brand-text strong {
+            font-size: 1.2rem !important;
+            color: #0056d2 !important;
+            margin: 0 !important;
+        }
+        
+        .brand-text small {
+            font-size: 0.8rem !important;
+            color: #6c757d !important;
+            margin: 0 !important;
+        }
+        
+        .navbar-nav-center {
+            flex: 1 !important;
+            display: flex !important;
+            justify-content: center !important;
+        }
+        
+        .navbar-nav-center .navbar-nav {
+            display: flex !important;
+            gap: 2rem !important;
+            margin: 0 !important;
+        }
+        
+        .navbar-nav-center .nav-link {
+            color: #495057 !important;
+            font-weight: 500 !important;
+            padding: 0.5rem 1rem !important;
+            border-radius: 6px !important;
+            transition: all 0.3s ease !important;
+            text-decoration: none !important;
+        }
+        
+        .navbar-nav-center .nav-link:hover {
+            background: #e9ecef !important;
+            color: #0056d2 !important;
+        }
+        
+        .navbar-nav-center .nav-link.active {
+            background: #0056d2 !important;
+            color: white !important;
+        }
+        
+        .navbar-nav-center .nav-link i {
+            margin-right: 0.5rem !important;
+        }
+        
+        .navbar-nav-right {
+            display: flex !important;
+            align-items: center !important;
+        }
+        
+        .student-profile-btn {
+            display: flex !important;
+            align-items: center !important;
+            padding: 0.5rem 1rem !important;
+            border: 1px solid #0056d2 !important;
+            background: white !important;
+            color: #0056d2 !important;
+            border-radius: 6px !important;
+            text-decoration: none !important;
+        }
+        
+        .student-profile-btn:hover {
+            background: #0056d2 !important;
+            color: white !important;
+        }
+        
+        .profile-info {
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        
+        .profile-pic-nav {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            border: 2px solid #0056d2 !important;
+        }
+        
+        .profile-pic-placeholder-nav {
+            width: 32px !important;
+            height: 32px !important;
+            border-radius: 50% !important;
+            background: #0056d2 !important;
+            color: white !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: 0.8rem !important;
+        }
+        
+        .student-name {
+            font-weight: 500 !important;
+            font-size: 0.9rem !important;
+        }
+        
+        .dropdown-menu {
+            border: 1px solid #dee2e6 !important;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1) !important;
+            border-radius: 8px !important;
+        }
+        
+        .dropdown-item {
+            padding: 0.5rem 1rem !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 0.5rem !important;
+        }
+        
+        .dropdown-item i {
+            width: 16px !important;
+            text-align: center !important;
+        }
+        
+        /* Adjust main content for fixed navbar */
+        .student-dashboard .main-content,
+        .student-dashboard .container-fluid,
+        .main-content {
+            margin-top: 1px !important;
+        }
+        
+        /* Ensure all student pages have proper top spacing */
+        .student-dashboard {
+            padding-top: 60px !important;
+        }
+        
+        /* Fix specific page headers */
+        .courses-header,
+        .dashboard-header,
+        .password-change-header,
+        .assignments-header {
+            margin-top: 0 !important;
+            padding-top: 1rem !important;
+        }
+        
+        /* TOP LINK Section Styles */
+        .top-links-section {
+            background: #f8f9fa;
+            padding: 0;
+            min-height: 400px;
+        }
+        
+        /* Sidebar Styles */
+        .top-links-sidebar {
+            background: white;
+            padding: 0;
+            border-right: 1px solid #dee2e6;
+            min-height: 400px;
+        }
+        
+        .sidebar-content {
+            padding: 2rem 1.5rem;
+            height: 100%;
+        }
+        
+        .sidebar-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #0056d2;
+            text-align: center;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .top-links-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .top-links-list li {
+            margin-bottom: 0.5rem;
+        }
+        
+        .top-link-item {
+            display: block;
+            padding: 1rem;
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            border-left: 4px solid #6c757d;
+            background: #f8f9fa;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .top-link-item:hover {
+            color: #0056d2;
+            border-left-color: #0056d2;
+            text-decoration: none;
+            transform: translateX(3px);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+            background: white;
+        }
+        
+        .top-link-item:before {
+            content: "■";
+            color: #6c757d;
+            margin-right: 0.75rem;
+            font-size: 0.8rem;
+        }
+        
+        .top-link-item:hover:before {
+            color: #0056d2;
+        }
+        
+        /* Single Gallery Styles */
+        .gallery-container {
+            background: #f8f9fa;
+            padding: 20px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .single-gallery {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        .gallery-main {
+            position: relative;
+            width: 100%;
+            height: 500px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .gallery-image-container {
+            position: relative !important;
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 900px !important;
+            border-radius: 15px !important;
+            overflow: hidden !important;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2) !important;
+            background: #f8f9fa !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        .main-gallery-image {
+            position: absolute !important;
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            object-position: center !important;
+            opacity: 0 !important;
+            transition: opacity 0.5s ease-in-out !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            max-width: none !important;
+            max-height: none !important;
+            min-width: 100% !important;
+            min-height: 100% !important;
+        }
+        
+        /* Override Bootstrap img classes */
+        .gallery-image-container img,
+        .gallery-image-container .main-gallery-image,
+        .main-gallery-image[class*="img-"],
+        .main-gallery-image.img-fluid {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            max-width: none !important;
+            max-height: none !important;
+            min-width: 100% !important;
+            min-height: 100% !important;
+        }
+        
+        /* Override Bootstrap container and row constraints */
+        .gallery-container .container,
+        .gallery-container .container-fluid,
+        .gallery-container .row,
+        .gallery-container .col,
+        .gallery-container .col-md-10,
+        .gallery-container .col-lg-10 {
+            max-width: none !important;
+            width: 100% !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        
+        /* Ensure gallery takes full available space */
+        .top-links-section .row {
+            height: auto !important;
+            min-height: 600px !important;
+        }
+        
+        .gallery-container {
+            flex: 1 !important;
+            width: 100% !important;
+        }
+        
+        .main-gallery-image.active {
+            opacity: 1 !important;
+        }
+        
+        /* Navigation Arrows */
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            color: #0056d2;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transition: all 0.3s ease;
+            z-index: 10;
+        }
+        
+        .gallery-nav:hover {
+            background: #0056d2;
+            color: white;
+            transform: translateY(-50%) scale(1.1);
+        }
+        
+        .gallery-prev {
+            left: 20px;
+        }
+        
+        .gallery-next {
+            right: 20px;
+        }
+        
+        /* Dots Indicator */
+        .gallery-dots {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+        
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .dot.active {
+            background: #0056d2;
+            transform: scale(1.2);
+        }
+        
+        .dot:hover {
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .dot.active:hover {
+            background: #0056d2;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .top-links-sidebar {
+                border-right: none;
+                border-bottom: 1px solid #dee2e6;
+                min-height: auto;
+            }
+            
+            .gallery-container {
+                min-height: 400px;
+                padding: 10px;
+            }
+            
+            .gallery-main {
+                height: 350px;
+            }
+            
+            .gallery-image-container {
+                max-width: 100% !important;
+            }
+            
+            .gallery-nav {
+                width: 40px;
+                height: 40px;
+                font-size: 14px;
+            }
+            
+            .gallery-prev {
+                left: 10px;
+            }
+            
+            .gallery-next {
+                right: 10px;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .gallery-container {
+                min-height: 300px;
+                padding: 5px;
+            }
+            
+            .gallery-main {
+                height: 250px;
+            }
+        }
+        
+    </style>
     
     <!-- Custom Optima Font Override -->
     <style>
@@ -206,8 +1115,12 @@
 
 <body class="">
     <div id="app" class=" ">
-        @include('partials.top-navbar')
-        @include('partials.navbar')
+        @if(request()->is('student/*') && auth('student')->check())
+            @include('student.partials.student-navbar')
+        @else
+            @include('partials.top-navbar')
+            @include('partials.navbar')
+        @endif
         
         @yield('content')
         
@@ -267,6 +1180,70 @@
     <script src="/assets/default/js/parts/main.min.js"></script>
 
     <script>
+        // Gallery Navigation JavaScript
+        let currentImageIndex = 0;
+        const totalImages = 7;
+        
+        function showImage(index) {
+            // Hide all images
+            const images = document.querySelectorAll('.main-gallery-image');
+            const dots = document.querySelectorAll('.dot');
+            
+            images.forEach(img => img.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
+            
+            // Show current image
+            if (images[index]) {
+                images[index].classList.add('active');
+            }
+            if (dots[index]) {
+                dots[index].classList.add('active');
+            }
+        }
+        
+        function changeImage(direction) {
+            currentImageIndex += direction;
+            
+            // Loop around
+            if (currentImageIndex >= totalImages) {
+                currentImageIndex = 0;
+            } else if (currentImageIndex < 0) {
+                currentImageIndex = totalImages - 1;
+            }
+            
+            showImage(currentImageIndex);
+        }
+        
+        function currentImage(index) {
+            currentImageIndex = index;
+            showImage(currentImageIndex);
+        }
+        
+        // Auto-play functionality (optional)
+        let autoPlayInterval;
+        
+        function startAutoPlay() {
+            autoPlayInterval = setInterval(() => {
+                changeImage(1);
+            }, 4000); // Change image every 4 seconds
+        }
+        
+        function stopAutoPlay() {
+            clearInterval(autoPlayInterval);
+        }
+        
+        // Initialize gallery
+        document.addEventListener('DOMContentLoaded', function() {
+            showImage(0);
+            startAutoPlay();
+            
+            // Pause auto-play on hover
+            const gallery = document.querySelector('.single-gallery');
+            if (gallery) {
+                gallery.addEventListener('mouseenter', stopAutoPlay);
+                gallery.addEventListener('mouseleave', startAutoPlay);
+            }
+        });
     </script>
 
     @stack('styles')

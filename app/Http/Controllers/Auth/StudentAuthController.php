@@ -101,6 +101,12 @@ class StudentAuthController extends Controller
 
     public function showPasswordChangeForm()
     {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
         return view('student.password-change');
     }
 
@@ -111,7 +117,11 @@ class StudentAuthController extends Controller
             'password' => 'required|confirmed|min:6',
         ]);
 
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'The current password is incorrect.']);

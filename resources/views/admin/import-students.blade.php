@@ -28,12 +28,12 @@
                         <i data-feather="refresh-cw" width="20" height="20"></i>
                         Sync from Excel/CSV
                     </a>
-                    <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                    <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
                         <i data-feather="log-out" width="20" height="20"></i>
                         Logout
                     </a>
                 </nav>
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                     @csrf
                 </form>
             </div>
@@ -220,11 +220,11 @@
                             <div class="card-body">
                                 <p class="text-muted mb-3">Download sample files to see the correct format:</p>
                                 <div class="d-grid gap-2">
-                                    <a href="#" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
+                                    <a href="/maintenance" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
                                         <i data-feather="download" width="16" height="16"></i>
                                         Download CSV Sample
                                     </a>
-                                    <a href="#" class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+                                    <a href="/maintenance" class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
                                         <i data-feather="download" width="16" height="16"></i>
                                         Download Excel Sample
                                     </a>

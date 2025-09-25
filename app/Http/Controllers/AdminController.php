@@ -16,12 +16,12 @@ class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth:admin');
     }
 
     private function checkAdminAccess()
     {
-        if (!Auth::user()->isAdmin()) {
+        if (!Auth::guard('admin')->user()->isAdmin()) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -252,7 +252,7 @@ class AdminController extends Controller
             Log::info('Student deleted successfully', [
                 'student_id' => $student->id,
                 'student_name' => $studentName,
-                'deleted_by' => Auth::user()->name
+                'deleted_by' => Auth::guard('admin')->user()->name
             ]);
             
             return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');

@@ -3,21 +3,24 @@
 @section('title', 'Change Password')
 
 @section('content')
-<div class="password-change-page">
+<div class="student-dashboard">
+    <!-- Student Navigation Bar -->
+    @include('student.partials.student-navbar')
+    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             @include('student.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <div class="main-content">
                 <div class="password-change-header">
                     <h1>Change Password</h1>
                     <p>Update your account password for security.</p>
                 </div>
 
-                <div class="row justify-content-center">
-                    <div class="col-md-8 col-lg-6">
+                <div class="row">
+                    <div class="col-12">
                         <div class="password-change-card">
                             <div class="card-header">
                                 <h5><i data-feather="shield" width="20" height="20" class="me-2"></i>Password Security</h5>
@@ -139,72 +142,6 @@
 
 @push('styles')
 <style>
-.password-change-page {
-    min-height: 100vh;
-    background-color: #f8f9fa;
-}
-
-.sidebar {
-    background: #2d3748;
-    min-height: 100vh;
-    padding: 0;
-}
-
-.sidebar-header {
-    background: #1a202c;
-    padding: 1.5rem;
-    color: white;
-    border-bottom: 1px solid #4a5568;
-}
-
-.sidebar-header h4 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    padding: 1rem 0;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: #a0aec0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.nav-link:hover {
-    background: #4a5568;
-    color: white;
-}
-
-.nav-link.active {
-    background: #6c757d;
-    color: white;
-    border-left-color: #495057;
-}
-
-.nav-link i {
-    margin-right: 0.75rem;
-}
-
-.main-content {
-    padding: 2rem;
-}
-
-.password-change-header h1 {
-    color: #2d3748;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.password-change-header p {
-    color: #718096;
-    margin-bottom: 2rem;
-}
 
 .password-change-card {
     background: white;
