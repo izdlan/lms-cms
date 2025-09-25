@@ -14,9 +14,11 @@ class XlsxImportService
         $updated = 0;
         $errors = 0;
 
+        Log::info('Starting XLSX import', ['file' => $filePath]);
+
         if (!file_exists($filePath)) {
             Log::error('XLSX file not found: ' . $filePath);
-            return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
+            return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1, 'message' => 'File not found: ' . $filePath];
         }
 
         // Check if ZipArchive is available
@@ -28,7 +30,10 @@ class XlsxImportService
         try {
             // Read XLSX file using simple XML parsing
             $zip = new \ZipArchive();
-            if ($zip->open($filePath) === TRUE) {
+            $openResult = $zip->open($filePath);
+            Log::info('ZipArchive open result', ['result' => $openResult, 'file' => $filePath]);
+            
+            if ($openResult === TRUE) {
                 // Read the shared strings
                 $sharedStrings = [];
                 $sharedStringsXml = $zip->getFromName('xl/sharedStrings.xml');
@@ -41,9 +46,49 @@ class XlsxImportService
                     }
                 }
 
-                // Read the worksheet
-                $worksheetXml = $zip->getFromName('xl/worksheets/sheet1.xml');
-                if ($worksheetXml) {
+                // Only process specific sheets: 11, 12, 13, 14, 15, 16, 17
+                $targetSheets = [11, 12, 13, 14, 15, 16, 17];
+                $sheetsToProcess = [];
+                
+                // Get list of available sheets
+                $workbookXml = $zip->getFromName('xl/workbook.xml');
+                if ($workbookXml) {
+                    $workbook = simplexml_load_string($workbookXml);
+                    if (isset($workbook->sheets->sheet)) {
+                        $sheetIndex = 0;
+                        foreach ($workbook->sheets->sheet as $sheet) {
+                            $sheetName = (string)$sheet['name'];
+                            $sheetId = (string)$sheet['sheetId'];
+                            
+                            // Only include sheets 11-17
+                            if (in_array($sheetId, $targetSheets)) {
+                                $sheetsToProcess[] = [
+                                    'name' => $sheetName,
+                                    'id' => $sheetId,
+                                    'file' => 'xl/worksheets/sheet' . $sheetId . '.xml'
+                                ];
+                                Log::info('Including sheet for processing', ['name' => $sheetName, 'id' => $sheetId]);
+                            } else {
+                                Log::info('Skipping sheet', ['name' => $sheetName, 'id' => $sheetId]);
+                            }
+                            $sheetIndex++;
+                        }
+                    }
+                }
+                
+                Log::info('Processing only specific sheets', ['target_sheets' => $targetSheets, 'sheets_to_process' => count($sheetsToProcess)]);
+                
+                // Process each sheet
+                foreach ($sheetsToProcess as $sheetInfo) {
+                    Log::info('Processing sheet: ' . $sheetInfo['name'], [
+                    'sheet_name' => $sheetInfo['name'], 
+                    'file' => $sheetInfo['file'],
+                    'timestamp' => now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString()
+                ]);
+                    
+                    // Read the worksheet
+                    $worksheetXml = $zip->getFromName($sheetInfo['file']);
+                    if ($worksheetXml) {
                     $xml = simplexml_load_string($worksheetXml);
                     if ($xml && isset($xml->sheetData->row)) {
                         $rows = [];
@@ -69,7 +114,28 @@ class XlsxImportService
 
                         // Process the rows
                         if (!empty($rows)) {
-                            $header = array_shift($rows); // First row is header
+                            // Check if this is a DHU LMS sheet by looking for the specific header pattern
+                            $isDhulmsSheet = false;
+                            for ($i = 0; $i < min(10, count($rows)); $i++) {
+                                $firstCell = $rows[$i][0] ?? '';
+                                if (stripos($firstCell, 'NAME') !== false && stripos($rows[$i][1] ?? '', 'ADDRESS') !== false) {
+                                    $isDhulmsSheet = true;
+                                    $header = $rows[$i];
+                                    $rows = array_slice($rows, $i + 1); // Data starts from next row
+                                    break;
+                                }
+                            }
+                            
+                            if (!$isDhulmsSheet) {
+                                // For regular LMS Excel files, headers are typically in row 7 (index 6)
+                                // Skip first 6 rows and use row 7 as header
+                                if (count($rows) >= 7) {
+                                    $header = $rows[6]; // Row 7 (index 6) contains headers
+                                    $rows = array_slice($rows, 7); // Data starts from row 8
+                                } else {
+                                    $header = array_shift($rows); // Fallback to first row
+                                }
+                            }
                             
                             // Remove BOM and normalize headers
                             $header = array_map(function($h) {
@@ -99,14 +165,42 @@ class XlsxImportService
                                 if (empty(array_filter($data))) {
                                     continue;
                                 }
+                                
+                                // Skip rows that contain program names or categories instead of student data
+                                $firstColumnValue = $data[array_key_first($data)] ?? '';
+                                if (is_string($firstColumnValue) && (
+                                    stripos($firstColumnValue, 'PHILOSOPHY') !== false ||
+                                    stripos($firstColumnValue, 'INTERNATIONAL') !== false ||
+                                    stripos($firstColumnValue, 'LOCAL') !== false ||
+                                    stripos($firstColumnValue, 'PROGRAMME') !== false ||
+                                    stripos($firstColumnValue, 'DOCTOR') !== false ||
+                                    stripos($firstColumnValue, 'MASTER') !== false ||
+                                    stripos($firstColumnValue, 'BACHELOR') !== false ||
+                                    stripos($firstColumnValue, 'FILE STATUS') !== false
+                                )) {
+                                    Log::info("Skipping program/category row " . ($rowIndex + 1) . " - contains: " . $firstColumnValue);
+                                    continue;
+                                }
 
                                 // Extract data with flexible column matching
                                 $extractedData = $this->extractStudentData($data);
                                 
                                 if (!$extractedData) {
+                                    Log::warning('Failed to extract student data for row', [
+                                        'rowIndex' => $rowIndex + 1,
+                                        'data' => $data,
+                                        'headers' => $header
+                                    ]);
                                     $errors++;
                                     continue;
                                 }
+                                
+                                // Log successful extraction for debugging
+                                Log::info('Successfully extracted student data', [
+                                    'name' => $extractedData['name'] ?? 'N/A',
+                                    'email' => $extractedData['email'] ?? 'N/A',
+                                    'ic' => $extractedData['ic'] ?? 'N/A'
+                                ]);
 
                                 // Process the student data
                                 $result = $this->processStudent($extractedData);
@@ -122,17 +216,38 @@ class XlsxImportService
                             }
                         }
                     }
-                }
+                    } // Close the if ($worksheetXml) block
+                } // Close the foreach ($sheetsToProcess) loop
                 $zip->close();
             } else {
-                Log::error('Could not open XLSX file: ' . $filePath);
-                return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
+                Log::error('Could not open XLSX file: ' . $filePath, ['result' => $openResult]);
+                return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1, 'message' => 'Could not open XLSX file. Error code: ' . $openResult];
             }
 
         } catch (\Exception $e) {
             Log::error('Error processing XLSX file: ' . $e->getMessage());
             return ['success' => false, 'created' => 0, 'updated' => 0, 'errors' => 1];
         }
+
+        // Log professional completion message
+        $message = "Student Import System: Successfully processed Excel file";
+        if ($created > 0 || $updated > 0) {
+            $message .= " - {$created} new students added, {$updated} existing students updated";
+        } else {
+            $message .= " - No student data changes detected";
+        }
+        
+        if ($errors > 0) {
+            $message .= " with {$errors} validation warnings";
+        }
+        
+        Log::info($message, [
+            'total_created' => $created,
+            'total_updated' => $updated,
+            'total_errors' => $errors,
+            'file' => $filePath,
+            'timestamp' => now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString()
+        ]);
 
         return [
             'success' => true,
@@ -162,7 +277,7 @@ class XlsxImportService
             }
         }
         
-        if (!$hasName || !$hasEmail || !$hasIc) {
+        if (!$hasName || !$hasIc) {
             Log::warning('Missing required fields', [
                 'hasName' => $hasName,
                 'hasEmail' => $hasEmail,
@@ -171,7 +286,7 @@ class XlsxImportService
             ]);
             return false;
         }
-
+        
         // Extract data with flexible column matching
         $extracted = [
             'name' => '',
@@ -243,6 +358,16 @@ class XlsxImportService
             }
         }
 
+        // If no email provided, generate one from IC
+        if (!$hasEmail) {
+            $extracted['email'] = 'student_' . $extracted['ic'] . '@lms.local';
+            Log::info('Generated email for student without email', [
+                'name' => $extracted['name'],
+                'ic' => $extracted['ic'],
+                'generated_email' => $extracted['email']
+            ]);
+        }
+
         return $extracted;
     }
 
@@ -289,20 +414,6 @@ class XlsxImportService
                     'role' => 'student',
                     'must_reset_password' => false,
                     'courses' => $courses,
-                    'category' => $data['category'] ?: null,
-                    'programme_name' => $data['programmeName'] ?: null,
-                    'faculty' => $data['faculty'] ?: null,
-                    'programme_code' => $data['programmeCode'] ?: null,
-                    'semester_entry' => $data['semesterEntry'] ?: null,
-                    'programme_intake' => $data['programmeIntake'] ?: null,
-                    'date_of_commencement' => $data['dateOfCommencement'] ?: null,
-                    'research_title' => $data['researchTitle'] ?: null,
-                    'supervisor' => $data['supervisor'] ?: null,
-                    'external_examiner' => $data['externalExaminer'] ?: null,
-                    'internal_examiner' => $data['internalExaminer'] ?: null,
-                    'student_portal_username' => $portalUsername,
-                    'student_portal_password' => $portalPassword,
-                    'col_date' => $data['colDate'] ?: null,
                 ]);
 
                 Log::info('Student created from XLSX', ['name' => $data['name'], 'ic' => $data['ic']]);
@@ -318,20 +429,6 @@ class XlsxImportService
                     'password' => Hash::make($data['ic']),
                     'courses' => $courses,
                     'must_reset_password' => false,
-                    'category' => $data['category'] ?: $user->category,
-                    'programme_name' => $data['programmeName'] ?: $user->programme_name,
-                    'faculty' => $data['faculty'] ?: $user->faculty,
-                    'programme_code' => $data['programmeCode'] ?: $user->programme_code,
-                    'semester_entry' => $data['semesterEntry'] ?: $user->semester_entry,
-                    'programme_intake' => $data['programmeIntake'] ?: $user->programme_intake,
-                    'date_of_commencement' => $data['dateOfCommencement'] ?: $user->date_of_commencement,
-                    'research_title' => $data['researchTitle'] ?: $user->research_title,
-                    'supervisor' => $data['supervisor'] ?: $user->supervisor,
-                    'external_examiner' => $data['externalExaminer'] ?: $user->external_examiner,
-                    'internal_examiner' => $data['internalExaminer'] ?: $user->internal_examiner,
-                    'student_portal_username' => $portalUsername ?: $user->student_portal_username,
-                    'student_portal_password' => $portalPassword ?: $user->student_portal_password,
-                    'col_date' => $data['colDate'] ?: $user->col_date,
                 ]);
 
                 Log::info('Student updated from XLSX', ['name' => $data['name'], 'ic' => $data['ic']]);

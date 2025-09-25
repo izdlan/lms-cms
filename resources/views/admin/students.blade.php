@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Students Management')
 
@@ -7,40 +7,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="sidebar-header">
-                    <h4>Admin Panel</h4>
-                </div>
-                <nav class="sidebar-nav">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                        <i data-feather="home" width="20" height="20"></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ route('admin.students') }}" class="nav-link active">
-                        <i data-feather="users" width="20" height="20"></i>
-                        Students
-                    </a>
-                    <a href="{{ route('admin.import') }}" class="nav-link">
-                        <i data-feather="upload" width="20" height="20"></i>
-                        Import Students
-                    </a>
-                    <a href="{{ route('admin.sync') }}" class="nav-link">
-                        <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel/CSV
-                    </a>
-                    <a href="{{ route('admin.automation') }}" class="nav-link">
-                        <i data-feather="settings" width="20" height="20"></i>
-                        Automation
-                    </a>
-                    <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i data-feather="log-out" width="20" height="20"></i>
-                        Logout
-                    </a>
-                </nav>
-                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-            </div>
+            @include('admin.partials.sidebar')
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
@@ -55,6 +22,14 @@
                             <i data-feather="upload" width="16" height="16"></i>
                             Import from Excel
                         </a>
+                        <button type="button" class="btn btn-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
+                            <i data-feather="download" width="16" height="16"></i>
+                            Google Sheets Import
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="runOneDriveImport()" id="oneDriveBtn">
+                            <i data-feather="cloud" width="16" height="16"></i>
+                            OneDrive Import
+                        </button>
                     </div>
                 </div>
 
@@ -140,9 +115,17 @@
                                 </table>
                             </div>
 
-                            <!-- Pagination -->
-                            <div class="d-flex justify-content-center">
-                                {{ $students->links() }}
+                            <!-- Enhanced Pagination -->
+                            <div class="pagination-container">
+                                <div class="pagination-info">
+                                    <div class="pagination-text">
+                                        Showing {{ $students->firstItem() ?? 0 }} to {{ $students->lastItem() ?? 0 }} of {{ $students->total() }} students
+                                    </div>
+                                    <div class="pagination-controls">
+                                        <span class="text-muted">Page {{ $students->currentPage() }} of {{ $students->lastPage() }}</span>
+                                    </div>
+                                </div>
+                                {{ $students->links('pagination.admin-pagination') }}
                             </div>
                         @else
                             <div class="text-center py-5">
@@ -176,175 +159,7 @@
 
 @endsection
 
-@push('styles')
-<style>
-.admin-dashboard {
-    min-height: 100vh;
-    background-color: #f8f9fa;
-}
-
-.sidebar {
-    background: #2d3748;
-    min-height: 100vh;
-    padding: 0;
-}
-
-.sidebar-header {
-    background: #1a202c;
-    padding: 1.5rem;
-    color: white;
-    border-bottom: 1px solid #4a5568;
-}
-
-.sidebar-header h4 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    padding: 1rem 0;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: #a0aec0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.nav-link:hover {
-    background: #4a5568;
-    color: white;
-}
-
-.nav-link.active {
-    background: #667eea;
-    color: white;
-    border-left-color: #5a67d8;
-}
-
-.nav-link i {
-    margin-right: 0.75rem;
-}
-
-.main-content {
-    padding: 2rem;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-    color: #2d3748;
-    font-weight: bold;
-    margin: 0;
-}
-
-.header-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: none;
-}
-
-.card-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    padding: 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.card-header h5 {
-    margin: 0;
-    color: #2d3748;
-    font-weight: bold;
-}
-
-.search-box {
-    width: 300px;
-}
-
-.student-checkbox {
-    transform: scale(1.2);
-}
-
-#bulkDeleteBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.list-group-item {
-    border: 1px solid #dee2e6;
-    padding: 0.75rem 1rem;
-    margin-bottom: 0.5rem;
-    border-radius: 0.375rem;
-}
-
-.table th {
-    border-top: none;
-    font-weight: 600;
-    color: #2d3748;
-}
-
-.student-info strong {
-    color: #2d3748;
-}
-
-.badge {
-    font-size: 0.75rem;
-}
-
-.btn-group .btn {
-    margin-right: 0.25rem;
-}
-
-@media (max-width: 768px) {
-    .sidebar {
-        min-height: auto;
-    }
-    
-    .main-content {
-        padding: 1rem;
-    }
-    
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
-    
-    .search-box {
-        width: 100%;
-    }
-}
-
-.btn-outline-danger:hover {
-    background-color: #dc3545;
-    border-color: #dc3545;
-    color: white;
-}
-
-.btn-outline-primary:hover {
-    background-color: #0d6efd;
-    border-color: #0d6efd;
-    color: white;
-}
-</style>
-@endpush
+{{-- Inline styles moved to /assets/default/css/admin.css --}}
 
 @push('scripts')
 <script>
@@ -597,6 +412,124 @@ function confirmBulkDelete() {
     console.log('Form created, submitting...');
     document.body.appendChild(form);
     form.submit();
+}
+
+// Google Sheets Import Function
+function runGoogleSheetsImport() {
+    const importBtn = document.getElementById('googleSheetsBtn');
+    const originalText = importBtn.innerHTML;
+    
+    // Show loading state
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
+    feather.replace();
+    
+    // Make the import request
+    fetch('/admin/students/google-sheets-import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showAlert('success', `Google Sheets import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`);
+            
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert('danger', 'Google Sheets import failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error occurred during Google Sheets import: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        importBtn.disabled = false;
+        importBtn.innerHTML = originalText;
+        feather.replace();
+    });
+}
+
+// OneDrive Import Function
+function runOneDriveImport() {
+    const importBtn = document.getElementById('oneDriveBtn');
+    const originalText = importBtn.innerHTML;
+    
+    // Show loading state
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
+    feather.replace();
+    
+    // Make the import request
+    fetch('/admin/students/onedrive-import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message with sheet details
+            let message = `OneDrive import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`;
+            
+            if (data.processed_sheets && data.processed_sheets.length > 0) {
+                message += '\n\nProcessed sheets:';
+                data.processed_sheets.forEach(sheet => {
+                    message += `\n- ${sheet.sheet}: Created=${sheet.created}, Updated=${sheet.updated}, Errors=${sheet.errors}`;
+                });
+            }
+            
+            showAlert('success', message);
+            
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            showAlert('danger', 'OneDrive import failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        importBtn.disabled = false;
+        importBtn.innerHTML = originalText;
+        feather.replace();
+    });
+}
+
+// Show alert function
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the main content
+    const mainContent = document.querySelector('.main-content');
+    mainContent.insertBefore(alertDiv, mainContent.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
 }
 </script>
 @endpush

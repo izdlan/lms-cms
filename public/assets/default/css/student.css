@@ -1,0 +1,661 @@
+/* ========================================
+   LMS OLYMPIA - STUDENT PANEL STYLES
+   Professional CSS Structure
+   ======================================== */
+
+/* ========================================
+   CSS VARIABLES (Custom Properties)
+   ======================================== */
+:root {
+    /* Student Color Palette */
+    --student-primary: #667eea;
+    --student-primary-dark: #5a67d8;
+    --student-secondary: #2d3748;
+    --student-secondary-dark: #1a202c;
+    --student-accent: #4a5568;
+    --student-success: #48bb78;
+    --student-warning: #ed8936;
+    --student-danger: #f56565;
+    --student-info: #4299e1;
+    
+    /* Neutral Colors */
+    --student-white: #ffffff;
+    --student-gray-50: #f8f9fa;
+    --student-gray-100: #f7fafc;
+    --student-gray-200: #edf2f7;
+    --student-gray-300: #e2e8f0;
+    --student-gray-400: #cbd5e0;
+    --student-gray-500: #a0aec0;
+    --student-gray-600: #718096;
+    --student-gray-700: #4a5568;
+    --student-gray-800: #2d3748;
+    --student-gray-900: #1a202c;
+    
+    /* Typography */
+    --student-font-family: 'main-font-family', 'Optima', 'Optima-Regular', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    
+    /* Spacing */
+    --student-spacing-xs: 0.25rem;
+    --student-spacing-sm: 0.5rem;
+    --student-spacing-md: 1rem;
+    --student-spacing-lg: 1.5rem;
+    --student-spacing-xl: 2rem;
+    --student-spacing-2xl: 3rem;
+    
+    /* Border Radius */
+    --student-radius-sm: 0.25rem;
+    --student-radius-md: 0.375rem;
+    --student-radius-lg: 0.5rem;
+    --student-radius-xl: 0.75rem;
+    --student-radius-2xl: 1rem;
+    
+    /* Shadows */
+    --student-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --student-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --student-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --student-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Transitions */
+    --student-transition-fast: 0.15s ease;
+    --student-transition-normal: 0.3s ease;
+    --student-transition-slow: 0.5s ease;
+}
+
+/* ========================================
+   STUDENT DASHBOARD LAYOUT
+   ======================================== */
+.student-dashboard {
+    min-height: 100vh;
+    background-color: var(--student-gray-50);
+    font-family: var(--student-font-family);
+}
+
+/* ========================================
+   STUDENT SIDEBAR
+   ======================================== */
+.student-sidebar {
+    background: var(--student-secondary);
+    min-height: 100vh;
+    padding: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 250px;
+    z-index: 1000;
+    transition: transform var(--student-transition-normal);
+}
+
+.student-sidebar-header {
+    background: var(--student-secondary-dark);
+    padding: var(--student-spacing-lg);
+    color: var(--student-white);
+    border-bottom: 1px solid var(--student-accent);
+}
+
+.student-sidebar-header h4 {
+    margin: 0;
+    font-weight: bold;
+    font-size: 1.125rem;
+}
+
+.student-sidebar-nav {
+    padding: var(--student-spacing-md) 0;
+}
+
+.student-nav-link {
+    display: flex;
+    align-items: center;
+    padding: var(--student-spacing-md) var(--student-spacing-lg);
+    color: var(--student-gray-500);
+    text-decoration: none;
+    transition: all var(--student-transition-normal);
+    border-left: 3px solid transparent;
+    position: relative;
+}
+
+.student-nav-link:hover {
+    background: var(--student-accent);
+    color: var(--student-white);
+    text-decoration: none;
+}
+
+.student-nav-link.active {
+    background: var(--student-primary);
+    color: var(--student-white);
+    border-left-color: var(--student-primary-dark);
+}
+
+.student-nav-link i {
+    margin-right: var(--student-spacing-md);
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+/* ========================================
+   STUDENT MAIN CONTENT
+   ======================================== */
+.student-main-content {
+    padding: var(--student-spacing-xl);
+    margin-left: 250px;
+    min-height: 100vh;
+}
+
+/* ========================================
+   STUDENT DASHBOARD HEADER
+   ======================================== */
+.student-dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--student-spacing-xl);
+    flex-wrap: wrap;
+    gap: var(--student-spacing-md);
+}
+
+.student-dashboard-header h1 {
+    color: var(--student-gray-800);
+    font-weight: bold;
+    margin: 0;
+    font-size: 2rem;
+}
+
+.student-dashboard-header p {
+    color: var(--student-gray-600);
+    margin: 0;
+}
+
+.student-header-actions {
+    display: flex;
+    gap: var(--student-spacing-sm);
+    flex-wrap: wrap;
+}
+
+/* ========================================
+   STUDENT WELCOME SECTION
+   ======================================== */
+.student-welcome {
+    background: linear-gradient(135deg, var(--student-primary) 0%, var(--student-primary-dark) 100%);
+    color: var(--student-white);
+    padding: var(--student-spacing-xl);
+    border-radius: var(--student-radius-2xl);
+    margin-bottom: var(--student-spacing-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+.student-welcome::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+.student-welcome-content {
+    position: relative;
+    z-index: 1;
+}
+
+.student-welcome h2 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: var(--student-spacing-sm);
+}
+
+.student-welcome p {
+    font-size: 1.125rem;
+    opacity: 0.9;
+    margin: 0;
+}
+
+/* ========================================
+   STUDENT STATS CARDS
+   ======================================== */
+.student-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--student-spacing-lg);
+    margin-bottom: var(--student-spacing-xl);
+}
+
+.student-stats-card {
+    background: var(--student-white);
+    padding: var(--student-spacing-lg);
+    border-radius: var(--student-radius-xl);
+    box-shadow: var(--student-shadow-md);
+    display: flex;
+    align-items: center;
+    transition: all var(--student-transition-normal);
+    border-left: 4px solid var(--student-primary);
+}
+
+.student-stats-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--student-shadow-lg);
+}
+
+.student-stats-icon {
+    background: var(--student-primary);
+    color: var(--student-white);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: var(--student-spacing-lg);
+    flex-shrink: 0;
+    font-size: 1.5rem;
+}
+
+.student-stats-content h3 {
+    font-size: 2rem;
+    font-weight: bold;
+    color: var(--student-gray-800);
+    margin: 0;
+    line-height: 1.2;
+}
+
+.student-stats-content p {
+    color: var(--student-gray-600);
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+/* ========================================
+   STUDENT COURSES SECTION
+   ======================================== */
+.student-courses-section {
+    background: var(--student-white);
+    border-radius: var(--student-radius-xl);
+    box-shadow: var(--student-shadow-md);
+    overflow: hidden;
+    margin-bottom: var(--student-spacing-xl);
+}
+
+.student-courses-header {
+    background: var(--student-gray-50);
+    padding: var(--student-spacing-lg);
+    border-bottom: 1px solid var(--student-gray-200);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--student-spacing-md);
+}
+
+.student-courses-header h3 {
+    margin: 0;
+    color: var(--student-gray-800);
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.student-courses-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--student-spacing-lg);
+    padding: var(--student-spacing-lg);
+}
+
+.student-course-card {
+    background: var(--student-white);
+    border: 1px solid var(--student-gray-200);
+    border-radius: var(--student-radius-lg);
+    padding: var(--student-spacing-lg);
+    transition: all var(--student-transition-normal);
+    position: relative;
+    overflow: hidden;
+}
+
+.student-course-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--student-shadow-lg);
+    border-color: var(--student-primary);
+}
+
+.student-course-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--student-primary), var(--student-primary-dark));
+}
+
+.student-course-title {
+    font-size: 1.125rem;
+    font-weight: bold;
+    color: var(--student-gray-800);
+    margin-bottom: var(--student-spacing-sm);
+}
+
+.student-course-description {
+    color: var(--student-gray-600);
+    font-size: 0.875rem;
+    margin-bottom: var(--student-spacing-md);
+    line-height: 1.5;
+}
+
+.student-course-progress {
+    margin-bottom: var(--student-spacing-md);
+}
+
+.student-course-progress-bar {
+    height: 8px;
+    background: var(--student-gray-200);
+    border-radius: var(--student-radius-sm);
+    overflow: hidden;
+}
+
+.student-course-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--student-primary), var(--student-primary-dark));
+    border-radius: var(--student-radius-sm);
+    transition: width var(--student-transition-normal);
+}
+
+.student-course-progress-text {
+    font-size: 0.75rem;
+    color: var(--student-gray-600);
+    margin-top: var(--student-spacing-xs);
+}
+
+/* ========================================
+   STUDENT PROFILE SECTION
+   ======================================== */
+.student-profile-section {
+    background: var(--student-white);
+    border-radius: var(--student-radius-xl);
+    box-shadow: var(--student-shadow-md);
+    overflow: hidden;
+    margin-bottom: var(--student-spacing-xl);
+}
+
+.student-profile-header {
+    background: var(--student-gray-50);
+    padding: var(--student-spacing-lg);
+    border-bottom: 1px solid var(--student-gray-200);
+}
+
+.student-profile-header h3 {
+    margin: 0;
+    color: var(--student-gray-800);
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.student-profile-content {
+    padding: var(--student-spacing-lg);
+}
+
+.student-profile-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--student-spacing-lg);
+}
+
+.student-profile-item {
+    display: flex;
+    flex-direction: column;
+    gap: var(--student-spacing-xs);
+}
+
+.student-profile-label {
+    font-size: 0.875rem;
+    color: var(--student-gray-600);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.student-profile-value {
+    font-size: 1rem;
+    color: var(--student-gray-800);
+    font-weight: 500;
+}
+
+/* ========================================
+   STUDENT PASSWORD CHANGE FORM
+   ======================================== */
+.student-password-form {
+    background: var(--student-white);
+    border-radius: var(--student-radius-xl);
+    box-shadow: var(--student-shadow-md);
+    padding: var(--student-spacing-xl);
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.student-password-form h3 {
+    color: var(--student-gray-800);
+    font-weight: bold;
+    margin-bottom: var(--student-spacing-lg);
+    text-align: center;
+    font-size: 1.5rem;
+}
+
+.student-form-group {
+    margin-bottom: var(--student-spacing-lg);
+}
+
+.student-form-label {
+    font-weight: 600;
+    color: var(--student-gray-800);
+    margin-bottom: var(--student-spacing-sm);
+    font-size: 0.9rem;
+}
+
+.student-form-control {
+    border: 2px solid var(--student-gray-300);
+    border-radius: var(--student-radius-lg);
+    padding: var(--student-spacing-md);
+    font-size: 1rem;
+    transition: all var(--student-transition-normal);
+    font-family: var(--student-font-family);
+    width: 100%;
+}
+
+.student-form-control:focus {
+    border-color: var(--student-primary);
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    outline: none;
+}
+
+.student-password-input-group {
+    position: relative;
+}
+
+.student-password-toggle {
+    position: absolute;
+    right: var(--student-spacing-md);
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--student-gray-500);
+    cursor: pointer;
+    padding: 0;
+    font-size: 1.1rem;
+    transition: color var(--student-transition-fast);
+}
+
+.student-password-toggle:hover {
+    color: var(--student-primary);
+}
+
+.student-btn-primary {
+    background: var(--student-primary);
+    border: none;
+    padding: var(--student-spacing-md) var(--student-spacing-xl);
+    font-weight: 600;
+    font-size: 1rem;
+    border-radius: var(--student-radius-lg);
+    transition: all var(--student-transition-normal);
+    color: var(--student-white);
+    width: 100%;
+    cursor: pointer;
+    font-family: var(--student-font-family);
+}
+
+.student-btn-primary:hover {
+    background: var(--student-primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--student-shadow-lg);
+}
+
+.student-btn-primary:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   STUDENT SECURITY TIPS
+   ======================================== */
+.student-security-tips {
+    background: var(--student-gray-50);
+    border-radius: var(--student-radius-lg);
+    padding: var(--student-spacing-lg);
+    margin-top: var(--student-spacing-xl);
+}
+
+.student-security-tips h4 {
+    color: var(--student-gray-800);
+    font-weight: bold;
+    margin-bottom: var(--student-spacing-md);
+    font-size: 1.125rem;
+}
+
+.student-security-tips ul {
+    margin: 0;
+    padding-left: var(--student-spacing-lg);
+}
+
+.student-security-tips li {
+    color: var(--student-gray-700);
+    margin-bottom: var(--student-spacing-sm);
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+@media (max-width: 768px) {
+    .student-sidebar {
+        transform: translateX(-100%);
+        width: 100%;
+    }
+    
+    .student-sidebar.show {
+        transform: translateX(0);
+    }
+    
+    .student-main-content {
+        margin-left: 0;
+        padding: var(--student-spacing-md);
+    }
+    
+    .student-dashboard-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .student-stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .student-courses-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .student-profile-info {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .student-stats-card {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .student-stats-icon {
+        margin-right: 0;
+        margin-bottom: var(--student-spacing-md);
+    }
+    
+    .student-welcome h2 {
+        font-size: 2rem;
+    }
+    
+    .student-password-form {
+        padding: var(--student-spacing-lg);
+        margin: 0 var(--student-spacing-sm);
+    }
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.student-fade-in {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.student-slide-in {
+    animation: slideInLeft 0.6s ease-out;
+}
+
+/* ========================================
+   PRINT STYLES
+   ======================================== */
+@media print {
+    .student-sidebar,
+    .student-btn-primary,
+    .student-header-actions {
+        display: none !important;
+    }
+    
+    .student-main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    .student-stats-card,
+    .student-course-card,
+    .student-profile-section {
+        box-shadow: none;
+        border: 1px solid var(--student-gray-300);
+    }
+}

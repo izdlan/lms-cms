@@ -11,17 +11,18 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Artisan;
 use App\Services\CsvImportService;
 use App\Services\XlsxImportService;
+use App\Services\GoogleSheetsImportService;
 
 class AdminController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth:admin');
+        $this->middleware('auth');
     }
 
     private function checkAdminAccess()
     {
-        if (!Auth::guard('admin')->user()->isAdmin()) {
+        if (!Auth::check() || !Auth::user()->isAdmin()) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -252,7 +253,7 @@ class AdminController extends Controller
             Log::info('Student deleted successfully', [
                 'student_id' => $student->id,
                 'student_name' => $studentName,
-                'deleted_by' => Auth::guard('admin')->user()->name
+                'deleted_by' => Auth::user()->name
             ]);
             
             return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
@@ -270,7 +271,7 @@ class AdminController extends Controller
     {
         $this->checkAdminAccess();
         
-        \Log::info('Bulk delete request received', [
+        Log::info('Bulk delete request received', [
             'student_ids' => $request->input('student_ids'),
             'all_input' => $request->all()
         ]);
@@ -284,12 +285,12 @@ class AdminController extends Controller
             $studentIds = $request->input('student_ids');
             $deletedCount = 0;
 
-            \Log::info('Processing bulk delete', ['student_ids' => $studentIds]);
+            Log::info('Processing bulk delete', ['student_ids' => $studentIds]);
 
             foreach ($studentIds as $studentId) {
                 $student = User::find($studentId);
                 if ($student && $student->role === 'student') {
-                    \Log::info('Deleting student', ['id' => $studentId, 'name' => $student->name]);
+                    Log::info('Deleting student', ['id' => $studentId, 'name' => $student->name]);
                     $student->delete();
                     $deletedCount++;
                 }
@@ -299,12 +300,98 @@ class AdminController extends Controller
                 ? '1 student deleted successfully!' 
                 : "{$deletedCount} students deleted successfully!";
 
-            \Log::info('Bulk delete completed', ['deleted_count' => $deletedCount]);
+            Log::info('Bulk delete completed', ['deleted_count' => $deletedCount]);
 
             return redirect()->route('admin.students')->with('success', $message);
         } catch (\Exception $e) {
-            \Log::error('Bulk delete error: ' . $e->getMessage());
+            Log::error('Bulk delete error: ' . $e->getMessage());
             return redirect()->route('admin.students')->with('error', 'Error deleting students: ' . $e->getMessage());
+        }
+    }
+
+    public function googleSheetsImport(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $googleSheetsService = new GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
+            
+            if ($result['success']) {
+                // Update cache with results
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                cache()->put('google_sheets_automation_last_check', now(), now()->addDays(30));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Google Sheets import completed successfully!',
+                    'created' => $result['created'],
+                    'updated' => $result['updated'],
+                    'errors' => $result['errors']
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Google Sheets import failed: ' . ($result['message'] ?? 'Unknown error'),
+                    'created' => $result['created'] ?? 0,
+                    'updated' => $result['updated'] ?? 0,
+                    'errors' => $result['errors'] ?? 0
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Google Sheets import error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error during import: ' . $e->getMessage(),
+                'created' => 0,
+                'updated' => 0,
+                'errors' => 1
+            ]);
+        }
+    }
+
+    public function oneDriveImport(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $oneDriveService = new \App\Services\OneDriveExcelImportService();
+            $result = $oneDriveService->importFromOneDrive();
+            
+            if ($result['success']) {
+                // Update cache with results
+                cache()->put('last_onedrive_import_time', now(), now()->addDays(30));
+                cache()->put('last_onedrive_import_results', $result, now()->addDays(30));
+                
+                return response()->json([
+                    'success' => true,
+                    'message' => 'OneDrive import completed successfully!',
+                    'created' => $result['created'],
+                    'updated' => $result['updated'],
+                    'errors' => $result['errors'],
+                    'processed_sheets' => $result['processed_sheets'] ?? []
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'OneDrive import failed: ' . ($result['error'] ?? 'Unknown error'),
+                    'created' => $result['created'] ?? 0,
+                    'updated' => $result['updated'] ?? 0,
+                    'errors' => $result['errors'] ?? 0
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error('OneDrive import error: ' . $e->getMessage());
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error during import: ' . $e->getMessage(),
+                'created' => 0,
+                'updated' => 0,
+                'errors' => 1
+            ]);
         }
     }
 
@@ -312,41 +399,157 @@ class AdminController extends Controller
     {
         $this->checkAdminAccess();
         
-        // Get real automation status
-        $automationConfig = $this->getAutomationConfig();
-        $lastImportTime = cache()->get('last_auto_import_time', null);
+        // Get Google Sheets automation status
+        $automationConfig = $this->getGoogleSheetsConfig();
+        $lastImportTime = cache()->get('last_google_sheets_import_time', null);
         $totalStudents = User::where('role', 'student')->count();
-        $filePath = $automationConfig['excel_file'] ?? storage_path('app/students/Enrollment OEM.xlsx');
-        $fileExists = file_exists($filePath);
-        $fileStatus = $fileExists ? 'Watching' : 'File Not Found';
-        $lastModified = $fileExists ? filemtime($filePath) : null;
+        
+        // Check if Google Sheets automation is running
+        $automationStatus = cache()->get('google_sheets_automation_status', 'stopped');
+        $isRunning = $automationStatus === 'running';
+        
+        // Get last import results
+        $lastImportResults = cache()->get('last_google_sheets_import_results', null);
         
         // Get recent import logs
-        $recentLogs = $this->getRecentImportLogs();
+        $recentLogs = $this->getRecentGoogleSheetsLogs();
+        
+        // Google Sheets specific data
+        $googleSheetsUrl = 'https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true';
+        $sheetsStatus = $this->checkGoogleSheetsStatus();
+        
+        // Run automation check if it's running and enough time has passed
+        if ($isRunning) {
+            $this->runWebOnlyAutomation();
+        }
         
         return view('admin.automation', compact(
             'automationConfig',
             'lastImportTime', 
             'totalStudents',
-            'fileStatus',
-            'lastModified',
-            'recentLogs'
+            'recentLogs',
+            'isRunning',
+            'lastImportResults',
+            'googleSheetsUrl',
+            'sheetsStatus'
         ));
     }
     
-    private function getAutomationConfig()
+    private function getGoogleSheetsConfig()
     {
-        $configPath = storage_path('app/automation.json');
+        $configPath = storage_path('app/google_sheets_automation.json');
         if (file_exists($configPath)) {
             return json_decode(file_get_contents($configPath), true);
         }
         
         return [
-            'excel_file' => storage_path('app/students/Enrollment OEM.xlsx'),
-            'notification_email' => 'admin@example.com',
-            'import_frequency' => 'every-minute',
-            'status' => 'Enabled'
+            'google_sheets_url' => 'https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true',
+            'notification_email' => 'ikramalif.roslee@gmail.com',
+            'import_frequency' => 'every-5-minutes',
+            'status' => 'Enabled',
+            'check_interval' => 300
         ];
+    }
+    
+    private function checkGoogleSheetsStatus()
+    {
+        // Use cached status to avoid slow API calls on every page load
+        $cachedStatus = cache()->get('google_sheets_connection_status', null);
+        
+        // Only check if cache is older than 5 minutes
+        if (!$cachedStatus || now()->diffInMinutes($cachedStatus['last_check']) > 5) {
+            try {
+                $response = \Illuminate\Support\Facades\Http::timeout(5)->get('https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/export?format=csv');
+                
+                $status = [
+                    'status' => $response->successful() ? 'Connected' : 'Connection Failed',
+                    'last_check' => now()->format('Y-m-d H:i:s'),
+                    'response_size' => $response->successful() ? strlen($response->body()) : 0,
+                    'error' => $response->successful() ? null : 'HTTP ' . $response->status()
+                ];
+                
+                // Cache the status for 5 minutes
+                cache()->put('google_sheets_connection_status', $status, now()->addMinutes(5));
+                
+                return $status;
+            } catch (\Exception $e) {
+                $status = [
+                    'status' => 'Error',
+                    'last_check' => now()->format('Y-m-d H:i:s'),
+                    'error' => $e->getMessage()
+                ];
+                
+                // Cache the error status for 2 minutes
+                cache()->put('google_sheets_connection_status', $status, now()->addMinutes(2));
+                
+                return $status;
+            }
+        }
+        
+        return $cachedStatus;
+    }
+    
+    private function getRecentGoogleSheetsLogs()
+    {
+        // Use cached logs to avoid reading large log files on every page load
+        $cachedLogs = cache()->get('google_sheets_recent_logs', []);
+        $lastLogCheck = cache()->get('google_sheets_last_log_check', null);
+        
+        // Only read logs if cache is older than 2 minutes
+        if (!$lastLogCheck || now()->diffInMinutes($lastLogCheck) > 2) {
+            $logs = [];
+            $logFile = storage_path('logs/laravel.log');
+            
+            if (file_exists($logFile)) {
+                // Read only the last 1000 lines to avoid memory issues
+                $lines = array_slice(file($logFile, FILE_IGNORE_NEW_LINES), -1000);
+                
+                // Get last 20 lines that contain Google Sheets import info
+                $importLines = array_filter($lines, function($line) {
+                    return strpos($line, 'Google Sheets') !== false || 
+                           strpos($line, 'google_sheets') !== false ||
+                           strpos($line, 'GoogleSheetsImportService') !== false ||
+                           strpos($line, 'Google Sheets import') !== false;
+                });
+                
+                $recentLines = array_slice(array_reverse($importLines), 0, 15);
+                
+                foreach ($recentLines as $line) {
+                    if (preg_match('/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\].*?(\w+):\s*(.+)/', $line, $matches)) {
+                        $timestamp = $matches[1];
+                        $level = strtolower($matches[2]);
+                        $message = trim($matches[3]);
+                        
+                        // Convert to Malaysia timezone for display
+                        try {
+                            $malaysiaTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $timestamp)
+                                ->setTimezone('Asia/Kuala_Lumpur')
+                                ->format('Y-m-d H:i:s');
+                        } catch (\Exception $e) {
+                            $malaysiaTime = $timestamp;
+                        }
+                        
+                        // Create professional message
+                        $professionalMessage = $this->createGoogleSheetsProfessionalMessage($message, $level);
+                        
+                        $logs[] = [
+                            'time' => $malaysiaTime,
+                            'level' => $level,
+                            'message' => $professionalMessage,
+                            'raw_message' => $message
+                        ];
+                    }
+                }
+            }
+            
+            // Cache the logs for 2 minutes
+            cache()->put('google_sheets_recent_logs', $logs, now()->addMinutes(2));
+            cache()->put('google_sheets_last_log_check', now(), now()->addMinutes(2));
+            
+            return $logs;
+        }
+        
+        return $cachedLogs;
     }
     
     private function getRecentImportLogs()
@@ -359,21 +562,39 @@ class AdminController extends Controller
             $logContent = file_get_contents($logFile);
             $lines = explode("\n", $logContent);
             
-            // Get last 20 lines that contain auto import info
-            $autoImportLines = array_filter($lines, function($line) {
-                return strpos($line, 'AutoImportStudents') !== false || 
+            // Get last 20 lines that contain import info
+            $importLines = array_filter($lines, function($line) {
+                return strpos($line, 'Student Import') !== false || 
                        strpos($line, 'Auto import') !== false ||
-                       strpos($line, 'students:auto-import') !== false;
+                       strpos($line, 'students:auto-import') !== false ||
+                       strpos($line, 'AutoImportStudents') !== false;
             });
             
-            $recentLines = array_slice(array_reverse($autoImportLines), 0, 10);
+            $recentLines = array_slice(array_reverse($importLines), 0, 15);
             
             foreach ($recentLines as $line) {
                 if (preg_match('/\[(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\].*?(\w+):\s*(.+)/', $line, $matches)) {
+                    $timestamp = $matches[1];
+                    $level = strtolower($matches[2]);
+                    $message = trim($matches[3]);
+                    
+                    // Convert to Malaysia timezone for display
+                    try {
+                        $malaysiaTime = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $timestamp)
+                            ->setTimezone('Asia/Kuala_Lumpur')
+                            ->format('Y-m-d H:i:s');
+                    } catch (\Exception $e) {
+                        $malaysiaTime = $timestamp;
+                    }
+                    
+                    // Create professional message
+                    $professionalMessage = $this->createProfessionalMessage($message, $level);
+                    
                     $logs[] = [
-                        'time' => $matches[1],
-                        'level' => strtolower($matches[2]),
-                        'message' => trim($matches[3])
+                        'time' => $malaysiaTime,
+                        'level' => $level,
+                        'message' => $professionalMessage,
+                        'raw_message' => $message
                     ];
                 }
             }
@@ -381,40 +602,762 @@ class AdminController extends Controller
         
         return $logs;
     }
+    
+    private function createProfessionalMessage($message, $level)
+    {
+        // Create professional messages based on log content
+        if (strpos($message, 'Student Import Automation:') !== false) {
+            return $message; // Already professional
+        }
+        
+        if (strpos($message, 'Student Import System:') !== false) {
+            return $message; // Already professional
+        }
+        
+        if (strpos($message, 'Auto import completed') !== false) {
+            return "Student Import System: Import process completed successfully";
+        }
+        
+        if (strpos($message, 'Processing sheet:') !== false) {
+            $sheetName = str_replace('Processing sheet: ', '', $message);
+            return "Processing student data from {$sheetName} sheet";
+        }
+        
+        if (strpos($message, 'File change detected') !== false) {
+            return "System Alert: Excel file modification detected - initiating import process";
+        }
+        
+        if (strpos($message, 'No changes detected') !== false) {
+            return "System Status: No student data changes detected in Excel file";
+        }
+        
+        if (strpos($message, 'Import failed') !== false) {
+            return "System Error: Student import process failed - please check system logs";
+        }
+        
+        // Default professional message
+        return "System Activity: " . ucfirst(strtolower($message));
+    }
+    
+    private function createGoogleSheetsProfessionalMessage($message, $level)
+    {
+        // Create professional messages based on Google Sheets log content
+        if (strpos($message, 'Google Sheets import') !== false) {
+            return $message; // Already professional
+        }
+        
+        if (strpos($message, 'Starting Google Sheets import') !== false) {
+            return "Google Sheets Integration: Starting data import from Google Sheets";
+        }
+        
+        if (strpos($message, 'Google Sheets data fetched successfully') !== false) {
+            return "Google Sheets Integration: Data successfully retrieved from Google Sheets";
+        }
+        
+        if (strpos($message, 'Student created from Google Sheets') !== false) {
+            return "Google Sheets Integration: New student record created from Google Sheets data";
+        }
+        
+        if (strpos($message, 'Student updated from Google Sheets') !== false) {
+            return "Google Sheets Integration: Existing student record updated from Google Sheets data";
+        }
+        
+        if (strpos($message, 'Failed to fetch Google Sheets data') !== false) {
+            return "Google Sheets Integration: Error - Unable to retrieve data from Google Sheets";
+        }
+        
+        if (strpos($message, 'No data found in Google Sheets') !== false) {
+            return "Google Sheets Integration: Warning - No student data found in Google Sheets";
+        }
+        
+        // Default professional message
+        return "Google Sheets Integration: " . ucfirst(strtolower($message));
+    }
+    
+    public function runAutomationCheck()
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $this->runWebBasedAutomation();
+            
+            $lastCheck = cache()->get('google_sheets_automation_last_check', null);
+            $lastImport = cache()->get('last_google_sheets_import_time', null);
+            $lastResults = cache()->get('last_google_sheets_import_results', null);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Automation check completed',
+                'last_check' => $lastCheck ? \Carbon\Carbon::parse($lastCheck)->format('Y-m-d H:i:s') : null,
+                'last_import' => $lastImport ? \Carbon\Carbon::parse($lastImport)->format('Y-m-d H:i:s') : null,
+                'last_results' => $lastResults
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Automation check error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Error running automation check: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    private function runWebOnlyAutomation()
+    {
+        // Check if automation is enabled
+        $isRunning = cache()->get('google_sheets_automation_status', 'stopped') === 'running';
+        if (!$isRunning) {
+            return;
+        }
+        
+        // Check if enough time has passed since last check
+        $lastCheck = cache()->get('google_sheets_automation_last_check', null);
+        $interval = cache()->get('google_sheets_automation_interval', 300); // 5 minutes default
+        
+        if ($lastCheck && now()->diffInSeconds($lastCheck) < $interval) {
+            return; // Not enough time has passed
+        }
+        
+        try {
+            Log::info('Web-only automation: Running Google Sheets import');
+            
+            $googleSheetsService = new GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
+            
+            if ($result['success']) {
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                Log::info('Web-only automation: Import completed successfully', $result);
+            } else {
+                Log::error('Web-only automation: Import failed', $result);
+            }
+            
+            // Update last check time
+            cache()->put('google_sheets_automation_last_check', now(), now()->addDays(30));
+            
+        } catch (\Exception $e) {
+            Log::error('Web-only automation error: ' . $e->getMessage());
+        }
+    }
+
+    private function runSimpleAutomation()
+    {
+        // Check if automation is enabled
+        $isRunning = cache()->get('google_sheets_automation_status', 'stopped') === 'running';
+        if (!$isRunning) {
+            return;
+        }
+        
+        // Check if enough time has passed since last check
+        $lastCheck = cache()->get('google_sheets_automation_last_check', null);
+        $interval = cache()->get('google_sheets_automation_interval', 300); // 5 minutes default
+        
+        if ($lastCheck && now()->diffInSeconds($lastCheck) < $interval) {
+            return; // Not enough time has passed
+        }
+        
+        try {
+            Log::info('Simple automation: Running Google Sheets import');
+            
+            $googleSheetsService = new GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
+            
+            if ($result['success']) {
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                Log::info('Simple automation: Import completed successfully', $result);
+            } else {
+                Log::error('Simple automation: Import failed', $result);
+            }
+            
+            // Update last check time
+            cache()->put('google_sheets_automation_last_check', now(), now()->addDays(30));
+            
+        } catch (\Exception $e) {
+            Log::error('Simple automation error: ' . $e->getMessage());
+        }
+    }
+
+    private function runWebBasedAutomation()
+    {
+        // Check if automation is enabled
+        $isRunning = cache()->get('google_sheets_automation_status', 'stopped') === 'running';
+        if (!$isRunning) {
+            return;
+        }
+        
+        // Check if enough time has passed since last check
+        $lastCheck = cache()->get('google_sheets_automation_last_check', null);
+        $interval = cache()->get('google_sheets_automation_interval', 300); // 5 minutes default
+        
+        if ($lastCheck && now()->diffInSeconds($lastCheck) < $interval) {
+            return; // Not enough time has passed
+        }
+        
+        try {
+            Log::info('Web-based automation: Running Google Sheets check');
+            
+            $googleSheetsService = new GoogleSheetsImportService();
+            
+            // Check for changes
+            if ($googleSheetsService->checkForChanges()) {
+                Log::info('Web-based automation: Changes detected, running import');
+                
+                $result = $googleSheetsService->importFromGoogleSheets();
+                
+                if ($result['success']) {
+                    cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                    cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                    
+                    $totalImports = cache()->get('google_sheets_total_imports', 0);
+                    cache()->put('google_sheets_total_imports', $totalImports + 1, now()->addDays(30));
+                    
+                    Log::info('Web-based automation: Import completed successfully', $result);
+                } else {
+                    cache()->put('google_sheets_last_error', $result['message'] ?? 'Unknown error', now()->addDays(30));
+                    Log::error('Web-based automation: Import failed', $result);
+                }
+            } else {
+                Log::info('Web-based automation: No changes detected');
+            }
+            
+            // Update last check time
+            cache()->put('google_sheets_automation_last_check', now(), now()->addDays(30));
+            
+        } catch (\Exception $e) {
+            cache()->put('google_sheets_last_error', $e->getMessage(), now()->addDays(30));
+            Log::error('Web-based automation: Error during check', ['error' => $e->getMessage()]);
+        }
+    }
 
     public function triggerImport(Request $request)
     {
         $this->checkAdminAccess();
         
         try {
-            $filePath = $request->input('file_path', storage_path('app/students/Enrollment OEM.xlsx'));
             $email = $request->input('email');
             
-            // Run the auto-import command
-            $exitCode = Artisan::call('students:auto-import', [
-                '--file' => $filePath,
-                '--email' => $email,
-                '--force' => true
-            ]);
+            // Use Google Sheets import service
+            $googleSheetsService = new GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
             
-            if ($exitCode === 0) {
+            if ($result['success']) {
+                // Update cache with import results
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                
                 return response()->json([
                     'success' => true,
-                    'message' => 'Import completed successfully!',
-                    'output' => Artisan::output()
+                    'message' => 'Google Sheets import completed successfully!',
+                    'created' => $result['created'],
+                    'updated' => $result['updated'],
+                    'errors' => $result['errors']
                 ]);
             } else {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Import failed with exit code: ' . $exitCode,
-                    'output' => Artisan::output()
+                    'message' => 'Google Sheets import failed: ' . ($result['message'] ?? 'Unknown error'),
+                    'created' => $result['created'] ?? 0,
+                    'updated' => $result['updated'] ?? 0,
+                    'errors' => $result['errors'] ?? 1
                 ]);
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Google Sheets import error', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Import error: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    public function saveAutomationSettings(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $request->validate([
+            'google_sheets_url' => 'required|string',
+            'notification_email' => 'required|email',
+            'import_frequency' => 'required|string',
+            'check_interval' => 'required|integer|min:60',
+            'email_notifications' => 'boolean',
+            'update_existing' => 'boolean'
+        ]);
+        
+        try {
+            $config = [
+                'google_sheets_url' => $request->google_sheets_url,
+                'notification_email' => $request->notification_email,
+                'import_frequency' => $request->import_frequency,
+                'check_interval' => $request->check_interval,
+                'email_notifications' => $request->boolean('email_notifications'),
+                'update_existing' => $request->boolean('update_existing'),
+                'status' => 'Enabled',
+                'updated_at' => now()->toDateTimeString()
+            ];
+            
+            $configPath = storage_path('app/google_sheets_automation.json');
+            file_put_contents($configPath, json_encode($config, JSON_PRETTY_PRINT));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Sheets automation settings saved successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error saving settings: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    public function checkFileStatus(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $filePath = $request->input('file_path', storage_path('app/students/Enrollment OEM.xlsx'));
+        $fileExists = file_exists($filePath);
+        
+        if ($fileExists) {
+            $fileSize = filesize($filePath);
+            $lastModified = filemtime($filePath);
+            
+            return response()->json([
+                'success' => true,
+                'status' => 'File Found',
+                'file_size' => $fileSize,
+                'last_modified' => date('Y-m-d H:i:s', $lastModified),
+                'file_path' => $filePath
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'status' => 'File Not Found',
+                'file_path' => $filePath
+            ]);
+        }
+    }
+    
+    public function startGoogleSheetsAutomation(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $interval = $request->input('interval', 300); // 5 minutes default
+            
+            // Set status in cache
+            cache()->put('google_sheets_automation_status', 'running', now()->addDays(30));
+            cache()->put('google_sheets_automation_interval', $interval, now()->addDays(30));
+            cache()->put('google_sheets_automation_last_check', now(), now()->addDays(30));
+            
+            // Start continuous automation process
+            $this->startContinuousAutomation();
+            
+            // Run an immediate check to test the connection
+            $googleSheetsService = new GoogleSheetsImportService();
+            $testResult = $googleSheetsService->importFromGoogleSheets();
+            
+            if ($testResult['success']) {
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $testResult, now()->addDays(30));
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Sheets automation started successfully! Continuous monitoring is now active and will check every 5 minutes.',
+                'test_result' => $testResult
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error starting Google Sheets automation: ' . $e->getMessage()
+            ]);
+        }
+    }
+    
+    private function startContinuousAutomation()
+    {
+        try {
+            // Check if continuous automation is already running
+            if (PHP_OS_FAMILY === 'Windows') {
+                $command = 'tasklist /FI "IMAGENAME eq php.exe" /FI "COMMANDLINE eq *continuous_automation*" 2>nul';
+                $output = shell_exec($command);
+                
+                if (strpos($output, 'php.exe') !== false) {
+                    Log::info('Continuous automation is already running');
+                    return;
+                }
+                
+                // Start continuous automation in background
+                $scriptPath = base_path('automation/scripts/continuous_automation.php');
+                $command = "start /B php \"{$scriptPath}\"";
+                pclose(popen($command, 'r'));
+                
+                Log::info('Continuous automation started successfully');
+            } else {
+                // Linux/Unix
+                $command = "pgrep -f 'continuous_automation'";
+                $output = shell_exec($command);
+                
+                if (!empty(trim($output))) {
+                    Log::info('Continuous automation is already running');
+                    return;
+                }
+                
+                // Start continuous automation in background
+                $scriptPath = base_path('automation/scripts/continuous_automation.php');
+                $command = "php \"{$scriptPath}\" > /dev/null 2>&1 &";
+                shell_exec($command);
+                
+                Log::info('Continuous automation started successfully');
+            }
+        } catch (\Exception $e) {
+            Log::error('Failed to start continuous automation: ' . $e->getMessage());
+        }
+    }
+    
+    public function stopGoogleSheetsAutomation(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            // Set status to stopped
+            cache()->put('google_sheets_automation_status', 'stopped', now()->addDays(30));
+            
+            // Kill any running Google Sheets automation processes
+            if (PHP_OS_FAMILY === 'Windows') {
+                exec('taskkill /F /IM php.exe /FI "COMMANDLINE eq *google_sheets_automation_watcher*" 2>nul');
+                exec('taskkill /F /IM php.exe /FI "COMMANDLINE eq *continuous_automation*" 2>nul');
+            } else {
+                exec('pkill -f "google_sheets_automation_watcher" 2>/dev/null');
+                exec('pkill -f "continuous_automation" 2>/dev/null');
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Google Sheets automation stopped successfully! All continuous processes have been terminated.'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error stopping Google Sheets automation: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    // Automation Web Interface Methods
+    public function automationWeb()
+    {
+        $this->checkAdminAccess();
+        return view('admin.automation-web');
+    }
+
+    public function automationStatus()
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            // Check if automation is running by looking for PID file
+            $pidFile = base_path('automation/logs/automation.pid');
+            $running = false;
+            $pid = null;
+            
+            if (file_exists($pidFile)) {
+                $pid = (int)trim(file_get_contents($pidFile));
+                if ($pid) {
+                    // Check if process is actually running
+                    if (PHP_OS_FAMILY === 'Windows') {
+                        $command = "tasklist /FI \"PID eq {$pid}\"";
+                        $result = shell_exec($command);
+                        $running = strpos($result, (string)$pid) !== false;
+                    } else {
+                        // Check if process is running using ps command
+                        $result = shell_exec("ps -p {$pid} 2>/dev/null");
+                        $running = !empty(trim($result));
+                    }
+                }
+            }
+            
+            return response()->json([
+                'running' => $running,
+                'pid' => $pid,
+                'last_check' => now()->format('Y-m-d H:i:s')
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'running' => false,
+                'pid' => null,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    public function startAutomation(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $type = $request->input('type', 'google_sheets');
+        
+        try {
+            $command = "php " . base_path("automation/scripts/automation_manager.php") . " start {$type}";
+            
+            if (PHP_OS_FAMILY === 'Windows') {
+                $command = "start /B " . $command;
+                pclose(popen($command, 'r'));
+            } else {
+                $command .= " > /dev/null 2>&1 &";
+                shell_exec($command);
+            }
+            
+            return response()->json([
+                'success' => true,
+                'message' => ucfirst($type) . ' automation started successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to start automation: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function stopAutomation()
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            // Stop Google Sheets automation
+            cache()->put('google_sheets_automation_status', 'stopped', now()->addDays(30));
+            
+            // Kill any running Google Sheets automation processes
+            if (PHP_OS_FAMILY === 'Windows') {
+                exec('taskkill /F /IM php.exe /FI "COMMANDLINE eq *google_sheets_automation_watcher*" 2>nul');
+            } else {
+                exec('pkill -f "google_sheets_automation_watcher" 2>/dev/null');
+            }
+            
+            // Also try to stop legacy automation
+            $command = "php " . base_path("automation/scripts/automation_manager.php") . " stop";
+            $output = shell_exec($command);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'All automation stopped successfully!'
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to stop automation: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function testGoogleSheetsAutomation(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $googleSheetsService = new GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
+            
+            Log::info('Google Sheets test completed', $result);
+            
+            // Update cache with test results
+            cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+            cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+            
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['success'] ? 'Google Sheets test completed successfully!' : 'Google Sheets test failed: ' . ($result['message'] ?? 'Unknown error'),
+                'created' => $result['created'] ?? 0,
+                'updated' => $result['updated'] ?? 0,
+                'errors' => $result['errors'] ?? 0,
+                'result' => $result
+            ]);
+            
+        } catch (\Exception $e) {
+            Log::error('Google Sheets test failed', ['error' => $e->getMessage()]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Test failed: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function automationLogs()
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $logFile = base_path('automation/logs/google_sheets_automation.log');
+            $logs = '';
+            
+            if (file_exists($logFile)) {
+                $logs = file_get_contents($logFile);
+                // Get last 50 lines
+                $lines = explode("\n", $logs);
+                $logs = implode("\n", array_slice($lines, -50));
+            } else {
+                $logs = 'No logs available yet.';
+            }
+            
+            return response()->json([
+                'logs' => $logs
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'logs' => 'Error loading logs: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function automationOneDrive()
+    {
+        $this->checkAdminAccess();
+        
+        return view('admin.automation-onedrive');
+    }
+
+    public function setupAutomation(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $action = $request->input('action');
+        
+        try {
+            switch ($action) {
+                case 'test_import':
+                    // Test the import command
+                    $output = [];
+                    $returnCode = 0;
+                    exec('php artisan import:onedrive-auto 2>&1', $output, $returnCode);
+                    
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Import test successful!' : 'Import test failed',
+                        'output' => implode("\n", $output),
+                        'return_code' => $returnCode
+                    ]);
+                    
+                case 'create_task':
+                    // Create Windows Task Scheduler task
+                    $taskName = "LMS_OneDrive_AutoImport";
+                    $batchFile = base_path('automation/batch/auto_onedrive_import.bat');
+                    
+                    $command = "schtasks /create /tn \"$taskName\" /tr \"$batchFile\" /sc minute /mo 5 /ru SYSTEM /f";
+                    exec($command, $output, $returnCode);
+                    
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Task created successfully!' : 'Failed to create task. You may need to run as administrator.',
+                        'output' => implode("\n", $output),
+                        'command' => $command
+                    ]);
+                    
+                case 'check_status':
+                    // Check if task exists
+                    $taskName = "LMS_OneDrive_AutoImport";
+                    exec("schtasks /query /tn \"$taskName\" 2>&1", $output, $returnCode);
+                    
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Task is active' : 'Task not found',
+                        'output' => implode("\n", $output),
+                        'is_active' => $returnCode === 0
+                    ]);
+                    
+                case 'delete_task':
+                    // Delete the task
+                    $taskName = "LMS_OneDrive_AutoImport";
+                    exec("schtasks /delete /tn \"$taskName\" /f 2>&1", $output, $returnCode);
+                    
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Task deleted successfully!' : 'Failed to delete task',
+                        'output' => implode("\n", $output)
+                    ]);
+                    
+                case 'create_simple_automation':
+                    // Create simple automation files (no admin required)
+                    try {
+                        $projectPath = base_path();
+                        
+                        // Create batch file
+                        $batchContent = '@echo off
+echo Starting automated OneDrive import...
+echo Time: %date% %time%
+
+cd /d "' . $projectPath . '"
+
+php artisan import:onedrive-auto
+
+echo Automated OneDrive import completed.
+echo Time: %date% %time%
+echo.
+pause';
+                        
+                        file_put_contents($projectPath . '/onedrive_auto_import.bat', $batchContent);
+                        
+                        // Create PHP script
+                        $phpContent = '<?php
+/**
+ * OneDrive Auto Import Runner
+ * Run this script to import students from OneDrive
+ */
+
+echo "Starting OneDrive import...\n";
+
+// Change to the project directory
+chdir("' . $projectPath . '");
+
+// Run the import command
+$output = [];
+$returnCode = 0;
+exec("php artisan import:onedrive-auto 2>&1", $output, $returnCode);
+
+echo "Import completed with return code: $returnCode\n";
+echo "Output:\n" . implode("\n", $output) . "\n";
+
+if ($returnCode === 0) {
+    echo "✅ Import successful!\n";
+} else {
+    echo "❌ Import failed!\n";
+}';
+                        
+                        file_put_contents($projectPath . '/onedrive_import_runner.php', $phpContent);
+                        
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Simple automation files created successfully!',
+                            'output' => "Files created:\n- onedrive_auto_import.bat (double-click to run)\n- onedrive_import_runner.php (run with: php onedrive_import_runner.php)\n\nTo schedule automatically:\n1. Open Windows Task Scheduler\n2. Create Basic Task\n3. Set trigger to 'Every 5 minutes'\n4. Set action to run one of the created files"
+                        ]);
+                        
+                    } catch (\Exception $e) {
+                        return response()->json([
+                            'success' => false,
+                            'message' => 'Failed to create simple automation files: ' . $e->getMessage()
+                        ]);
+                    }
+                    
+                default:
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Invalid action'
+                    ]);
             }
             
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Import error: ' . $e->getMessage()
+                'message' => 'Error: ' . $e->getMessage()
             ]);
         }
     }

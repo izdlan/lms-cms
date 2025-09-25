@@ -38,31 +38,107 @@ class StudentsImport implements ToCollection
             'errors' => $this->errors
         ];
     }
+    
+    // Store detailed error information
+    protected $errorDetails = [];
+    
+    public function getErrorDetails()
+    {
+        return $this->errorDetails;
+    }
+    
+    protected function addError($message, $rowData = [])
+    {
+        $this->errors++;
+        $this->errorDetails[] = [
+            'message' => $message,
+            'data' => $rowData,
+            'timestamp' => now()
+        ];
+        Log::error('Import Error: ' . $message, $rowData);
+    }
 
     public function collection(Collection $rows): void
     {
         Log::info('Starting import from sheet "' . $this->currentSheet . '" with ' . $rows->count() . ' total rows');
         
-        // For LMS sheets, headers are on row 7 (index 6), data starts from row 10 (index 9)
-        // Skip first 6 rows (rows 1-6), start from row 7 which contains headers
-        $rows = $rows->slice(6);
-        Log::info('After skipping first 6 rows, remaining: ' . $rows->count() . ' rows');
+        // For LMS sheets, headers are typically on row 1, data starts from row 2
+        // Check multiple rows to find headers (some sheets have empty first rows)
+        $headerRowIndex = 0;
+        $headerRow = null;
+        $hasHeaderKeywords = false;
         
-        // Get header row (now the first row after skipping)
-        $firstRow = $rows->shift();
-        $header = collect($firstRow)->map(function($h) {
-            // Remove BOM and trim
-            $h = trim($h);
-            // Remove UTF-8 BOM if present
-            if (substr($h, 0, 3) === "\xEF\xBB\xBF") {
-                $h = substr($h, 3);
+        // Check first 10 rows for headers
+        for ($i = 0; $i < min(10, $rows->count()); $i++) {
+            $currentRow = $rows->skip($i)->first();
+            $currentRowArray = is_array($currentRow) ? $currentRow : $currentRow->toArray();
+            $currentRowText = implode(' ', array_filter($currentRowArray, function($cell) {
+                return !empty(trim($cell));
+            }));
+            
+            // Check if this row contains header keywords
+            $headerKeywords = ['name', 'ic', 'passport', 'email', 'address', 'contact', 'student', 'programme', 'learners'];
+            foreach ($headerKeywords as $keyword) {
+                if (stripos($currentRowText, $keyword) !== false) {
+                    $hasHeaderKeywords = true;
+                    $headerRowIndex = $i;
+                    $headerRow = $currentRow;
+                    break 2; // Break out of both loops
+                }
             }
-            return trim($h);
-        })->toArray();
+        }
         
-        // Skip the next 2 rows (program name and category rows)
-        $rows = $rows->slice(2);
-        Log::info('After skipping program name and category rows, remaining: ' . $rows->count() . ' rows');
+        Log::info('Header row found at index: ' . $headerRowIndex);
+        if ($headerRow) {
+            $headerRowArray = is_array($headerRow) ? $headerRow : $headerRow->toArray();
+            Log::info('Header row text: ' . implode(' ', array_filter($headerRowArray, function($cell) {
+                return !empty(trim($cell));
+            })));
+        }
+        
+        if ($hasHeaderKeywords) {
+            // Headers found, process them
+            Log::info('Headers detected on row ' . ($headerRowIndex + 1) . ', data starts from row ' . ($headerRowIndex + 2));
+            $header = collect($headerRow)->map(function($h) {
+                // Remove BOM and trim
+                $h = trim($h);
+                // Remove UTF-8 BOM if present
+                if (substr($h, 0, 3) === "\xEF\xBB\xBF") {
+                    $h = substr($h, 3);
+                }
+                return trim($h);
+            })->toArray();
+            
+            // Don't filter out empty headers - keep all columns to match data rows
+            // $header = array_filter($header, function($h) {
+            //     return !empty(trim($h));
+            // });
+            
+            // Skip rows up to and including the header row
+            $rows = $rows->slice($headerRowIndex + 1);
+            Log::info('After skipping header rows, remaining: ' . $rows->count() . ' rows');
+        } else {
+            // Fallback to old logic: headers on row 7, data from row 10
+            Log::info('No headers detected on row 1, using fallback logic (headers on row 7)');
+            $rows = $rows->slice(6);
+            Log::info('After skipping first 6 rows, remaining: ' . $rows->count() . ' rows');
+            
+            // Get header row (now the first row after skipping)
+            $firstRow = $rows->shift();
+            $header = collect($firstRow)->map(function($h) {
+                // Remove BOM and trim
+                $h = trim($h);
+                // Remove UTF-8 BOM if present
+                if (substr($h, 0, 3) === "\xEF\xBB\xBF") {
+                    $h = substr($h, 3);
+                }
+                return trim($h);
+            })->toArray();
+            
+            // Skip the next 2 rows (program name and category rows)
+            $rows = $rows->slice(2);
+            Log::info('After skipping program name and category rows, remaining: ' . $rows->count() . ' rows');
+        }
         Log::info('First row after headers (should be data):', $rows->first() ? (is_array($rows->first()) ? $rows->first() : $rows->first()->toArray()) : []);
         
         Log::info('Detected headers:', $header);
@@ -75,8 +151,19 @@ class StudentsImport implements ToCollection
             
             Log::info("Processing header {$index}: '{$originalHeader}' -> '{$headerName}'");
             
+            // Skip empty headers but keep the index mapping
+            if (empty($headerName)) {
+                $mappedHeader[$index] = 'empty_' . $index;
+                Log::info("Mapped to 'empty_{$index}' (empty header)");
+                continue;
+            }
+            
             // Map based on header content, not position
-            if (strpos($headerName, 'name') !== false && strpos($headerName, 'learners') === false) {
+            if ((strpos($headerName, 'name') !== false || strpos($headerName, 'learners') !== false) && 
+                strpos($headerName, 'programme') === false && 
+                strpos($headerName, 'program') === false &&
+                strpos($headerName, 'progame') === false &&
+                strpos($headerName, 'programe') === false) {
                 $mappedHeader[$index] = 'name';
                 Log::info("Mapped to 'name'");
             } elseif (strpos($headerName, 'address') !== false) {
@@ -148,8 +235,7 @@ class StudentsImport implements ToCollection
 
                    // skip rows that don't match header column count
                    if (count($header) !== count($rowArray)) {
-                       Log::warning("Skipping row " . ($index + 1) . " - column count mismatch. Headers: " . count($header) . ", Row: " . count($rowArray));
-                       $this->errors++;
+                       $this->addError("Column count mismatch. Headers: " . count($header) . ", Row: " . count($rowArray), $rowArray);
                        continue;
                    }
 
@@ -158,20 +244,39 @@ class StudentsImport implements ToCollection
             for ($i = 0; $i < count($rowArray); $i++) {
                 $key = $mappedHeader[$i] ?? 'unknown_' . $i;
                 if ($key !== 'skip') {
-                    $data[$key] = $rowArray[$i];
+                    $value = trim($rowArray[$i] ?? '');
+                    // Handle blank content as "-"
+                    $data[$key] = empty($value) ? '-' : $value;
                 }
             }
             Log::info("Combined data for row " . ($index + 1) . ":", $data);
 
-                   // Check if we have required fields
-                   if (empty($data['name']) || empty($data['ic/passport']) || empty($data['email'])) {
-                       Log::warning("Missing required fields for row " . ($index + 1), [
+                   // Check if we have required fields (treat "-" as valid)
+                   // For certain sheet types, make IC and email optional
+                   $isResearchSheet = stripos($this->currentSheet, 'VIVA') !== false || 
+                                     stripos($this->currentSheet, 'RESEARCH') !== false ||
+                                     stripos($this->currentSheet, 'TVET') !== false;
+                   
+                   $hasName = !empty($data['name']) && $data['name'] !== '-';
+                   $hasIc = !empty($data['ic/passport']) && $data['ic/passport'] !== '-';
+                   $hasEmail = !empty($data['email']) && $data['email'] !== '-';
+                   
+                   if (!$hasName) {
+                       $this->addError("Missing required field 'name' for row " . ($index + 1), [
                            'name' => $data['name'] ?? 'MISSING',
                            'ic/passport' => $data['ic/passport'] ?? 'MISSING', 
                            'email' => $data['email'] ?? 'MISSING'
                        ]);
-                       $this->errors++;
                        continue;
+                   }
+                   
+                   // Generate default values for missing IC and email for all sheets
+                   if (!$hasIc) {
+                       $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
+                   }
+                   if (!$hasEmail) {
+                       $emailName = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $data['name']));
+                       $data['email'] = $emailName . '@olympia.edu.my';
                    }
 
             // Check if we have the required fields with flexible matching
@@ -181,37 +286,44 @@ class StudentsImport implements ToCollection
             
             foreach ($data as $key => $value) {
                 $keyLower = strtolower(trim($key));
-                if (strpos($keyLower, 'name') !== false && !empty($value)) {
+                if (strpos($keyLower, 'name') !== false && !empty($value) && $value !== '-') {
                     $hasName = true;
                 }
-                if (strpos($keyLower, 'email') !== false && !empty($value)) {
+                if (strpos($keyLower, 'email') !== false && !empty($value) && $value !== '-') {
                     $hasEmail = true;
                 }
-                if ((strpos($keyLower, 'ic') !== false || strpos($keyLower, 'passport') !== false) && !empty($value)) {
+                if ((strpos($keyLower, 'ic') !== false || strpos($keyLower, 'passport') !== false) && !empty($value) && $value !== '-') {
                     $hasIc = true;
                 }
             }
             
             if (!$hasName || !$hasEmail || !$hasIc) {
-                Log::warning('Missing required fields', [
+                $this->addError('Missing required fields after flexible matching', [
                     'hasName' => $hasName,
                     'hasEmail' => $hasEmail,
                     'hasIc' => $hasIc,
                     'data' => $data
                 ]);
-                $errors++;
                 continue;
             }
 
-                   if ($validator->fails()) {
-                       Log::warning('Student import validation failed for row ' . ($index + 1), [
-                           'data' => $data,
-                           'errors' => $validator->errors()->toArray(),
-                           'available_keys' => array_keys($data)
-                       ]);
-                       $this->errors++;
-                       continue;
-                   }
+            // Create validator for the extracted data
+            $validator = Validator::make($data, [
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|max:255',
+                'ic/passport' => 'required|string|max:255',
+                'contact no.' => 'nullable|string|max:20',
+                'address' => 'nullable|string|max:500',
+            ]);
+
+            if ($validator->fails()) {
+                $this->addError('Student import validation failed for row ' . ($index + 1), [
+                    'data' => $data,
+                    'errors' => $validator->errors()->toArray(),
+                    'available_keys' => array_keys($data)
+                ]);
+                continue;
+            }
 
             // Extract data with flexible column matching
             $name = '';
