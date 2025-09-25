@@ -1,4 +1,4 @@
-@extends('layouts.admin')
+@extends('layouts.app')
 
 @section('title', 'Import Students')
 
@@ -7,7 +7,36 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            @include('admin.partials.sidebar')
+            <div class="col-md-3 col-lg-2 sidebar">
+                <div class="sidebar-header">
+                    <h4>Admin Panel</h4>
+                </div>
+                <nav class="sidebar-nav">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                        <i data-feather="home" width="20" height="20"></i>
+                        Dashboard
+                    </a>
+                    <a href="{{ route('admin.students') }}" class="nav-link">
+                        <i data-feather="users" width="20" height="20"></i>
+                        Students
+                    </a>
+                    <a href="{{ route('admin.import') }}" class="nav-link active">
+                        <i data-feather="upload" width="20" height="20"></i>
+                        Import Students
+                    </a>
+                    <a href="{{ route('admin.sync') }}" class="nav-link">
+                        <i data-feather="refresh-cw" width="20" height="20"></i>
+                        Sync from Excel/CSV
+                    </a>
+                    <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                        <i data-feather="log-out" width="20" height="20"></i>
+                        Logout
+                    </a>
+                </nav>
+                <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
+                    @csrf
+                </form>
+            </div>
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
@@ -26,10 +55,10 @@
                     </div>
                 @endif
 
-                @if(session('errors'))
+                @if($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <ul class="mb-0">
-                            @foreach(session('errors')->all() as $error)
+                            @foreach($errors->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
@@ -38,41 +67,6 @@
                 @endif
 
                 <div class="row">
-                    <!-- Online Import Options -->
-                    <div class="col-12 mb-4">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5>Online Import Options</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="d-grid">
-                                            <button type="button" class="btn btn-warning btn-lg" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
-                                                <i data-feather="download" width="20" height="20"></i>
-                                                Import from Google Sheets
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="d-grid">
-                                            <button type="button" class="btn btn-info btn-lg" onclick="runOneDriveImport()" id="oneDriveBtn">
-                                                <i data-feather="cloud" width="20" height="20"></i>
-                                                Import from OneDrive
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-3">
-                                    <small class="text-muted">
-                                        <strong>Google Sheets:</strong> Import directly from your Google Sheets document<br>
-                                        <strong>OneDrive:</strong> Import from your OneDrive Excel file
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
                     <!-- Import Form -->
                     <div class="col-lg-8">
                         <div class="card">
@@ -226,11 +220,11 @@
                             <div class="card-body">
                                 <p class="text-muted mb-3">Download sample files to see the correct format:</p>
                                 <div class="d-grid gap-2">
-                                    <a href="#" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
+                                    <a href="/maintenance" class="btn btn-outline-primary btn-sm" onclick="downloadSampleCSV()">
                                         <i data-feather="download" width="16" height="16"></i>
                                         Download CSV Sample
                                     </a>
-                                    <a href="#" class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
+                                    <a href="/maintenance" class="btn btn-outline-success btn-sm" onclick="downloadSampleExcel()">
                                         <i data-feather="download" width="16" height="16"></i>
                                         Download Excel Sample
                                     </a>
@@ -477,124 +471,6 @@ function downloadSampleCSV() {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-}
-
-// Google Sheets Import Function
-function runGoogleSheetsImport() {
-    const importBtn = document.getElementById('googleSheetsBtn');
-    const originalText = importBtn.innerHTML;
-    
-    // Show loading state
-    importBtn.disabled = true;
-    importBtn.innerHTML = '<i data-feather="loader" width="20" height="20"></i> Importing...';
-    feather.replace();
-    
-    // Make the import request
-    fetch('/admin/students/google-sheets-import', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success message
-            showAlert('success', `Google Sheets import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`);
-            
-            // Refresh the page after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 2000);
-        } else {
-            showAlert('danger', 'Google Sheets import failed: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error occurred during Google Sheets import: ' + error.message);
-    })
-    .finally(() => {
-        // Reset button state
-        importBtn.disabled = false;
-        importBtn.innerHTML = originalText;
-        feather.replace();
-    });
-}
-
-// OneDrive Import Function
-function runOneDriveImport() {
-    const importBtn = document.getElementById('oneDriveBtn');
-    const originalText = importBtn.innerHTML;
-    
-    // Show loading state
-    importBtn.disabled = true;
-    importBtn.innerHTML = '<i data-feather="loader" width="20" height="20"></i> Importing...';
-    feather.replace();
-    
-    // Make the import request
-    fetch('/admin/students/onedrive-import', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            // Show success message with sheet details
-            let message = `OneDrive import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`;
-            
-            if (data.processed_sheets && data.processed_sheets.length > 0) {
-                message += '\n\nProcessed sheets:';
-                data.processed_sheets.forEach(sheet => {
-                    message += `\n- ${sheet.sheet}: Created=${sheet.created}, Updated=${sheet.updated}, Errors=${sheet.errors}`;
-                });
-            }
-            
-            showAlert('success', message);
-            
-            // Refresh the page after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
-        } else {
-            showAlert('danger', 'OneDrive import failed: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
-    })
-    .finally(() => {
-        // Reset button state
-        importBtn.disabled = false;
-        importBtn.innerHTML = originalText;
-        feather.replace();
-    });
-}
-
-// Show alert function
-function showAlert(type, message) {
-    const alertDiv = document.createElement('div');
-    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
-    alertDiv.innerHTML = `
-        ${message}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    `;
-    
-    // Insert at the top of the main content
-    const mainContent = document.querySelector('.main-content');
-    mainContent.insertBefore(alertDiv, mainContent.firstChild);
-    
-    // Auto-dismiss after 10 seconds
-    setTimeout(() => {
-        if (alertDiv.parentNode) {
-            alertDiv.remove();
-        }
-    }, 10000);
 }
 
 function downloadSampleExcel() {

@@ -48,10 +48,6 @@
 
     <title>@yield('title', 'Home') | Olympia Education</title>
 
-    <!-- Bootstrap CSS - Load first to establish base styles -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
-    
     <!-- General CSS File -->
     <link rel="stylesheet" href="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="/assets/default/vendors/toast/jquery.toast.min.css">
@@ -1009,11 +1005,6 @@
         
     </style>
     
-    <!-- Professional CSS Structure - Load after Bootstrap -->
-    <link rel="stylesheet" href="/assets/default/css/admin.css?v={{ time() }}">
-    <link rel="stylesheet" href="/assets/default/css/auth.css?v={{ time() }}">
-    <link rel="stylesheet" href="/assets/default/css/student.css?v={{ time() }}">
-    
     <!-- Custom Optima Font Override -->
     <style>
         /* Override any existing font definitions with Optima */
@@ -1037,13 +1028,15 @@
     <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
 
     <style>
-        /* System Font Family - No external loading */
+        /* Optima Font Family */
         @font-face {
             font-family: 'main-font-family';
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: local('Optima'), local('Optima-Regular'), local('Arial'), local('Helvetica');
+            src: local('Optima'), local('Optima-Regular'), 
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
         }
 
         @font-face {
@@ -1051,7 +1044,9 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: local('Optima Medium'), local('Optima-Medium'), local('Arial'), local('Helvetica');
+            src: local('Optima Medium'), local('Optima-Medium'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
         }
 
         @font-face {
@@ -1059,7 +1054,9 @@
             font-style: normal;
             font-weight: 700;
             font-display: swap;
-            src: local('Optima Bold'), local('Optima-Bold'), local('Arial Bold'), local('Helvetica Bold');
+            src: local('Optima Bold'), local('Optima-Bold'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
         }
 
         @font-face {
@@ -1067,7 +1064,9 @@
             font-style: normal;
             font-weight: 400;
             font-display: swap;
-            src: local('Optima'), local('Optima-Regular'), local('Arial'), local('Helvetica');
+            src: local('Optima'), local('Optima-Regular'), 
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
         }
 
         @font-face {
@@ -1075,7 +1074,9 @@
             font-style: normal;
             font-weight: 500;
             font-display: swap;
-            src: local('Optima Medium'), local('Optima-Medium'), local('Arial'), local('Helvetica');
+            src: local('Optima Medium'), local('Optima-Medium'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
         }
 
         @font-face {
@@ -1083,7 +1084,9 @@
             font-style: normal;
             font-weight: 700;
             font-display: swap;
-            src: local('Optima Bold'), local('Optima-Bold'), local('Arial Bold'), local('Helvetica Bold');
+            src: local('Optima Bold'), local('Optima-Bold'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
+                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
         }
 
         :root {
@@ -1132,7 +1135,23 @@
             NProgress.done();
         });
 
-        // Font loading is now local-only, no error suppression needed
+        // Suppress font loading errors
+        window.addEventListener('error', function(e) {
+            if (e.message && e.message.includes('Failed to decode downloaded font')) {
+                e.preventDefault();
+                console.warn('Font loading issue suppressed:', e.message);
+                return false;
+            }
+        });
+
+        // Suppress OTS parsing errors
+        const originalConsoleWarn = console.warn;
+        console.warn = function(...args) {
+            if (args[0] && args[0].includes('OTS parsing error')) {
+                return; // Suppress OTS parsing errors
+            }
+            originalConsoleWarn.apply(console, args);
+        };
     </script>
 </head>
 
@@ -1153,7 +1172,6 @@
     <!-- Template JS File -->
     <script src="/assets/default/js/app.js"></script>
     <script src="/assets/default/vendors/feather-icons/dist/feather.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/default/vendors/moment.min.js"></script>
     <script src="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.js"></script>
     <script src="/assets/default/vendors/toast/jquery.toast.min.js"></script>
@@ -1184,17 +1202,11 @@
             try {
                 // Check if parallax elements exist before initializing
                 var parallaxElements = document.querySelectorAll('[data-parallax]');
-                if (parallaxElements.length > 0 && typeof Parallax !== 'undefined') {
-                    // Initialize parallax only if elements exist and have getAttribute method
-                    parallaxElements.forEach(function(element) {
-                        if (element && typeof element.getAttribute === 'function') {
-                            try {
-                                new Parallax(element);
-                            } catch (parallaxError) {
-                                console.warn('Parallax element initialization failed:', parallaxError);
-                            }
-                        }
-                    });
+                if (parallaxElements.length > 0) {
+                    // Initialize parallax only if elements exist
+                    if (typeof Parallax !== 'undefined') {
+                        new Parallax(document.querySelector('[data-parallax]'));
+                    }
                 }
             } catch (e) {
                 console.warn('Parallax initialization failed:', e);
@@ -1210,35 +1222,6 @@
     <script src="/assets/default/js/parts/main.min.js"></script>
 
     <script>
-<<<<<<< HEAD
-        // Initialize Bootstrap components
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize all tooltips
-            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-                return new bootstrap.Tooltip(tooltipTriggerEl);
-            });
-            
-            // Initialize all popovers
-            var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-            var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
-                return new bootstrap.Popover(popoverTriggerEl);
-            });
-            
-            // Initialize dropdowns
-            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
-            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
-                return new bootstrap.Dropdown(dropdownToggleEl);
-            });
-            
-            // Initialize modals
-            var modalElementList = [].slice.call(document.querySelectorAll('.modal'));
-            var modalList = modalElementList.map(function (modalEl) {
-                return new bootstrap.Modal(modalEl);
-            });
-            
-            console.log('Bootstrap components initialized successfully');
-=======
         // Gallery Navigation JavaScript
         let currentImageIndex = 0;
         const totalImages = 7;
@@ -1302,7 +1285,6 @@
                 gallery.addEventListener('mouseenter', stopAutoPlay);
                 gallery.addEventListener('mouseleave', startAutoPlay);
             }
->>>>>>> 8184b148e243315a73f8a3c2979cdd767396cb7b
         });
     </script>
 
