@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Students Management')
 
@@ -7,40 +7,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="sidebar-header">
-                    <h4>Admin Panel</h4>
-                </div>
-                <nav class="sidebar-nav">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                        <i data-feather="home" width="20" height="20"></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ route('admin.students') }}" class="nav-link active">
-                        <i data-feather="users" width="20" height="20"></i>
-                        Students
-                    </a>
-                    <a href="{{ route('admin.import') }}" class="nav-link">
-                        <i data-feather="upload" width="20" height="20"></i>
-                        Import Students
-                    </a>
-                    <a href="{{ route('admin.sync') }}" class="nav-link">
-                        <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel/CSV
-                    </a>
-                    <a href="{{ route('admin.automation') }}" class="nav-link">
-                        <i data-feather="settings" width="20" height="20"></i>
-                        Automation
-                    </a>
-                    <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i data-feather="log-out" width="20" height="20"></i>
-                        Logout
-                    </a>
-                </nav>
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-            </div>
+            @include('admin.partials.sidebar')
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
@@ -55,6 +22,14 @@
                             <i data-feather="upload" width="16" height="16"></i>
                             Import from Excel
                         </a>
+                        <button type="button" class="btn btn-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
+                            <i data-feather="download" width="16" height="16"></i>
+                            Google Sheets Import
+                        </button>
+                        <button type="button" class="btn btn-info" onclick="runOneDriveImport()" id="oneDriveBtn">
+                            <i data-feather="cloud" width="16" height="16"></i>
+                            OneDrive Import
+                        </button>
                     </div>
                 </div>
 
@@ -140,9 +115,17 @@
                                 </table>
                             </div>
 
-                            <!-- Pagination -->
-                            <div class="d-flex justify-content-center">
-                                {{ $students->links() }}
+                            <!-- Enhanced Pagination -->
+                            <div class="pagination-container">
+                                <div class="pagination-info">
+                                    <div class="pagination-text">
+                                        Showing {{ $students->firstItem() ?? 0 }} to {{ $students->lastItem() ?? 0 }} of {{ $students->total() }} students
+                                    </div>
+                                    <div class="pagination-controls">
+                                        <span class="text-muted">Page {{ $students->currentPage() }} of {{ $students->lastPage() }}</span>
+                                    </div>
+                                </div>
+                                {{ $students->links('pagination.admin-pagination') }}
                             </div>
                         @else
                             <div class="text-center py-5">
@@ -429,6 +412,124 @@ function confirmBulkDelete() {
     console.log('Form created, submitting...');
     document.body.appendChild(form);
     form.submit();
+}
+
+// Google Sheets Import Function
+function runGoogleSheetsImport() {
+    const importBtn = document.getElementById('googleSheetsBtn');
+    const originalText = importBtn.innerHTML;
+    
+    // Show loading state
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
+    feather.replace();
+    
+    // Make the import request
+    fetch('/admin/students/google-sheets-import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message
+            showAlert('success', `Google Sheets import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`);
+            
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        } else {
+            showAlert('danger', 'Google Sheets import failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error occurred during Google Sheets import: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        importBtn.disabled = false;
+        importBtn.innerHTML = originalText;
+        feather.replace();
+    });
+}
+
+// OneDrive Import Function
+function runOneDriveImport() {
+    const importBtn = document.getElementById('oneDriveBtn');
+    const originalText = importBtn.innerHTML;
+    
+    // Show loading state
+    importBtn.disabled = true;
+    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
+    feather.replace();
+    
+    // Make the import request
+    fetch('/admin/students/onedrive-import', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show success message with sheet details
+            let message = `OneDrive import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`;
+            
+            if (data.processed_sheets && data.processed_sheets.length > 0) {
+                message += '\n\nProcessed sheets:';
+                data.processed_sheets.forEach(sheet => {
+                    message += `\n- ${sheet.sheet}: Created=${sheet.created}, Updated=${sheet.updated}, Errors=${sheet.errors}`;
+                });
+            }
+            
+            showAlert('success', message);
+            
+            // Refresh the page after a short delay
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            showAlert('danger', 'OneDrive import failed: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
+    })
+    .finally(() => {
+        // Reset button state
+        importBtn.disabled = false;
+        importBtn.innerHTML = originalText;
+        feather.replace();
+    });
+}
+
+// Show alert function
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    // Insert at the top of the main content
+    const mainContent = document.querySelector('.main-content');
+    mainContent.insertBefore(alertDiv, mainContent.firstChild);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.remove();
+        }
+    }, 5000);
 }
 </script>
 @endpush

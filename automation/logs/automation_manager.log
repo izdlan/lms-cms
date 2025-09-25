@@ -1,0 +1,26 @@
+[2025-09-24 01:37:20] LMS Olympia Automation Manager
+[2025-09-24 01:37:20] =============================
+[2025-09-24 01:37:20] 
+[2025-09-24 01:37:20] Usage: php automation_manager.php <command> [options]
+[2025-09-24 01:37:20] 
+[2025-09-24 01:37:20] Commands:
+[2025-09-24 01:37:20]   start <type>    Start automation (google_sheets|excel)
+[2025-09-24 01:37:20]   stop            Stop running automation
+[2025-09-24 01:37:20]   restart <type>  Restart automation
+[2025-09-24 01:37:20]   status          Show automation status
+[2025-09-24 01:37:20]   list            List available automation types
+[2025-09-24 01:37:20]   help            Show this help message
+[2025-09-24 01:37:20] 
+[2025-09-24 01:37:20] Examples:
+[2025-09-24 01:37:20]   php automation_manager.php start google_sheets
+[2025-09-24 01:37:20]   php automation_manager.php stop
+[2025-09-24 01:37:20]   php automation_manager.php status
+[2025-09-24 01:37:26] Available automation types:
+[2025-09-24 01:37:26]   google_sheets: Google Sheets Automation
+[2025-09-24 01:37:26]     Monitors Google Sheets for student data changes
+[2025-09-24 01:37:26]   excel: Excel File Automation
+[2025-09-24 01:37:26]     Monitors Excel file for student data changes
+[2025-09-24 01:39:38] ✗ No automation process is running
+[2025-09-24 01:41:32] Starting Google Sheets Automation...
+[2025-09-24 01:41:32] ✓ Google Sheets Automation started successfully (PID: 3345)
+[2025-09-24 01:42:24] ✗ No automation process is running

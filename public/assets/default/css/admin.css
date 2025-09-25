@@ -82,6 +82,24 @@
     font-family: var(--admin-font-family);
 }
 
+/* Fix Bootstrap conflicts */
+.admin-dashboard .container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    max-width: 100%;
+}
+
+.admin-dashboard .row {
+    margin-left: 0;
+    margin-right: 0;
+    width: 100%;
+}
+
+.admin-dashboard .row.g-0 {
+    --bs-gutter-x: 0;
+    --bs-gutter-y: 0;
+}
+
 /* ========================================
    SIDEBAR COMPONENT
    ======================================== */
@@ -95,6 +113,14 @@
     width: 250px;
     z-index: 1000;
     transition: transform var(--admin-transition-normal);
+    flex-shrink: 0;
+}
+
+/* Fix Bootstrap column conflicts */
+.admin-dashboard .col-md-3.col-lg-2.sidebar {
+    flex: 0 0 250px;
+    max-width: 250px;
+    padding: 0;
 }
 
 .sidebar-header {
@@ -151,6 +177,15 @@
     padding: var(--admin-spacing-xl);
     margin-left: 250px;
     min-height: 100vh;
+    flex: 1;
+    width: calc(100% - 250px);
+}
+
+/* Fix Bootstrap column conflicts for main content */
+.admin-dashboard .col-md-9.col-lg-10.main-content {
+    flex: 1;
+    max-width: calc(100% - 250px);
+    margin-left: 250px;
 }
 
 /* ========================================
@@ -186,7 +221,7 @@
 /* ========================================
    CARD COMPONENTS
    ======================================== */
-.card {
+.admin-dashboard .card {
     background: var(--admin-white);
     border-radius: var(--admin-radius-xl);
     box-shadow: var(--admin-shadow-md);
@@ -195,10 +230,11 @@
     overflow: hidden;
 }
 
-.card-header {
-    background: var(--admin-gray-50);
-    border-bottom: 1px solid var(--admin-gray-200);
-    padding: var(--admin-spacing-lg);
+/* Override Bootstrap card styles in admin area */
+.admin-dashboard .card-header {
+    background: var(--admin-gray-50) !important;
+    border-bottom: 1px solid var(--admin-gray-200) !important;
+    padding: var(--admin-spacing-lg) !important;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -206,16 +242,11 @@
     gap: var(--admin-spacing-md);
 }
 
-.card-header h5 {
-    margin: 0;
-    color: var(--admin-gray-800);
-    font-weight: bold;
-    font-size: var(--admin-font-size-lg);
+.admin-dashboard .card-body {
+    padding: var(--admin-spacing-lg) !important;
 }
 
-.card-body {
-    padding: var(--admin-spacing-lg);
-}
+/* Remove duplicate card styles - already defined above */
 
 /* ========================================
    STATS CARDS
@@ -265,29 +296,36 @@
 /* ========================================
    TABLE STYLES
    ======================================== */
-.table {
+.admin-dashboard .table {
     margin-bottom: 0;
+    width: 100%;
 }
 
-.table th {
-    border-top: none;
+.admin-dashboard .table th {
+    border-top: none !important;
     font-weight: 600;
     color: var(--admin-gray-800);
-    background-color: var(--admin-gray-50);
-    padding: var(--admin-spacing-md);
+    background-color: var(--admin-gray-50) !important;
+    padding: var(--admin-spacing-md) !important;
     font-size: var(--admin-font-size-sm);
     text-transform: uppercase;
     letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--admin-gray-200) !important;
 }
 
-.table td {
-    padding: var(--admin-spacing-md);
+.admin-dashboard .table td {
+    padding: var(--admin-spacing-md) !important;
     vertical-align: middle;
-    border-color: var(--admin-gray-200);
+    border-color: var(--admin-gray-200) !important;
+    border-bottom: 1px solid var(--admin-gray-200) !important;
 }
 
-.table tbody tr:hover {
-    background-color: var(--admin-gray-50);
+.admin-dashboard .table tbody tr:hover {
+    background-color: var(--admin-gray-50) !important;
+}
+
+.admin-dashboard .table tbody tr {
+    border-bottom: 1px solid var(--admin-gray-200);
 }
 
 /* ========================================
@@ -318,7 +356,7 @@
 /* ========================================
    BUTTON STYLES
    ======================================== */
-.btn {
+.admin-dashboard .btn {
     border-radius: var(--admin-radius-lg);
     font-weight: 600;
     padding: var(--admin-spacing-sm) var(--admin-spacing-lg);
@@ -329,6 +367,11 @@
     display: inline-flex;
     align-items: center;
     gap: var(--admin-spacing-sm);
+    text-decoration: none;
+}
+
+.admin-dashboard .btn:hover {
+    text-decoration: none;
 }
 
 .btn-primary {
@@ -470,6 +513,190 @@
 }
 
 /* ========================================
+   PAGINATION STYLES
+   ======================================== */
+.admin-dashboard .pagination-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+}
+
+.admin-dashboard .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--admin-spacing-xs);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-dashboard .pagination .page-item {
+    margin: 0;
+}
+
+.admin-dashboard .pagination .page-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    padding: var(--admin-spacing-sm) var(--admin-spacing-md);
+    margin: 0 var(--admin-spacing-xs);
+    color: var(--admin-gray-700);
+    background-color: var(--admin-white);
+    border: 1px solid var(--admin-gray-300);
+    border-radius: var(--admin-radius-lg);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: var(--admin-font-size-sm);
+    transition: all var(--admin-transition-normal);
+    box-shadow: var(--admin-shadow-sm);
+}
+
+.admin-dashboard .pagination .page-link:hover {
+    color: var(--admin-primary);
+    background-color: var(--admin-gray-50);
+    border-color: var(--admin-primary);
+    transform: translateY(-1px);
+    box-shadow: var(--admin-shadow-md);
+}
+
+.admin-dashboard .pagination .page-item.active .page-link {
+    color: var(--admin-white);
+    background-color: var(--admin-primary);
+    border-color: var(--admin-primary);
+    box-shadow: var(--admin-shadow-md);
+}
+
+.admin-dashboard .pagination .page-item.disabled .page-link {
+    color: var(--admin-gray-400);
+    background-color: var(--admin-gray-100);
+    border-color: var(--admin-gray-200);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.admin-dashboard .pagination .page-item.disabled .page-link:hover {
+    transform: none;
+    box-shadow: var(--admin-shadow-sm);
+}
+
+/* Navigation arrows styling */
+.admin-dashboard .pagination .page-item:first-child .page-link,
+.admin-dashboard .pagination .page-item:last-child .page-link {
+    min-width: 40px;
+    height: 40px;
+    padding: var(--admin-spacing-sm);
+    font-size: var(--admin-font-size-lg);
+    font-weight: 600;
+}
+
+.admin-dashboard .pagination .page-item:first-child .page-link::before {
+    content: "‹";
+    font-size: 20px;
+    line-height: 1;
+}
+
+.admin-dashboard .pagination .page-item:last-child .page-link::before {
+    content: "›";
+    font-size: 20px;
+    line-height: 1;
+}
+
+/* Hide text in navigation arrows, show only icons */
+.admin-dashboard .pagination .page-item:first-child .page-link,
+.admin-dashboard .pagination .page-item:last-child .page-link {
+    font-size: 0;
+    line-height: 0;
+}
+
+/* Pagination info styling */
+.admin-dashboard .pagination-info {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: var(--admin-spacing-lg) 0;
+    padding: var(--admin-spacing-md) var(--admin-spacing-lg);
+    background-color: var(--admin-gray-50);
+    border-radius: var(--admin-radius-lg);
+    border: 1px solid var(--admin-gray-200);
+}
+
+.admin-dashboard .pagination-info .pagination-text {
+    color: var(--admin-gray-600);
+    font-size: var(--admin-font-size-sm);
+    font-weight: 500;
+}
+
+.admin-dashboard .pagination-info .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--admin-spacing-md);
+}
+
+/* Enhanced pagination container */
+.admin-dashboard .pagination-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--admin-spacing-md);
+    margin: var(--admin-spacing-xl) 0;
+    padding: var(--admin-spacing-lg);
+    background-color: var(--admin-white);
+    border-radius: var(--admin-radius-xl);
+    box-shadow: var(--admin-shadow-sm);
+    border: 1px solid var(--admin-gray-200);
+    position: relative;
+    overflow: hidden;
+}
+
+.admin-dashboard .pagination-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--admin-primary), var(--admin-primary-dark));
+    border-radius: var(--admin-radius-xl) var(--admin-radius-xl) 0 0;
+}
+
+/* Responsive pagination */
+@media (max-width: 576px) {
+    .admin-dashboard .pagination {
+        gap: 2px;
+    }
+    
+    .admin-dashboard .pagination .page-link {
+        min-width: 36px;
+        height: 36px;
+        padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+        margin: 0 1px;
+        font-size: var(--admin-font-size-xs);
+    }
+    
+    .admin-dashboard .pagination .page-item:first-child .page-link,
+    .admin-dashboard .pagination .page-item:last-child .page-link {
+        min-width: 36px;
+        height: 36px;
+        padding: var(--admin-spacing-xs);
+    }
+    
+    .admin-dashboard .pagination-info {
+        flex-direction: column;
+        gap: var(--admin-spacing-sm);
+        text-align: center;
+    }
+    
+    .admin-dashboard .pagination-container {
+        padding: var(--admin-spacing-md);
+    }
+}
+
+/* ========================================
    UTILITY CLASSES
    ======================================== */
 .text-muted {
@@ -514,8 +741,15 @@
     }
     
     .main-content {
-        margin-left: 0;
+        margin-left: 0 !important;
         padding: var(--admin-spacing-md);
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    .admin-dashboard .col-md-9.col-lg-10.main-content {
+        margin-left: 0 !important;
+        max-width: 100% !important;
     }
     
     .dashboard-header {

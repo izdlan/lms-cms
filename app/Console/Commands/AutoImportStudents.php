@@ -3,8 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
-use Maatwebsite\Excel\Facades\Excel;
-use App\Imports\StudentsImport;
+use App\Services\XlsxImportService;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Mail;
@@ -40,8 +39,11 @@ class AutoImportStudents extends Command
         $lastImportKey = 'last_auto_import_time';
         $lastImportTime = cache()->get($lastImportKey, 0);
 
+        // Always import if force flag is used, or if file is newer than last import
         if (!$force && $lastModified <= $lastImportTime) {
             $this->info('No changes detected in Excel file. Skipping import.');
+            $this->info("File last modified: " . Carbon::createFromTimestamp($lastModified)->toDateTimeString());
+            $this->info("Last import time: " . Carbon::createFromTimestamp($lastImportTime)->toDateTimeString());
             Log::info('Auto import skipped: No file changes detected', [
                 'file' => $filePath,
                 'last_modified' => Carbon::createFromTimestamp($lastModified)->toDateTimeString(),
@@ -52,38 +54,23 @@ class AutoImportStudents extends Command
 
         $this->info('File changes detected. Starting import...');
 
-        // Define allowed sheets
-        $allowedSheets = ['DHU LMS', 'IUC LMS', 'VIVA-IUC LMS', 'LUC LMS'];
-        
-        $totalCreated = 0;
-        $totalUpdated = 0;
-        $totalErrors = 0;
-        $importResults = [];
-
-        // Import all sheets at once - StudentsImport will handle sheet filtering
+        // Use XlsxImportService to import from sheets 11-17
         try {
-            $import = new StudentsImport();
-            Excel::import($import, $filePath);
+            $xlsxService = new XlsxImportService();
+            $result = $xlsxService->importFromXlsx($filePath);
             
-            // Get statistics from the import
-            $stats = $import->getStats();
-            
-            $totalCreated = $stats['created'];
-            $totalUpdated = $stats['updated'];
-            $totalErrors = $stats['errors'];
-            
-            // Create results for each allowed sheet
-            foreach ($allowedSheets as $sheetName) {
-                $importResults[$sheetName] = [
-                    'status' => 'success',
-                    'created' => 0, // Individual sheet stats not available
-                    'updated' => 0,
-                    'errors' => 0
-                ];
+            if ($result['success']) {
+                $totalCreated = $result['created'];
+                $totalUpdated = $result['updated'];
+                $totalErrors = $result['errors'];
+                
+                $this->info("✓ All sheets processed successfully");
+                Log::info("Auto import completed successfully", $result);
+            } else {
+                $this->error("✗ Import failed: " . ($result['message'] ?? 'Unknown error'));
+                Log::error("Auto import failed", $result);
+                return 1;
             }
-            
-            $this->info("✓ All sheets processed successfully");
-            Log::info("Auto import completed successfully", $stats);
             
         } catch (\Exception $e) {
             $this->error("✗ Error during import: " . $e->getMessage());
@@ -91,35 +78,34 @@ class AutoImportStudents extends Command
                 'error' => $e->getMessage(),
                 'file_path' => $filePath
             ]);
-            
-            // Mark all sheets as failed
-            foreach ($allowedSheets as $sheetName) {
-                $importResults[$sheetName] = [
-                    'status' => 'error',
-                    'message' => $e->getMessage(),
-                    'created' => 0,
-                    'updated' => 0,
-                    'errors' => 1
-                ];
-            }
-            $totalErrors = count($allowedSheets);
+            return 1;
         }
 
         // Update last import time
         cache()->put($lastImportKey, $lastModified, now()->addDays(30));
 
-        // Log import summary
+        // Log import summary with professional message
         $summary = [
             'total_created' => $totalCreated,
             'total_updated' => $totalUpdated,
             'total_errors' => $totalErrors,
             'file' => $filePath,
-            'sheets_processed' => count($allowedSheets),
-            'import_results' => $importResults,
-            'timestamp' => now()->toDateTimeString()
+            'timestamp' => now()->setTimezone('Asia/Kuala_Lumpur')->toDateTimeString()
         ];
 
-        Log::info('Auto import completed', $summary);
+        // Create professional log message
+        $message = "Student Import Automation: ";
+        if ($totalCreated > 0 || $totalUpdated > 0) {
+            $message .= "Successfully processed {$totalCreated} new students and updated {$totalUpdated} existing students";
+        } else {
+            $message .= "No changes detected in student data";
+        }
+        
+        if ($totalErrors > 0) {
+            $message .= " with {$totalErrors} validation warnings";
+        }
+        
+        Log::info($message, $summary);
 
         // Display results
         $this->info('');
@@ -127,12 +113,6 @@ class AutoImportStudents extends Command
         $this->info("Total Created: {$totalCreated}");
         $this->info("Total Updated: {$totalUpdated}");
         $this->info("Total Errors: {$totalErrors}");
-        $this->info('');
-
-        foreach ($importResults as $sheet => $result) {
-            $status = $result['status'] === 'success' ? '✓' : '✗';
-            $this->info("{$status} {$sheet}: {$result['created']} created, {$result['updated']} updated, {$result['errors']} errors");
-        }
 
         // Send email notification if requested
         if ($notifyEmail && ($totalCreated > 0 || $totalErrors > 0)) {

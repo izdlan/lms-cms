@@ -12,6 +12,7 @@ class Student extends Authenticatable
 
     protected $fillable = [
         'ic_number',
+        'ic',
         'name',
         'email',
         'password',
@@ -19,6 +20,10 @@ class Student extends Authenticatable
         'date_of_birth',
         'address',
         'status',
+        'col_ref_no',
+        'student_id',
+        'previous_university',
+        'source_sheet',
     ];
 
     protected $hidden = [

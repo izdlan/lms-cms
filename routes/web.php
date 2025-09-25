@@ -5,6 +5,7 @@ use App\Http\Controllers\Auth\StudentAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\AutomationController;
 
 // Main routes
 Route::get('/', function () {
@@ -14,6 +15,11 @@ Route::get('/', function () {
 Route::get('/classes', function () {
     return view('classes');
 })->name('classes');
+
+// Bootstrap test route
+Route::get('/test-bootstrap', function () {
+    return view('test-bootstrap');
+})->name('test.bootstrap');
 
 // Login selection
 Route::get('/login', function () {
@@ -63,11 +69,45 @@ Route::prefix('admin')->group(function () {
         Route::put('/students/{student}', [AdminController::class, 'updateStudent'])->name('admin.students.update');
         Route::delete('/students/{student}', [AdminController::class, 'deleteStudent'])->name('admin.students.delete');
         Route::post('/students/bulk-delete', [AdminController::class, 'bulkDeleteStudents'])->name('admin.students.bulk-delete');
+        Route::post('/students/google-sheets-import', [AdminController::class, 'googleSheetsImport'])->name('admin.students.google-sheets-import');
+        Route::post('/students/onedrive-import', [AdminController::class, 'oneDriveImport'])->name('admin.students.onedrive-import');
         Route::get('/import', [AdminController::class, 'showImportForm'])->name('admin.import');
         Route::post('/import', [AdminController::class, 'importStudents'])->name('admin.import');
         Route::get('/sync', [AdminController::class, 'showImportForm'])->name('admin.sync');
         Route::post('/sync', [AdminController::class, 'syncFromCsv'])->name('admin.sync');
         Route::get('/automation', [AdminController::class, 'automation'])->name('admin.automation');
         Route::post('/automation/trigger-import', [AdminController::class, 'triggerImport'])->name('admin.automation.trigger');
+        Route::post('/automation/save-settings', [AdminController::class, 'saveAutomationSettings'])->name('admin.automation.save');
+        Route::post('/automation/check-file', [AdminController::class, 'checkFileStatus'])->name('admin.automation.check-file');
+        Route::post('/automation/run-check', [AdminController::class, 'runAutomationCheck'])->name('admin.automation.run-check');
+        
+        // Google Sheets automation routes
+        Route::post('/automation/google-sheets/start', [AdminController::class, 'startGoogleSheetsAutomation'])->name('admin.automation.google-sheets.start');
+        Route::post('/automation/google-sheets/stop', [AdminController::class, 'stopGoogleSheetsAutomation'])->name('admin.automation.google-sheets.stop');
+        Route::post('/automation/google-sheets/test', [AdminController::class, 'testGoogleSheetsAutomation'])->name('admin.automation.google-sheets.test');
+        
+        // New automation controller routes
+        Route::get('/automation/status-api', [AutomationController::class, 'status'])->name('automation.status-api');
+        Route::post('/automation/start-api', [AutomationController::class, 'start'])->name('automation.start-api');
+        Route::post('/automation/stop-api', [AutomationController::class, 'stop'])->name('automation.stop-api');
+        Route::post('/automation/test-api', [AutomationController::class, 'test'])->name('automation.test-api');
+        Route::get('/automation/run-check', [AutomationController::class, 'runAutomationCheck'])->name('automation.run-check');
+        
+        // Legacy automation routes (for backward compatibility)
+        Route::post('/automation/start', [AdminController::class, 'startAutomation'])->name('admin.automation.start');
+        Route::post('/automation/stop', [AdminController::class, 'stopAutomation'])->name('admin.automation.stop');
+        Route::get('/automation/status', [AdminController::class, 'automation'])->name('admin.automation.status');
+        
+        // New automation web interface routes
+        Route::get('/automation-web', [AdminController::class, 'automationWeb'])->name('admin.automation.web');
+        Route::get('/automation/status-web', [AdminController::class, 'automationStatus'])->name('admin.automation.status');
+        Route::post('/automation/start-web', [AdminController::class, 'startAutomation'])->name('admin.automation.start');
+        Route::post('/automation/stop-web', [AdminController::class, 'stopAutomation'])->name('admin.automation.stop');
+        Route::post('/automation/test-web', [AdminController::class, 'testAutomation'])->name('admin.automation.test');
+        Route::get('/automation/logs-web', [AdminController::class, 'automationLogs'])->name('admin.automation.logs');
+        
+        // OneDrive automation routes
+        Route::get('/automation-onedrive', [AdminController::class, 'automationOneDrive'])->name('admin.automation.onedrive');
+        Route::post('/automation-setup', [AdminController::class, 'setupAutomation'])->name('admin.automation.setup');
     });
 });

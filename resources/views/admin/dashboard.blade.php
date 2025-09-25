@@ -1,42 +1,13 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Admin Dashboard')
 
 @section('content')
 <div class="admin-dashboard">
     <div class="container-fluid">
-        <div class="row">
+        <div class="row g-0">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="sidebar-header">
-                    <h4>Admin Panel</h4>
-                </div>
-                <nav class="sidebar-nav">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link active">
-                        <i data-feather="home" width="20" height="20"></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ route('admin.students') }}" class="nav-link">
-                        <i data-feather="users" width="20" height="20"></i>
-                        Students
-                    </a>
-                    <a href="{{ route('admin.import') }}" class="nav-link">
-                        <i data-feather="upload" width="20" height="20"></i>
-                        Import Students
-                    </a>
-                    <a href="{{ route('admin.sync') }}" class="nav-link">
-                        <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel
-                    </a>
-                    <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i data-feather="log-out" width="20" height="20"></i>
-                        Logout
-                    </a>
-                </nav>
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-            </div>
+            @include('admin.partials.sidebar')
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
@@ -126,6 +97,21 @@
                                     </tbody>
                                 </table>
                             </div>
+                            
+                            <!-- Enhanced Pagination for Dashboard -->
+                            @if($students->hasPages())
+                                <div class="pagination-container">
+                                    <div class="pagination-info">
+                                        <div class="pagination-text">
+                                            Showing {{ $students->firstItem() ?? 0 }} to {{ $students->lastItem() ?? 0 }} of {{ $students->total() }} recent students
+                                        </div>
+                                        <div class="pagination-controls">
+                                            <span class="text-muted">Page {{ $students->currentPage() }} of {{ $students->lastPage() }}</span>
+                                        </div>
+                                    </div>
+                                    {{ $students->links('pagination.admin-pagination') }}
+                                </div>
+                            @endif
                         @else
                             <div class="text-center py-4">
                                 <p class="text-muted">No students found. <a href="{{ route('admin.import') }}">Import students</a> to get started.</p>

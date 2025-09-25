@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.admin')
 
 @section('title', 'Create Student')
 
@@ -7,36 +7,7 @@
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 sidebar">
-                <div class="sidebar-header">
-                    <h4>Admin Panel</h4>
-                </div>
-                <nav class="sidebar-nav">
-                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
-                        <i data-feather="home" width="20" height="20"></i>
-                        Dashboard
-                    </a>
-                    <a href="{{ route('admin.students') }}" class="nav-link active">
-                        <i data-feather="users" width="20" height="20"></i>
-                        Students
-                    </a>
-                    <a href="{{ route('admin.import') }}" class="nav-link">
-                        <i data-feather="upload" width="20" height="20"></i>
-                        Import Students
-                    </a>
-                    <a href="{{ route('admin.sync') }}" class="nav-link">
-                        <i data-feather="refresh-cw" width="20" height="20"></i>
-                        Sync from Excel
-                    </a>
-                    <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                        <i data-feather="log-out" width="20" height="20"></i>
-                        Logout
-                    </a>
-                </nav>
-                <form id="logout-form" action="{{ route('admin.logout') }}" method="POST" style="display: none;">
-                    @csrf
-                </form>
-            </div>
+            @include('admin.partials.sidebar')
 
             <!-- Main Content -->
             <div class="col-md-9 col-lg-10 main-content">
@@ -50,10 +21,10 @@
                     </div>
                 </div>
 
-                @if($errors->any())
+                @if(session('errors'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <ul class="mb-0">
-                            @foreach($errors->all() as $error)
+                            @foreach(session('errors')->all() as $error)
                                 <li>{{ $error }}</li>
                             @endforeach
                         </ul>
