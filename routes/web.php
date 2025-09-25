@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\StudentAuthController;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StaffController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\AnnouncementController;
 
@@ -57,6 +58,23 @@ Route::prefix('student')->group(function () {
         Route::get('/bills', [StudentController::class, 'bills'])->name('student.bills');
         Route::get('/payment', [StudentController::class, 'payment'])->name('student.payment');
         Route::get('/receipt', [StudentController::class, 'receipt'])->name('student.receipt');
+    });
+});
+
+// Staff authentication routes
+Route::prefix('staff')->group(function () {
+    // Protected staff routes
+    Route::middleware('auth')->group(function () {
+        Route::get('/dashboard', [StaffController::class, 'dashboard'])->name('staff.dashboard');
+        Route::get('/courses', [StaffController::class, 'courses'])->name('staff.courses');
+        Route::get('/announcements', [StaffController::class, 'announcements'])->name('staff.announcements');
+        Route::get('/contents', [StaffController::class, 'contents'])->name('staff.contents');
+        Route::get('/assignments', [StaffController::class, 'assignments'])->name('staff.assignments');
+        Route::get('/students', [StaffController::class, 'students'])->name('staff.students');
+        Route::get('/profile', [StaffController::class, 'profile'])->name('staff.profile');
+        Route::post('/profile', [StaffController::class, 'updateProfile'])->name('staff.profile.update');
+        Route::get('/password/change', [StaffController::class, 'changePassword'])->name('staff.password.change');
+        Route::post('/password/change', [StaffController::class, 'updatePassword'])->name('staff.password.update');
     });
 });
 

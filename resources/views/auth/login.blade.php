@@ -37,6 +37,13 @@
                                         </label>
                                     </div>
                                     <div class="login-type-option">
+                                        <input type="radio" id="staff-type" name="login_type" value="staff" {{ old('login_type') == 'staff' ? 'checked' : '' }}>
+                                        <label for="staff-type" class="login-type-label">
+                                            <i data-feather="users" width="20" height="20"></i>
+                                            <span>Staff</span>
+                                        </label>
+                                    </div>
+                                    <div class="login-type-option">
                                         <input type="radio" id="admin-type" name="login_type" value="admin" {{ old('login_type') == 'admin' ? 'checked' : '' }}>
                                         <label for="admin-type" class="login-type-label">
                                             <i data-feather="shield" width="20" height="20"></i>
@@ -55,8 +62,7 @@
                                            id="ic" 
                                            name="ic" 
                                            value="{{ old('ic') }}" 
-                                           placeholder="Enter your IC number"
-                                           required>
+                                           placeholder="Enter your IC number">
                                     @error('ic')
                                         <div class="invalid-feedback">
                                             {{ $message }}
@@ -65,8 +71,8 @@
                                 </div>
                             </div>
 
-                            <!-- Admin Login Fields -->
-                            <div id="admin-fields" class="login-fields" style="display: none;">
+                            <!-- Email Field (for Staff and Admin) -->
+                            <div id="email-fields" class="login-fields" style="display: none;">
                                 <div class="form-group mb-3">
                                     <label for="email" class="form-label">Email Address</label>
                                     <input type="email" 
@@ -172,7 +178,7 @@
 
 .login-type-selection {
     display: flex;
-    gap: 1rem;
+    gap: 0.5rem;
     margin-top: 0.5rem;
 }
 
@@ -344,9 +350,10 @@ function togglePassword() {
 
 function toggleLoginType() {
     const studentType = document.getElementById('student-type');
+    const staffType = document.getElementById('staff-type');
     const adminType = document.getElementById('admin-type');
     const studentFields = document.getElementById('student-fields');
-    const adminFields = document.getElementById('admin-fields');
+    const emailFields = document.getElementById('email-fields');
     const loginButton = document.getElementById('loginButton');
     const forgotPasswordLink = document.getElementById('forgotPasswordLink');
     const icField = document.getElementById('ic');
@@ -354,18 +361,26 @@ function toggleLoginType() {
     
     if (studentType.checked) {
         studentFields.style.display = 'block';
-        adminFields.style.display = 'none';
+        emailFields.style.display = 'none';
         loginButton.textContent = 'Login as Student';
         forgotPasswordLink.href = '{{ route("student.password.reset") }}';
-        icField.required = true;
-        emailField.required = false;
+        icField.setAttribute('required', 'required');
+        emailField.removeAttribute('required');
+    } else if (staffType.checked) {
+        studentFields.style.display = 'none';
+        emailFields.style.display = 'block';
+        loginButton.textContent = 'Login as Staff';
+        forgotPasswordLink.href = '#';
+        icField.removeAttribute('required');
+        emailField.setAttribute('required', 'required');
+        console.log('Staff selected - required attribute set');
     } else {
         studentFields.style.display = 'none';
-        adminFields.style.display = 'block';
+        emailFields.style.display = 'block';
         loginButton.textContent = 'Login as Admin';
         forgotPasswordLink.href = '#';
-        icField.required = false;
-        emailField.required = true;
+        icField.removeAttribute('required');
+        emailField.setAttribute('required', 'required');
     }
 }
 
@@ -374,10 +389,29 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listeners to radio buttons
     document.getElementById('student-type').addEventListener('change', toggleLoginType);
+    document.getElementById('staff-type').addEventListener('change', toggleLoginType);
     document.getElementById('admin-type').addEventListener('change', toggleLoginType);
     
     // Initialize the form
     toggleLoginType();
+    
+    // Add form submission handler for debugging
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const studentType = document.getElementById('student-type');
+        const staffType = document.getElementById('staff-type');
+        const adminType = document.getElementById('admin-type');
+        
+        console.log('Form submitting...');
+        console.log('Student checked:', studentType.checked);
+        console.log('Staff checked:', staffType.checked);
+        console.log('Admin checked:', adminType.checked);
+        
+        if (staffType.checked) {
+            const emailField = document.getElementById('email');
+            console.log('Staff email value:', emailField.value);
+            console.log('Staff email required:', emailField.hasAttribute('required'));
+        }
+    });
 });
 </script>
 @endpush

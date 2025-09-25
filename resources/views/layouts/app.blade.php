@@ -960,6 +960,48 @@
                 height: 250px;
             }
         }
+
+        /* Staff Dashboard Styles - Same as Student */
+        .staff-dashboard .sidebar {
+            background: #212529 !important;
+            min-height: 100vh !important;
+            padding: 0 !important;
+            position: fixed !important;
+            top: 80px !important;
+            left: 0 !important;
+            width: 200px !important;
+            z-index: 1000 !important;
+        }
+        
+        .staff-dashboard .sidebar-header {
+            background: #212529 !important;
+            padding: 1.5rem 1rem !important;
+            color: white !important;
+            border-bottom: 1px solid #495057 !important;
+        }
+        
+        .staff-dashboard .main-content {
+            margin-left: 200px !important;
+            padding: 2rem !important;
+            min-height: calc(100vh - 80px) !important;
+            background: #f8f9fa !important;
+        }
+        
+        @media (max-width: 768px) {
+            .staff-dashboard .sidebar {
+                transform: translateX(-100%) !important;
+                transition: transform 0.3s ease !important;
+            }
+            
+            .staff-dashboard .sidebar.show {
+                transform: translateX(0) !important;
+            }
+            
+            .staff-dashboard .main-content {
+                margin-left: 0 !important;
+                padding: 1rem !important;
+            }
+        }
         
     </style>
     
