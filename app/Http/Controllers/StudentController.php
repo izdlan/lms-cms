@@ -7,12 +7,14 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class StudentController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth:student');
     }
 
     /**
@@ -20,11 +22,15 @@ class StudentController extends Controller
      */
     public function dashboard()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         // Ensure user is a student
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         return view('student.dashboard');
@@ -35,10 +41,14 @@ class StudentController extends Controller
      */
     public function courses()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         return view('student.courses');
@@ -49,10 +59,14 @@ class StudentController extends Controller
      */
     public function assignments()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         return view('student.assignments');
@@ -63,10 +77,14 @@ class StudentController extends Controller
      */
     public function profile()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         return view('student.profile');
@@ -77,10 +95,16 @@ class StudentController extends Controller
      */
     public function updateProfile(Request $request)
     {
-        $user = Auth::user();
+        Log::info('Profile update request received', $request->all());
+        
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -88,11 +112,10 @@ class StudentController extends Controller
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string|max:500',
-            'previous_university' => 'nullable|string|max:255',
-            'col_ref_no' => 'nullable|string|max:100',
         ]);
 
         if ($validator->fails()) {
+            Log::error('Profile validation failed', $validator->errors()->toArray());
             return back()->withErrors($validator)->withInput();
         }
 
@@ -102,13 +125,12 @@ class StudentController extends Controller
                 'email' => $request->email,
                 'phone' => $request->phone,
                 'address' => $request->address,
-                'previous_university' => $request->previous_university,
-                'col_ref_no' => $request->col_ref_no,
             ]);
 
             return back()->with('success', 'Profile updated successfully!');
         } catch (\Exception $e) {
-            return back()->with('error', 'Failed to update profile. Please try again.');
+            Log::error('Profile update failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to update profile: ' . $e->getMessage());
         }
     }
 
@@ -117,10 +139,14 @@ class StudentController extends Controller
      */
     public function showPasswordResetForm()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         return view('auth.student-password-reset');
@@ -131,10 +157,14 @@ class StudentController extends Controller
      */
     public function updatePassword(Request $request)
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
         
         if ($user->role !== 'student') {
-            return redirect()->route('login.selection')->with('error', 'Access denied. Please login as a student.');
+            return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
         $validator = Validator::make($request->all(), [
@@ -168,7 +198,11 @@ class StudentController extends Controller
      */
     public function getStats()
     {
-        $user = Auth::user();
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'Please login to access this page.'], 401);
+        }
         
         if ($user->role !== 'student') {
             return response()->json(['error' => 'Access denied'], 403);
@@ -183,6 +217,96 @@ class StudentController extends Controller
         ];
 
         return response()->json($stats);
+    }
+
+    /**
+     * Upload profile picture
+     */
+    public function uploadProfilePicture(Request $request)
+    {
+        $request->validate([
+            'profile_picture' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048'
+        ]);
+
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        // Delete old profile picture if exists
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+        }
+
+        // Store new profile picture
+        $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+        
+        // Update user profile picture
+        $user->update(['profile_picture' => $path]);
+
+        return redirect()->route('student.profile')->with('success', 'Profile picture uploaded successfully!');
+    }
+
+    /**
+     * Delete profile picture
+     */
+    public function deleteProfilePicture()
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        if ($user->profile_picture) {
+            Storage::disk('public')->delete($user->profile_picture);
+            $user->update(['profile_picture' => null]);
+        }
+
+        return redirect()->route('student.profile')->with('success', 'Profile picture deleted successfully!');
+    }
+
+    /**
+     * Show student bills page
+     */
+    public function bills()
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        return view('student.bills');
+    }
+
+    /**
+     * Show payment page for unpaid bills
+     */
+    public function payment(Request $request)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        return view('student.payment');
+    }
+
+    /**
+     * Show receipt page for paid bills
+     */
+    public function receipt(Request $request)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        return view('student.receipt');
     }
 }
 

@@ -8,9 +8,9 @@
         <div class="row slider-content align-items-center hero-section2 flex-column-reverse flex-md-row">
             <div class="col-12 col-md-7 col-lg-6">
                 <h1 class="text-secondary font-weight-bold">Advance Your Career with Olympia Education</h1>
-                <p class="slide-hint text-gray mt-20">We offer industry- relevant programs, hands-on learning, and strong career support—empowering students with the skills, knowledge, and confidence to thrive in today's fast-paced world.</p>
+                <p class="slide-hint text-gray mt-15">We offer industry relevant programs, hands-on learning, and strong career support empowering students with the skills, knowledge, and confidence to thrive in today's fast-paced world.</p>
 
-                <form action="/search" method="get" class="d-inline-flex mt-30 mt-lg-30 w-100">
+                <form action="/search" method="get" class="d-inline-flex mt-20 mt-lg-20 w-100">
                     <div class="form-group d-flex align-items-center m-0 slider-search p-10 bg-white w-100">
                         <input type="text" name="search" class="form-control border-0 mr-lg-50" placeholder="Search courses, instructors and organizations..." />
                         <button type="submit" class="btn btn-primary rounded-pill">Search</button>
@@ -19,6 +19,62 @@
             </div>
             <div class="col-12 col-md-5 col-lg-6">
                 <lottie-player src="/store/1/animated-header.json" background="transparent" speed="1" class="w-100" loop autoplay></lottie-player>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-sections top-links-section">
+    <div class="container-fluid">
+        <div class="row">
+            <!-- TOP LINK Sidebar -->
+            <div class="col-md-2 col-lg-2 top-links-sidebar">
+                <div class="sidebar-content">
+                    <h2 class="sidebar-title">Student Portal</h2>
+                    <ul class="top-links-list">
+                        <li><a href="/maintenance" class="top-link-item">LMS</a></li>
+                        <li><a href="/login" class="top-link-item">Login</a></li>
+                        <li><a href="/maintenance" class="top-link-item">Course Registration</a></li>
+                        <li><a href="/maintenance" class="top-link-item">Student Bills</a></li>
+                        <li><a href="/maintenance" class="top-link-item">Exam Result</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Single Image Gallery with Navigation -->
+            <div class="col-md-10 col-lg-10 gallery-container">
+                <div class="single-gallery">
+                    <div class="gallery-main">
+                        <div class="gallery-image-container">
+                            <img src="/assets/default/img/home/poster1.jpeg" alt="Olympia Education Poster 1" class="main-gallery-image active" data-index="0" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster2.jpeg" alt="Olympia Education Poster 2" class="main-gallery-image" data-index="1" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster3.jpeg" alt="Olympia Education Poster 3" class="main-gallery-image" data-index="2" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster4.jpeg" alt="Olympia Education Poster 4" class="main-gallery-image" data-index="3" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster5.jpeg" alt="Olympia Education Poster 5" class="main-gallery-image" data-index="4" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster6.jpg" alt="Olympia Education Poster 6" class="main-gallery-image" data-index="5" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                            <img src="/assets/default/img/home/poster7.jpg" alt="Olympia Education Poster 7" class="main-gallery-image" data-index="6" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
+                        </div>
+                        
+                        <!-- Navigation Arrows -->  
+                        <button class="gallery-nav gallery-prev" onclick="changeImage(-1)">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button class="gallery-nav gallery-next" onclick="changeImage(1)">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                        
+                        <!-- Dots Indicator -->
+                        <div class="gallery-dots">
+                            <span class="dot active" onclick="currentImage(0)"></span>
+                            <span class="dot" onclick="currentImage(1)"></span>
+                            <span class="dot" onclick="currentImage(2)"></span>
+                            <span class="dot" onclick="currentImage(3)"></span>
+                            <span class="dot" onclick="currentImage(4)"></span>
+                            <span class="dot" onclick="currentImage(5)"></span>
+                            <span class="dot" onclick="currentImage(6)"></span>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -74,9 +130,9 @@
                             <img src="/store/1/logo/UCB.png" alt="University College Bestari Logo" class="institution-logo">
                             <span>University College Bestari</span>
                         </div>
-                        <h5 class="card-title"><a href="#">Bachelor of Information Technology</a></h5>
+                        <h5 class="card-title"><a href="/maintenance">Bachelor of Information Technology</a></h5>
                         <div class="card-footer-info">
-                            <a href="#" class="footer-link">
+                            <a href="/maintenance" class="footer-link">
                                 <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
                                 <span>Earn a degree</span>
                             </a>
@@ -95,9 +151,9 @@
                             <img src="/store/1/logo/UCB.png" alt="University College Bestari Logo" class="institution-logo">
                             <span>University College Bestari</span>
                         </div>
-                        <h5 class="card-title"><a href="#">Bachelor of Mechanical Engineering Technology</a></h5>
+                        <h5 class="card-title"><a href="/maintenance">Bachelor of Mechanical Engineering Technology</a></h5>
                         <div class="card-footer-info">
-                            <a href="#" class="footer-link">
+                            <a href="/maintenance" class="footer-link">
                                 <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
                                 <span>Earn a degree</span>
                             </a>
@@ -116,9 +172,9 @@
                             <img src="/store/1/logo/DHU.png" alt="DRB-Hicom University Logo" class="institution-logo">
                             <span>DRB-Hicom University</span>
                         </div>
-                        <h5 class="card-title"><a href="#">Diploma in Procurement Management</a></h5>
+                        <h5 class="card-title"><a href="/maintenance">Diploma in Procurement Management</a></h5>
                         <div class="card-footer-info">
-                            <a href="#" class="footer-link">
+                            <a href="/maintenance" class="footer-link">
                                 <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
                                 <span>Earn a degree</span>
                             </a>
@@ -137,9 +193,9 @@
                             <img src="/store/1/logo/DHU.png" alt="DRB-Hicom University Logo" class="institution-logo">
                             <span>DRB-Hicom University</span>
                         </div>
-                        <h5 class="card-title"><a href="#">Diploma in Procurement Management</a></h5>
+                        <h5 class="card-title"><a href="/maintenance">Diploma in Procurement Management</a></h5>
                         <div class="card-footer-info">
-                            <a href="#" class="footer-link">
+                            <a href="/maintenance" class="footer-link">
                                 <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
                                 <span>Earn a Professional Certificate</span>
                             </a>
@@ -151,13 +207,13 @@
         </div>
 
         <div class="section-actions mt-5">
-            <a href="#" class="btn btn-primary">Show 8 more</a>
-            <a href="#" class="btn btn-outline-primary ms-3">View all →</a>
+            <a href="/maintenance" class="btn btn-primary">Show 8 more</a>
+            <a href="/maintenance" class="btn btn-outline-primary ms-3">View all →</a>
         </div>
     </div>
 </section>
 
-<div class="home-sections stats-container page-has-hero-section-2">
+<section class="home-sections stats-container page-has-hero-section-2">
     <div class="container">
         <div class="row">
             <div class="col-sm-6 col-lg-3 mt-25 mt-lg-0">
@@ -205,7 +261,7 @@
             </div>
         </div>
     </div>
-</div>
+</section>
 
 <section class="home-sections home-sections-swiper container">
     <div class="d-flex justify-content-between ">
@@ -236,9 +292,6 @@
                                     <span class="progress-bar" style="width: 0%"></span>
                                 </div>
 
-                                <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&amp;dates=20250710T000000/20250710T000000&amp;ctz=UTC&amp;text=Industrial+Bachelor+of+Education+in+Leadership+Management" target="_blank" class="webinar-notify d-flex align-items-center justify-content-center">
-                                    <i data-feather="bell" width="20" height="20" class="webinar-icon"></i>
-                                </a>
                             </div>
 
                             <figcaption class="webinar-card-body">
@@ -301,12 +354,12 @@
                         Train teams with industry-leading experts and universities, enhanced by AI tools and recognized credentials.
                     </p>
 
-                    <a href="#" class="btn btn-primary btn-lg px-4 mt-3">Discover Coursera for Business</a>
+                    <a href="/maintenance" class="btn btn-primary btn-lg px-4 mt-3">Discover Olympia for Business</a>
 
                     <div class="up-skill-link mt-3">
                         <p>
                             Upskill a small team?
-                            <a href="#" class="text-primary font-weight-bold">Check out Olympia for Teams</a>
+                            <a href="/maintenance" class="text-primary font-weight-bold">Check out Olympia for Teams</a>
                         </p>
                     </div>
                 </div>
@@ -327,7 +380,7 @@
                         <img src="/store/1/business_talent/General Electric Logo.png" alt="Drive your business forward by empowering your talent Image 3">
                     </div>
                     <div class="logo-item">
-                        <img src="/store/1/business_talent/L'OREAL Logo.png" alt="Drive your business forward by empowering your talent Image 4">
+                        <img src="https://lms.olympia-education.com/store/1/business_talent/L'OREAL%20Logo.png" alt="Drive your business forward by empowering your talent Image 4">
                     </div>
                     <div class="logo-item">
                         <img src="/store/1/business_talent/Procter &amp; Gamble Logo.png" alt="Drive your business forward by empowering your talent Image 5">
@@ -337,9 +390,6 @@
                     </div>
                     <div class="logo-item">
                         <img src="/store/1/business_talent/Tata Communications Logo.png" alt="Drive your business forward by empowering your talent Image 7">
-                    </div>
-                    <div class="logo-item">
-                        <img src="/store/1/business_talent/Reliance Industries Limited Logo.png" alt="Drive your business forward by empowering your talent Image 8">
                     </div>
                 </div>
             </div>
@@ -355,7 +405,7 @@
             <p class="card-text">
                 You have a good sense of what you want to achieve and the impact you want to make on the world. Are you ready for your bigger goals? Apply to begin your journey as a #FutureOlympia.
             </p>
-            <a href="#" class="btn btn-cta">START YOUR APPLICATION</a>
+            <a href="/maintenance" class="btn btn-cta">START YOUR APPLICATION</a>
         </div>
     </div>
 </section>

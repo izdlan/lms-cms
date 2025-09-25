@@ -1,35 +1,53 @@
 <!-- Sidebar -->
-<div class="col-md-3 col-lg-2 sidebar">
+<div class="sidebar">
     <div class="sidebar-header">
-        <h4>Student Portal</h4>
+        <div class="profile-section">
+            <div class="profile-picture-container">
+                @if(auth('student')->user()->profile_picture)
+                    <img src="{{ asset('storage/' . auth('student')->user()->profile_picture) }}" alt="Profile Picture" class="profile-picture">
+                @else
+                    <div class="profile-picture-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                @endif
+            </div>
+            <div class="profile-info">
+                <h5 class="profile-name">{{ auth('student')->user()->name }}</h5>
+            </div>
+        </div>
     </div>
     <nav class="sidebar-nav">
         <a href="{{ route('student.dashboard') }}" class="nav-link {{ request()->routeIs('student.dashboard') ? 'active' : '' }}">
-            <i data-feather="home" width="20" height="20"></i>
+            <i class="fas fa-home"></i>
             Dashboard
         </a>
         <a href="{{ route('student.courses') }}" class="nav-link {{ request()->routeIs('student.courses') ? 'active' : '' }}">
-            <i data-feather="book-open" width="20" height="20"></i>
+            <i class="fas fa-book-open"></i>
             My Courses
         </a>
+        <a href="{{ route('student.profile') }}" class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
+            <i class="fas fa-user"></i>
+            My Profile
+        </a>
         <a href="{{ route('student.password.change') }}" class="nav-link {{ request()->routeIs('student.password.change') ? 'active' : '' }}">
-            <i data-feather="key" width="20" height="20"></i>
+            <i class="fas fa-key"></i>
             Change Password
         </a>
-        <a href="{{ route('student.assignments') }}" class="nav-link {{ request()->routeIs('student.assignments') ? 'active' : '' }}">
-            <i data-feather="file-text" width="20" height="20"></i>
-            Assignments
+        <a href="/maintenance" class="nav-link">
+            <i class="fas fa-clipboard-list"></i>
+            Course Registration
         </a>
-        <a href="{{ route('student.profile') }}" class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
-            <i data-feather="user" width="20" height="20"></i>
-            Profile
+        <a href="{{ route('student.bills') }}" class="nav-link {{ request()->routeIs('student.bills') ? 'active' : '' }}">
+            <i class="fas fa-file-invoice-dollar"></i>
+            Student Bills
         </a>
-        <a href="{{ route('student.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-            <i data-feather="log-out" width="20" height="20"></i>
-            Logout
+        <a href="/maintenance" class="nav-link">
+            <i class="fas fa-chart-line"></i>
+            Exam Result
         </a>
+
     </nav>
-    <form id="logout-form" action="{{ route('student.logout') }}" method="POST" style="display: none;">
+    <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
         @csrf
     </form>
 </div>

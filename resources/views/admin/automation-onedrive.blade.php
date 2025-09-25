@@ -34,7 +34,7 @@
                                 </div>
                                 <div class="status-content">
                                     <h6 class="status-label">Automation Status</h6>
-                                    <h4 class="status-value" id="autoStatus">Not Set Up</h4>
+                                    <h4 class="status-value" id="autoStatus">Checking...</h4>
                                 </div>
                             </div>
                         </div>
@@ -346,13 +346,7 @@ function checkAutomationStatus() {
         // Update the status display
         const statusElement = document.getElementById('autoStatus');
         if (statusElement) {
-            if (data.is_active) {
-                statusElement.textContent = 'Active (Every 5 minutes)';
-                statusElement.style.color = '#4caf50';
-            } else {
-                statusElement.textContent = 'Not Set Up';
-                statusElement.style.color = '#ff9800';
-            }
+            statusElement.textContent = data.is_active ? 'Active (Every 5 minutes)' : 'Inactive';
         }
     })
     .catch(error => {
@@ -419,15 +413,6 @@ function showSetupResults(data) {
     let alertClass = data.success ? 'alert-success' : 'alert-danger';
     let icon = data.success ? '✅' : '❌';
     
-    let suggestionHtml = '';
-    if (data.suggestion) {
-        suggestionHtml = `
-            <div class="alert-suggestion">
-                <strong>💡 Suggestion:</strong> ${data.suggestion}
-            </div>
-        `;
-    }
-    
     outputDiv.innerHTML = `
         <div class="alert ${alertClass} modern-alert">
             <div class="alert-icon">
@@ -436,18 +421,16 @@ function showSetupResults(data) {
             <div class="alert-content">
                 <h6 class="alert-title">${data.message}</h6>
                 ${data.output ? '<pre class="alert-output">' + data.output + '</pre>' : ''}
-                ${suggestionHtml}
             </div>
         </div>
     `;
     
     resultsDiv.style.display = 'block';
     
-    // Auto-hide after 15 seconds for error messages with suggestions
-    const hideDelay = data.suggestion ? 15000 : 10000;
+    // Auto-hide after 10 seconds
     setTimeout(() => {
         resultsDiv.style.display = 'none';
-    }, hideDelay);
+    }, 10000);
 }
 
 function createSimpleAutomation() {
@@ -485,10 +468,20 @@ function createSimpleAutomation() {
     });
 }
 
-// Initialize Feather icons safely - DISABLED to prevent errors
+// Initialize Feather icons safely
 document.addEventListener('DOMContentLoaded', function() {
-    // Skip Feather icons initialization to prevent errors
-    console.log('Feather icons initialization disabled to prevent errors');
+    // Wait a bit for all scripts to load
+    setTimeout(function() {
+        if (typeof feather !== 'undefined' && feather.replace) {
+            try {
+                feather.replace();
+            } catch (e) {
+                console.log('Feather icons initialization skipped:', e.message);
+            }
+        } else {
+            console.log('Feather icons library not loaded');
+        }
+    }, 100);
 });
 
 // Auto-refresh status every 30 seconds
@@ -501,45 +494,14 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set initial status
     const statusElement = document.getElementById('autoStatus');
     if (statusElement) {
-        statusElement.textContent = 'Not Set Up';
-        statusElement.style.color = '#ff9800';
+        statusElement.textContent = 'Checking...';
     }
     
-    // Check status after a short delay (but don't show error if not set up)
+    // Check status after a short delay
     setTimeout(() => {
-        checkAutomationStatusQuietly();
+        checkAutomationStatus();
     }, 500);
 });
-
-// Quiet status check (doesn't show error messages)
-function checkAutomationStatusQuietly() {
-    fetch('/admin/automation-setup', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        },
-        body: JSON.stringify({ action: 'check_status' })
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Update status display without showing error message
-        const statusElement = document.getElementById('autoStatus');
-        if (statusElement) {
-            if (data.is_active) {
-                statusElement.textContent = 'Active (Every 5 minutes)';
-                statusElement.style.color = '#4caf50';
-            } else {
-                statusElement.textContent = 'Not Set Up';
-                statusElement.style.color = '#ff9800';
-            }
-        }
-    })
-    .catch(error => {
-        // Silently handle errors for initial check
-        console.log('Status check failed:', error.message);
-    });
-}
 </script>
 @endsection
 
@@ -934,16 +896,6 @@ function checkAutomationStatusQuietly() {
     margin: 0;
     white-space: pre-wrap;
     word-break: break-word;
-}
-
-.alert-suggestion {
-    background: #e3f2fd;
-    border: 1px solid #2196f3;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 12px;
-    font-size: 13px;
-    color: #1976d2;
 }
 
 /* Loading States */

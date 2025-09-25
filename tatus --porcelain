@@ -1,0 +1,14 @@
+app/Http/Controllers/AdminController.php
+automation/batch/fix_env.ps1
+automation/test/test_admin.php
+resources/views/admin/automation.blade.php
+resources/views/admin/create-student.blade.php
+resources/views/admin/dashboard.blade.php
+resources/views/admin/edit-student.blade.php
+resources/views/admin/import-students.blade.php
+resources/views/admin/students.blade.php
+resources/views/auth/admin-login.blade.php
+resources/views/layouts/app.blade.php
+routes/web.php
+temp/sample_students.csv
+temp/temp_mail.txt

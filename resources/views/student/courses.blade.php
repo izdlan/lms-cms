@@ -3,22 +3,36 @@
 @section('title', 'My Courses')
 
 @section('content')
-<div class="student-courses">
+<div class="student-dashboard">
+    <!-- Student Navigation Bar -->
+    @include('student.partials.student-navbar')
+    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             @include('student.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <div class="main-content">
                 <div class="courses-header">
                     <h1>My Courses</h1>
                     <p>Manage and track your course progress</p>
+                    @if(request()->has('course'))
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            Showing details for course: <strong>{{ request('course') }}</strong>
+                        </div>
+                    @endif
                 </div>
 
-                @if(auth()->user()->courses && count(auth()->user()->courses) > 0)
+                @php
+                    $user = auth('student')->user();
+                    $studentCourses = $user ? ($user->courses ?? []) : [];
+                @endphp
+                
+                @if(count($studentCourses) > 0)
                     <div class="row">
-                        @foreach(auth()->user()->courses as $index => $course)
+                        @foreach($studentCourses as $index => $course)
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="course-card">
                                     <div class="course-header">
@@ -54,9 +68,10 @@
                                     <div class="course-footer">
                                         <div class="course-progress">
                                             <div class="progress">
-                                                <div class="progress-bar" role="progressbar" style="width: {{ rand(10, 90) }}%"></div>
+                                                @php $progress = rand(10, 90); @endphp
+                                                <div class="progress-bar" role="progressbar" data-width="{{ $progress }}"></div>
                                             </div>
-                                            <small class="text-muted">{{ rand(10, 90) }}% Complete</small>
+                                            <small class="text-muted">{{ $progress }}% Complete</small>
                                         </div>
                                         <div class="course-actions">
                                             <button class="btn btn-sm btn-primary">Continue</button>
@@ -84,72 +99,6 @@
 
 @push('styles')
 <style>
-.student-courses {
-    min-height: 100vh;
-    background-color: #f8f9fa;
-}
-
-.sidebar {
-    background: #2d3748;
-    min-height: 100vh;
-    padding: 0;
-}
-
-.sidebar-header {
-    background: #1a202c;
-    padding: 1.5rem;
-    color: white;
-    border-bottom: 1px solid #4a5568;
-}
-
-.sidebar-header h4 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    padding: 1rem 0;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: #a0aec0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.nav-link:hover {
-    background: #4a5568;
-    color: white;
-}
-
-.nav-link.active {
-    background: #0056d2;
-    color: white;
-    border-left-color: #0041a3;
-}
-
-.nav-link i {
-    margin-right: 0.75rem;
-}
-
-.main-content {
-    padding: 2rem;
-}
-
-.courses-header h1 {
-    color: #2d3748;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.courses-header p {
-    color: #718096;
-    margin-bottom: 2rem;
-}
 
 .course-card {
     background: white;
@@ -293,6 +242,39 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
+    
+    // Set progress bar widths
+    document.querySelectorAll('.progress-bar[data-width]').forEach(bar => {
+        const width = bar.getAttribute('data-width');
+        bar.style.width = width + '%';
+    });
+    
+    // Handle course highlighting from dropdown
+    const courseParam = new URLSearchParams(window.location.search).get('course');
+    if (courseParam) {
+        // Find the course card that matches the selected course
+        const courseCards = document.querySelectorAll('.course-card');
+        courseCards.forEach(card => {
+            const courseTitle = card.querySelector('.course-title');
+            if (courseTitle && courseTitle.textContent.trim() === courseParam) {
+                // Highlight the selected course
+                card.style.border = '2px solid #20c997';
+                card.style.boxShadow = '0 4px 15px rgba(32, 201, 151, 0.3)';
+                card.style.transform = 'scale(1.02)';
+                
+                // Scroll to the highlighted course
+                card.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'center' 
+                });
+                
+                // Add a temporary animation
+                setTimeout(() => {
+                    card.style.transition = 'all 0.3s ease';
+                }, 100);
+            }
+        });
+    }
 });
 </script>
 @endpush

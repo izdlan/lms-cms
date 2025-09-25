@@ -1,104 +1,286 @@
 @extends('layouts.app')
 
-@section('title', 'Student Profile')
+@section('title', 'My Profile')
 
 @section('content')
-<div class="student-profile">
+<div class="student-dashboard">
+    <!-- Student Navigation Bar -->
+    @include('student.partials.student-navbar')
+    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             @include('student.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
-                <div class="profile-header">
+            <div class="main-content">
+                <div class="dashboard-header">
                     <h1>My Profile</h1>
-                    <p>Manage your personal information and account settings</p>
+                    <p class="text-muted">View your complete student information and manage your profile picture.</p>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-8">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5><i data-feather="user" width="20" height="20" class="me-2"></i>Personal Information</h5>
-                            </div>
-                            <div class="card-body">
-                                <form>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="name" class="form-label">Full Name</label>
-                                            <input type="text" class="form-control" id="name" value="{{ auth()->user()->name }}" readonly>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="email" class="form-label">Email Address</label>
-                                            <input type="email" class="form-control" id="email" value="{{ auth()->user()->email }}" readonly>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="ic" class="form-label">IC Number</label>
-                                            <input type="text" class="form-control" id="ic" value="{{ auth()->user()->ic }}" readonly>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="phone" class="form-label">Phone Number</label>
-                                            <input type="text" class="form-control" id="phone" value="{{ auth()->user()->phone ?? 'Not provided' }}" readonly>
-                                        </div>
-                                        <div class="col-12 mb-3">
-                                            <label for="address" class="form-label">Address</label>
-                                            <textarea class="form-control" id="address" rows="3" readonly>{{ auth()->user()->address ?? 'Not provided' }}</textarea>
-                                        </div>
-                                    </div>
-                                    <div class="alert alert-info">
-                                        <i data-feather="info" width="16" height="16" class="me-2"></i>
-                                        <strong>Note:</strong> To update your personal information, please contact the administration office.
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
+                @endif
+
+                @if(session('error'))
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        {{ session('error') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                @if($errors->any())
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <ul class="mb-0">
+                            @foreach($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                @endif
+
+                <div class="row">
+                    <!-- Profile Picture Section -->
                     <div class="col-md-4">
                         <div class="card">
                             <div class="card-header">
-                                <h5><i data-feather="key" width="20" height="20" class="me-2"></i>Account Security</h5>
+                                <h5><i class="fas fa-camera me-2"></i>Profile Picture</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="profile-preview mb-3">
+                                    @if(auth('student')->user()->profile_picture)
+                                        <img src="{{ asset('storage/' . auth('student')->user()->profile_picture) }}" 
+                                             alt="Current Profile Picture" 
+                                             class="current-profile-picture">
+                                    @else
+                                        <div class="no-profile-picture">
+                                            <i class="fas fa-user-circle"></i>
+                                            <p class="text-muted">No profile picture</p>
+                                        </div>
+                                    @endif
+                                </div>
+                                
+                                <form action="{{ route('student.profile.picture') }}" method="POST" enctype="multipart/form-data">
+                                    @csrf
+                                    <div class="mb-3">
+                                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" 
+                                               accept="image/*" onchange="previewImage(this)">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-upload me-1"></i>Upload Picture
+                                    </button>
+                                </form>
+                                
+                                @if(auth('student')->user()->profile_picture)
+                                    <form action="{{ route('student.profile.picture.delete') }}" method="POST" class="mt-2">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                onclick="return confirm('Are you sure you want to delete your profile picture?')">
+                                            <i class="fas fa-trash me-1"></i>Remove Picture
+                                        </button>
+                                    </form>
+                                @endif
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Student Information Display -->
+                    <div class="col-md-8">
+                        @php
+                            $user = auth('student')->user();
+                        @endphp
+                        
+                        <!-- Personal Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-user me-2"></i>Personal Information</h5>
                             </div>
                             <div class="card-body">
-                                <div class="security-item">
-                                    <label>Password:</label>
-                                    <span class="text-muted">Last changed: Never</span>
-                                    <button class="btn btn-sm btn-outline-primary" onclick="alert('Password change feature coming soon!')">Change</button>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Full Name</label>
+                                        <p class="form-control-plaintext">{{ $user->name ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Email</label>
+                                        <p class="form-control-plaintext">{{ $user->email ?? '-' }}</p>
+                                    </div>
                                 </div>
-                                <div class="security-item">
-                                    <label>Two-Factor Auth:</label>
-                                    <span class="text-muted">Not enabled</span>
-                                    <button class="btn btn-sm btn-outline-secondary" disabled>Enable</button>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Phone Number</label>
+                                        <p class="form-control-plaintext">{{ $user->phone ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">IC Number</label>
+                                        <p class="form-control-plaintext">{{ $user->ic ?? '-' }}</p>
+                                    </div>
                                 </div>
-                                <div class="security-item">
-                                    <label>Login Activity:</label>
-                                    <span class="text-muted">Last login: {{ auth()->user()->updated_at->format('d M Y, h:i A') }}</span>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Address</label>
+                                    <p class="form-control-plaintext">{{ $user->address ?? '-' }}</p>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="card mt-3">
+                        <!-- Academic Information -->
+                        <div class="card mb-4">
                             <div class="card-header">
-                                <h5><i data-feather="settings" width="20" height="20" class="me-2"></i>Account Settings</h5>
+                                <h5><i class="fas fa-graduation-cap me-2"></i>Academic Information</h5>
                             </div>
                             <div class="card-body">
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="emailNotifications" checked disabled>
-                                    <label class="form-check-label" for="emailNotifications">
-                                        Email Notifications
-                                    </label>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Student ID</label>
+                                        <p class="form-control-plaintext">{{ $user->student_id ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Programme Name</label>
+                                        <p class="form-control-plaintext">{{ $user->programme_name ?? '-' }}</p>
+                                    </div>
                                 </div>
-                                <div class="form-check form-switch mb-3">
-                                    <input class="form-check-input" type="checkbox" id="smsNotifications" disabled>
-                                    <label class="form-check-label" for="smsNotifications">
-                                        SMS Notifications
-                                    </label>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Category</label>
+                                        <p class="form-control-plaintext">{{ $user->category ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Faculty</label>
+                                        <p class="form-control-plaintext">{{ $user->faculty ?? '-' }}</p>
+                                    </div>
                                 </div>
-                                <div class="alert alert-warning">
-                                    <small>Settings are managed by the system administrator.</small>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Programme Code</label>
+                                        <p class="form-control-plaintext">{{ $user->programme_code ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Semester Entry</label>
+                                        <p class="form-control-plaintext">{{ $user->semester_entry ?? '-' }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Programme Intake</label>
+                                        <p class="form-control-plaintext">{{ $user->programme_intake ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Date of Commencement</label>
+                                        <p class="form-control-plaintext">{{ $user->date_of_commencement ?? '-' }}</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Research Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-microscope me-2"></i>Research Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Research Title</label>
+                                    <p class="form-control-plaintext">{{ $user->research_title ?? '-' }}</p>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Supervisor</label>
+                                        <p class="form-control-plaintext">{{ $user->supervisor ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">External Examiner</label>
+                                        <p class="form-control-plaintext">{{ $user->external_examiner ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-4 mb-3">
+                                        <label class="form-label fw-bold">Internal Examiner</label>
+                                        <p class="form-control-plaintext">{{ $user->internal_examiner ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-info-circle me-2"></i>Additional Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Previous University</label>
+                                        <p class="form-control-plaintext">{{ $user->previous_university ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">College Reference Number</label>
+                                        <p class="form-control-plaintext">{{ $user->col_ref_no ?? '-' }}</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Source Sheet</label>
+                                        <p class="form-control-plaintext">{{ $user->source_sheet ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">College Date</label>
+                                        <p class="form-control-plaintext">{{ $user->col_date ?? '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Student Portal Information -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-key me-2"></i>Student Portal Information</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Portal Username</label>
+                                        <p class="form-control-plaintext">{{ $user->student_portal_username ?? '-' }}</p>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label class="form-label fw-bold">Portal Password</label>
+                                        <p class="form-control-plaintext">{{ $user->student_portal_password ? '••••••••' : '-' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Courses Information -->
+                        @if($user->courses && count($user->courses) > 0)
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5><i class="fas fa-book me-2"></i>Enrolled Courses</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    @foreach($user->courses as $index => $course)
+                                        <div class="col-md-6 mb-2">
+                                            <span class="badge bg-primary me-2">{{ $index + 1 }}</span>
+                                            {{ $course }}
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -109,78 +291,46 @@
 
 @push('styles')
 <style>
-.student-profile {
-    min-height: 100vh;
-    background-color: #f8f9fa;
+.current-profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #20c997;
 }
 
-.sidebar {
-    background: #2d3748;
-    min-height: 100vh;
-    padding: 0;
-}
-
-.sidebar-header {
-    background: #1a202c;
-    padding: 1.5rem;
-    color: white;
-    border-bottom: 1px solid #4a5568;
-}
-
-.sidebar-header h4 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    padding: 1rem 0;
-}
-
-.nav-link {
+.no-profile-picture {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: #f8f9fa;
+    border: 3px solid #dee2e6;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: #a0aec0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
+    justify-content: center;
+    margin: 0 auto;
+    color: #6c757d;
 }
 
-.nav-link:hover {
-    background: #4a5568;
-    color: white;
-}
-
-.nav-link.active {
-    background: #0056d2;
-    color: white;
-    border-left-color: #0041a3;
-}
-
-.nav-link i {
-    margin-right: 0.75rem;
-}
-
-.main-content {
-    padding: 2rem;
-}
-
-.profile-header h1 {
-    color: #2d3748;
-    font-weight: bold;
+.no-profile-picture i {
+    font-size: 3rem;
     margin-bottom: 0.5rem;
 }
 
-.profile-header p {
-    color: #718096;
-    margin-bottom: 2rem;
+.profile-preview {
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .card {
     background: white;
     border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     border: none;
+    margin-bottom: 1.5rem;
 }
 
 .card-header {
@@ -188,7 +338,6 @@
     border-bottom: 1px solid #e9ecef;
     padding: 1.5rem;
     display: flex;
-    justify-content: space-between;
     align-items: center;
 }
 
@@ -198,65 +347,78 @@
     font-weight: bold;
 }
 
-.card-header h5 i {
-    color: #0056d2;
-}
-
-.security-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid #f1f3f4;
-}
-
-.security-item:last-child {
-    border-bottom: none;
-}
-
-.security-item label {
+.form-label {
     font-weight: 600;
     color: #495057;
-    margin: 0;
-    min-width: 120px;
+    margin-bottom: 0.5rem;
 }
 
-.security-item span {
-    color: #6c757d;
-    flex: 1;
-    margin: 0 1rem;
+.form-control:read-only {
+    background-color: #f8f9fa;
+    border-color: #e9ecef;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        min-height: auto;
-    }
-    
-    .main-content {
-        padding: 1rem;
-    }
-    
-    .security-item {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .security-item label {
-        min-width: auto;
-        margin-bottom: 0.25rem;
-    }
-    
-    .security-item span {
-        margin: 0 0 0.5rem 0;
-    }
+.form-control-plaintext {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 0.375rem;
+    padding: 0.75rem;
+    margin-bottom: 0;
+    min-height: 2.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.form-label.fw-bold {
+    color: #495057;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-bottom: 2px solid #dee2e6;
+}
+
+.card-header h5 {
+    color: #495057;
+    font-weight: 600;
+}
+
+.badge.bg-primary {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
 }
 </style>
 @endpush
 
 @push('scripts')
 <script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const preview = document.querySelector('.profile-preview');
+            preview.innerHTML = `<img src="${e.target.result}" alt="Preview" class="current-profile-picture">`;
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+    // Initialize any additional functionality
 });
 </script>
 @endpush

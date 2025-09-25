@@ -1252,57 +1252,27 @@ class AdminController extends Controller
                     $taskName = "LMS_OneDrive_AutoImport";
                     $batchFile = base_path('automation/batch/auto_onedrive_import.bat');
                     
-                    // Check if batch file exists
-                    if (!file_exists($batchFile)) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Batch file not found. Please use "No Admin Setup" instead.',
-                            'output' => 'The required batch file is missing. Use the "No Admin Setup" button to create automation files without administrator privileges.',
-                            'suggestion' => 'Try the "No Admin Setup" button for a simpler solution.'
-                        ]);
-                    }
-                    
                     $command = "schtasks /create /tn \"$taskName\" /tr \"$batchFile\" /sc minute /mo 5 /ru SYSTEM /f";
                     exec($command, $output, $returnCode);
                     
-                    if ($returnCode === 0) {
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'Task created successfully!',
-                            'output' => implode("\n", $output),
-                            'command' => $command
-                        ]);
-                    } else {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Failed to create task. Administrator privileges required.',
-                            'output' => implode("\n", $output),
-                            'command' => $command,
-                            'suggestion' => 'Try the "No Admin Setup" button instead, or run XAMPP as administrator.'
-                        ]);
-                    }
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Task created successfully!' : 'Failed to create task. You may need to run as administrator.',
+                        'output' => implode("\n", $output),
+                        'command' => $command
+                    ]);
                     
                 case 'check_status':
                     // Check if task exists
                     $taskName = "LMS_OneDrive_AutoImport";
                     exec("schtasks /query /tn \"$taskName\" 2>&1", $output, $returnCode);
                     
-                    if ($returnCode === 0) {
-                        return response()->json([
-                            'success' => true,
-                            'message' => 'Task is active and running every 5 minutes',
-                            'output' => implode("\n", $output),
-                            'is_active' => true
-                        ]);
-                    } else {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Automation not set up yet',
-                            'output' => 'No automation task found. Use "Enable Auto Import" or "No Admin Setup" to get started.',
-                            'is_active' => false,
-                            'suggestion' => 'Click "Enable Auto Import" to create the task, or use "No Admin Setup" for a simpler approach.'
-                        ]);
-                    }
+                    return response()->json([
+                        'success' => $returnCode === 0,
+                        'message' => $returnCode === 0 ? 'Task is active' : 'Task not found',
+                        'output' => implode("\n", $output),
+                        'is_active' => $returnCode === 0
+                    ]);
                     
                 case 'delete_task':
                     // Delete the task
