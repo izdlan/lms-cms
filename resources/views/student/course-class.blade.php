@@ -714,7 +714,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                         ${assignment.attachments.map((file, index) => `
                                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                                 <span><i class="fas fa-file-pdf text-danger"></i> ${file.original_name}</span>
-                                                <a href="/student/assignments/download/${assignment.id}/${index}" class="btn btn-sm btn-outline-primary">
+                                                <a href="/student/assignments/download/${assignment.id}/${index}" class="btn btn-sm btn-outline-primary" target="_blank">
                                                     <i class="fas fa-download"></i> Download
                                                 </a>
                                             </li>

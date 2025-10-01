@@ -431,10 +431,16 @@ class StudentController extends Controller
         $filePath = storage_path('app/public/' . $file['file_path']);
 
         if (!file_exists($filePath)) {
-            return redirect()->back()->with('error', 'File not found on server.');
+            \Log::error("Assignment file not found: {$filePath}");
+            return redirect()->back()->with('error', 'File not found on server: ' . $filePath);
         }
 
-        return response()->download($filePath, $file['original_name']);
+        try {
+            return response()->download($filePath, $file['original_name']);
+        } catch (\Exception $e) {
+            \Log::error("Assignment download error: " . $e->getMessage());
+            return redirect()->back()->with('error', 'Download failed: ' . $e->getMessage());
+        }
     }
 
     /**

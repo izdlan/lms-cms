@@ -547,10 +547,16 @@ class StaffController extends Controller
         $filePath = storage_path('app/public/' . $file['file_path']);
 
         if (!file_exists($filePath)) {
-            return response()->json(['success' => false, 'message' => 'File not found on disk'], 404);
+            \Log::error("File not found: {$filePath}");
+            return response()->json(['success' => false, 'message' => 'File not found on disk: ' . $filePath], 404);
         }
 
-        return response()->download($filePath, $file['original_name']);
+        try {
+            return response()->download($filePath, $file['original_name']);
+        } catch (\Exception $e) {
+            \Log::error("Download error: " . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Download failed: ' . $e->getMessage()], 500);
+        }
     }
 
     public function students()

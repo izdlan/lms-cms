@@ -439,7 +439,7 @@ function showSubmissionFilesModal(submission) {
                                                     <button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab('${file.file_path}')">
                                                         <i class="fas fa-external-link-alt"></i> View
                                                     </button>
-                                                    <a href="/staff/assignments/submissions/download/${submission.id}/${index}" class="btn btn-sm btn-outline-success">
+                                                    <a href="/staff/assignments/submissions/download/${submission.id}/${index}" class="btn btn-sm btn-outline-success" target="_blank">
                                                         <i class="fas fa-download"></i> Download
                                                     </a>
                         </div>
