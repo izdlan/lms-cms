@@ -141,14 +141,19 @@
                             </td>
                             <td>{{ $assignment->submissions->count() }}</td>
                             <td>
-                                @if($assignment->status === 'draft')
-                                    <button class="btn btn-sm btn-success" onclick="publishAssignment({{ $assignment->id }})">
-                                        <i class="fas fa-eye"></i> Publish
+                                <div class="btn-group" role="group">
+                                    @if($assignment->status === 'draft')
+                                        <button class="btn btn-sm btn-success" onclick="publishAssignment({{ $assignment->id }})" title="Publish Assignment">
+                                            <i class="fas fa-eye"></i> Publish
+                                        </button>
+                                    @endif
+                                    <button class="btn btn-sm btn-info" onclick="viewSubmissions({{ $assignment->id }})" title="View Submissions">
+                                        <i class="fas fa-eye"></i> View
                                     </button>
-                                @endif
-                                <button class="btn btn-sm btn-info" onclick="viewSubmissions({{ $assignment->id }})">
-                                    <i class="fas fa-eye"></i> View
-                                </button>
+                                    <button class="btn btn-sm btn-danger" onclick="deleteAssignment({{ $assignment->id }})" title="Delete Assignment">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                         @endforeach
@@ -580,6 +585,32 @@ function submitGrade(submissionId) {
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     });
+}
+
+// Delete assignment
+function deleteAssignment(assignmentId) {
+    if (confirm('Are you sure you want to delete this assignment? This action cannot be undone and will also delete all associated submissions.')) {
+        fetch(`/staff/assignments/${assignmentId}/delete`, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Assignment deleted successfully!');
+                location.reload(); // Refresh the page to update the list
+            } else {
+                alert('Error: ' + (data.error || 'Failed to delete assignment'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while deleting the assignment');
+        });
+    }
 }
 
 // Reset form

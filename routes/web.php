@@ -101,6 +101,7 @@ Route::prefix('staff')->group(function () {
         Route::get('/assignments', [App\Http\Controllers\StaffController::class, 'assignments'])->name('staff.assignments');
         Route::post('/assignments/create', [App\Http\Controllers\StaffController::class, 'createAssignment'])->name('staff.assignments.create');
         Route::post('/assignments/{id}/publish', [App\Http\Controllers\StaffController::class, 'publishAssignment'])->name('staff.assignments.publish');
+        Route::delete('/assignments/{id}/delete', [App\Http\Controllers\StaffController::class, 'deleteAssignment'])->name('staff.assignments.delete');
         Route::get('/assignments/{id}/submissions', [App\Http\Controllers\StaffController::class, 'getAssignmentSubmissions'])->name('staff.assignments.submissions');
         Route::post('/assignments/submissions/{id}/grade', [App\Http\Controllers\StaffController::class, 'gradeSubmission'])->name('staff.assignments.grade');
         Route::get('/assignments/submissions/{id}/files', [App\Http\Controllers\StaffController::class, 'getSubmissionFiles'])->name('staff.assignments.submission.files');
@@ -354,6 +355,28 @@ Route::prefix('admin')->group(function () {
             
             return response()->json(['success' => true, 'message' => 'Gallery updated successfully']);
         })->name('admin.gallery.update');
+        
+        // Gallery Image Upload
+        Route::post('/gallery/upload', function(Request $request) {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120' // 5MB max
+            ]);
+            
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('public/gallery', $filename);
+                $url = asset('storage/gallery/' . $filename);
+                
+                return response()->json([
+                    'success' => true, 
+                    'url' => $url,
+                    'message' => 'Image uploaded successfully'
+                ]);
+            }
+            
+            return response()->json(['success' => false, 'message' => 'No image file provided']);
+        })->name('admin.gallery.upload');
         
         // Hero Section Management
         Route::post('/hero/update', function(Request $request) {

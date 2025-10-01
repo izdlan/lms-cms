@@ -301,7 +301,7 @@ class StaffController extends Controller
         }])->get();
 
         // Get assignments created by this lecturer
-        $assignments = Assignment::where('lecturer_id', $lecturer->id)
+        $assignments = Assignment::where('lecturer_id', $user->id)
             ->with(['subject', 'classSchedule', 'submissions'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -366,7 +366,7 @@ class StaffController extends Controller
             'description' => $request->description,
             'subject_code' => $request->subject_code,
             'class_code' => $request->class_code,
-            'lecturer_id' => $lecturer->id,
+            'lecturer_id' => $user->id,
             'total_marks' => $request->total_marks,
             'passing_marks' => $request->passing_marks,
             'due_date' => $request->due_date,
@@ -399,7 +399,7 @@ class StaffController extends Controller
         }
 
         $assignment = Assignment::where('id', $id)
-            ->where('lecturer_id', $lecturer->id)
+            ->where('lecturer_id', $user->id)
             ->first();
 
         if (!$assignment) {
@@ -411,6 +411,35 @@ class StaffController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Assignment published successfully!'
+        ]);
+    }
+
+    public function deleteAssignment($id)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
+        $assignment = Assignment::where('id', $id)
+            ->where('lecturer_id', $user->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json(['error' => 'Assignment not found'], 404);
+        }
+
+        // Delete the assignment (this will also delete submissions due to cascade)
+        $assignment->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assignment deleted successfully!'
         ]);
     }
 
@@ -427,7 +456,7 @@ class StaffController extends Controller
         }
 
         $assignment = Assignment::where('id', $id)
-            ->where('lecturer_id', $lecturer->id)
+            ->where('lecturer_id', $user->id)
             ->with(['submissions.user', 'subject', 'classSchedule'])
             ->first();
 
