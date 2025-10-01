@@ -6,6 +6,11 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AutomationController;
 
+// Maintenance route - direct access
+Route::get('/maintenance', function () {
+    return view('maintenance');
+})->name('maintenance');
+
 // Main routes - show home page
 Route::get('/', function () {
     return view('home');
