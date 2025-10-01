@@ -647,6 +647,216 @@ document.addEventListener('DOMContentLoaded', function() {
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
+    
+    // Assignment functions
+    window.viewAssignmentDetails = function(assignmentId) {
+        // Fetch assignment details via AJAX
+        fetch(`/student/assignments/${assignmentId}/details`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAssignmentDetailsModal(data.assignment, data.submission);
+                } else {
+                    alert('Error loading assignment details: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error loading assignment details');
+            });
+    };
+    
+    window.submitAssignment = function(assignmentId) {
+        // Show submission modal
+        showSubmissionModal(assignmentId);
+    };
+    
+    function showAssignmentDetailsModal(assignment, submission) {
+        // Create modal HTML
+        const modalHtml = `
+            <div class="modal fade" id="assignmentDetailsModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">${assignment.title}</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <strong>Subject:</strong> ${assignment.subject_code}<br>
+                                    <strong>Class:</strong> ${assignment.class_code}<br>
+                                    <strong>Lecturer:</strong> ${assignment.lecturer.name}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Due Date:</strong> ${new Date(assignment.due_date).toLocaleString()}<br>
+                                    <strong>Available From:</strong> ${new Date(assignment.available_from).toLocaleString()}<br>
+                                    <strong>Total Marks:</strong> ${assignment.total_marks}
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <strong>Description:</strong>
+                                <p>${assignment.description}</p>
+                            </div>
+                            
+                            ${assignment.instructions ? `
+                                <div class="mb-3">
+                                    <strong>Instructions:</strong>
+                                    <p>${assignment.instructions}</p>
+                                </div>
+                            ` : ''}
+                            
+                            ${assignment.attachments && assignment.attachments.length > 0 ? `
+                                <div class="mb-3">
+                                    <strong>Assignment Files:</strong>
+                                    <ul class="list-group">
+                                        ${assignment.attachments.map((file, index) => `
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <span><i class="fas fa-file-pdf text-danger"></i> ${file.original_name}</span>
+                                                <a href="/student/assignments/download/${assignment.id}/${index}" class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-download"></i> Download
+                                                </a>
+                                            </li>
+                                        `).join('')}
+                                    </ul>
+                                </div>
+                            ` : ''}
+                            
+                            ${submission ? `
+                                <div class="alert alert-info">
+                                    <strong>Your Submission:</strong><br>
+                                    Submitted on: ${new Date(submission.submitted_at).toLocaleString()}<br>
+                                    Status: ${submission.status}<br>
+                                    ${submission.marks_obtained ? `Marks: ${submission.marks_obtained}/${assignment.total_marks}` : ''}
+                                    ${submission.feedback ? `<br>Feedback: ${submission.feedback}` : ''}
+                                </div>
+                            ` : ''}
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('assignmentDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('assignmentDetailsModal'));
+        modal.show();
+    }
+    
+    function showSubmissionModal(assignmentId) {
+        // Create submission modal HTML
+        const modalHtml = `
+            <div class="modal fade" id="submissionModal" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Submit Assignment</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                        </div>
+                        <form id="submissionForm" enctype="multipart/form-data">
+                            <div class="modal-body">
+                                <input type="hidden" name="assignment_id" value="${assignmentId}">
+                                
+                                <div class="mb-3">
+                                    <label for="submissionText" class="form-label">Submission Text (Optional)</label>
+                                    <textarea class="form-control" id="submissionText" name="submission_text" rows="4" placeholder="Enter any additional comments or explanations..."></textarea>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="attachments" class="form-label">Attachments (PDF only) <span class="text-danger">*</span></label>
+                                    <input type="file" class="form-control" id="attachments" name="attachments[]" multiple accept=".pdf" required>
+                                    <div class="form-text">Upload your assignment files in PDF format only. Maximum 10MB per file. At least one PDF file is required.</div>
+                                </div>
+                                
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle"></i>
+                                    <strong>Note:</strong> Please ensure all files are in PDF format. Your submission will be reviewed by your lecturer.
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-upload"></i> Submit Assignment
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('submissionModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Add modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        
+        // Add form submission handler
+        document.getElementById('submissionForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            submitAssignmentForm(assignmentId);
+        });
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('submissionModal'));
+        modal.show();
+    }
+    
+    function submitAssignmentForm(assignmentId) {
+        const form = document.getElementById('submissionForm');
+        const formData = new FormData(form);
+        
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        submitBtn.disabled = true;
+        
+        fetch(`/student/assignments/${assignmentId}/submit`, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Assignment submitted successfully!');
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('submissionModal'));
+                modal.hide();
+                // Reload page to update status
+                location.reload();
+            } else {
+                alert('Error submitting assignment: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error submitting assignment');
+        })
+        .finally(() => {
+            // Reset button state
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+    }
 });
 </script>
 @endpush

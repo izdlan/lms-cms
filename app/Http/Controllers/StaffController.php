@@ -483,6 +483,76 @@ class StaffController extends Controller
         ]);
     }
 
+    /**
+     * Get submission files for viewing
+     */
+    public function getSubmissionFiles($submissionId)
+    {
+        $user = Auth::guard('staff')->user();
+        
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $submission = AssignmentSubmission::with(['user', 'assignment.lecturer'])
+            ->where('id', $submissionId)
+            ->first();
+
+        if (!$submission) {
+            return response()->json(['success' => false, 'message' => 'Submission not found'], 404);
+        }
+
+        // Check if the lecturer owns this assignment
+        if ($submission->assignment->lecturer_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to view this submission'], 403);
+        }
+
+        return response()->json([
+            'success' => true,
+            'submission' => $submission
+        ]);
+    }
+
+    /**
+     * Download submission file
+     */
+    public function downloadSubmissionFile($submissionId, $fileIndex)
+    {
+        $user = Auth::guard('staff')->user();
+        
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $submission = AssignmentSubmission::with('assignment')
+            ->where('id', $submissionId)
+            ->first();
+
+        if (!$submission) {
+            return response()->json(['success' => false, 'message' => 'Submission not found'], 404);
+        }
+
+        // Check if the lecturer owns this assignment
+        if ($submission->assignment->lecturer_id !== $user->id) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized to download this file'], 403);
+        }
+
+        $attachments = $submission->attachments;
+        
+        if (!$attachments || !isset($attachments[$fileIndex])) {
+            return response()->json(['success' => false, 'message' => 'File not found'], 404);
+        }
+
+        $file = $attachments[$fileIndex];
+        $filePath = storage_path('app/public/' . $file['file_path']);
+
+        if (!file_exists($filePath)) {
+            return response()->json(['success' => false, 'message' => 'File not found on disk'], 404);
+        }
+
+        return response()->download($filePath, $file['original_name']);
+    }
+
     public function students()
     {
         $user = Auth::guard('staff')->user();
