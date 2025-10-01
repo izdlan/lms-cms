@@ -21,8 +21,8 @@
                             <h1>{{ $subjectDetails['name'] }}</h1>
                             <p class="mb-0">
                                 <strong>{{ $enrollment->subject_code }}</strong> - {{ $enrollment->class_code }} | 
-                                Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }} | 
-                                Duration: {{ $subjectDetails['duration'] ?? '4 weeks' }}
+                                Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : '-' }} | 
+                                Duration: {{ $subjectDetails['duration'] ?? '-' }}
                             </p>
                         </div>
                         <div>

@@ -42,19 +42,19 @@
                                     <div class="info-grid">
                                         <div class="info-item">
                                             <span class="info-label">Student Name:</span>
-                                            <span class="info-value">{{ auth('student')->user()->name ?? 'John Doe' }}</span>
+                                            <span class="info-value">{{ auth('student')->user()->name ?? '-' }}</span>
                                         </div>
                                         <div class="info-item">
                                             <span class="info-label">Student ID:</span>
-                                            <span class="info-value">{{ auth('student')->user()->student_id ?? '2022495772' }}</span>
+                                            <span class="info-value">{{ auth('student')->user()->student_id ?? '-' }}</span>
                                         </div>
                                         <div class="info-item">
                                             <span class="info-label">Email:</span>
-                                            <span class="info-value">{{ auth('student')->user()->email ?? 'john.doe@example.com' }}</span>
+                                            <span class="info-value">{{ auth('student')->user()->email ?? '-' }}</span>
                                         </div>
                                         <div class="info-item">
                                             <span class="info-label">Program:</span>
-                                            <span class="info-value">{{ auth('student')->user()->program ?? 'CDCS266' }}</span>
+                                            <span class="info-value">{{ auth('student')->user()->program ?? '-' }}</span>
                                         </div>
                                     </div>
                                 </div>

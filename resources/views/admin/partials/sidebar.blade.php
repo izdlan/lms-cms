@@ -40,6 +40,10 @@
             <i data-feather="settings" width="20" height="20"></i>
             Announcements Settings
         </a>
+        <a href="{{ route('admin.subjects') }}" class="nav-link {{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
+            <i data-feather="image" width="20" height="20"></i>
+            Subject Images
+        </a>
         <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i data-feather="log-out" width="20" height="20"></i>
             Logout

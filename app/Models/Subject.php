@@ -14,7 +14,8 @@ class Subject extends Model
         'classification',
         'credit_hours',
         'program_code',
-        'is_active'
+        'is_active',
+        'image'
     ];
 
     protected $casts = [

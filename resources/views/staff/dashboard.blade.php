@@ -162,12 +162,6 @@
                 Course Materials
             </a>
         </div>
-        <div class="col-md-3">
-            <a href="{{ route('staff.students') }}" class="action-btn warning">
-                <i class="fas fa-users"></i>
-                View Students
-            </a>
-        </div>
     </div>
 </div>
 

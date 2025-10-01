@@ -27,23 +27,23 @@
                                 <div class="info-content">
                                     <div class="info-row">
                                         <div class="info-label">Full Name:</div>
-                                        <div class="info-value">{{ auth('student')->user()->name ?? 'John Doe' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->name ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Email:</div>
-                                        <div class="info-value">{{ auth('student')->user()->email ?? 'john.doe@example.com' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->email ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Phone Number:</div>
-                                        <div class="info-value">{{ auth('student')->user()->phone ?? '+60123456789' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->phone ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">IC Number:</div>
-                                        <div class="info-value">{{ auth('student')->user()->ic_number ?? '123456-78-9012' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->ic_number ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Student ID:</div>
-                                        <div class="info-value">{{ auth('student')->user()->student_id ?? '2022495772' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->student_id ?? '-' }}</div>
                                     </div>
                                 </div>
                             </div>
@@ -54,23 +54,23 @@
                                 <div class="info-content">
                                     <div class="info-row">
                                         <div class="info-label">Program:</div>
-                                        <div class="info-value">{{ auth('student')->user()->program ?? 'CDCS266' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->program ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Study Mode:</div>
-                                        <div class="info-value">{{ auth('student')->user()->study_mode ?? 'Full Time' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->study_mode ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Semester:</div>
-                                        <div class="info-value">{{ auth('student')->user()->semester ?? '7' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->semester ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Sponsor Code:</div>
-                                        <div class="info-value">{{ auth('student')->user()->sponsor_code ?? '81517' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->sponsor_code ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Sponsor Description:</div>
-                                        <div class="info-value">{{ auth('student')->user()->sponsor_description ?? 'National Higher Education Fund Corporation' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->sponsor_description ?? '-' }}</div>
                                     </div>
                                 </div>
                             </div>

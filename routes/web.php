@@ -106,7 +106,6 @@ Route::prefix('staff')->group(function () {
         Route::post('/assignments/submissions/{id}/grade', [App\Http\Controllers\StaffController::class, 'gradeSubmission'])->name('staff.assignments.grade');
         Route::get('/assignments/submissions/{id}/files', [App\Http\Controllers\StaffController::class, 'getSubmissionFiles'])->name('staff.assignments.submission.files');
         Route::get('/assignments/submissions/download/{submissionId}/{fileIndex}', [App\Http\Controllers\StaffController::class, 'downloadSubmissionFile'])->name('staff.assignments.submission.download');
-        Route::get('/students', [App\Http\Controllers\StaffController::class, 'students'])->name('staff.students');
         Route::get('/profile', [App\Http\Controllers\StaffController::class, 'profile'])->name('staff.profile');
         Route::post('/profile', [App\Http\Controllers\StaffController::class, 'updateProfile'])->name('staff.profile.update');
         Route::get('/password/change', [App\Http\Controllers\StaffController::class, 'changePassword'])->name('staff.password.change');
@@ -295,6 +294,11 @@ Route::prefix('admin')->group(function () {
             
             return redirect()->route('admin.dashboard')->with('success', 'Password changed successfully!');
         })->name('admin.password.change.submit');
+        
+        // Subject Images Management
+        Route::get('/subjects', [App\Http\Controllers\AdminController::class, 'subjects'])->name('admin.subjects');
+        Route::post('/subjects/{subject}/upload-image', [App\Http\Controllers\AdminController::class, 'uploadSubjectImage'])->name('admin.subjects.upload-image');
+        Route::delete('/subjects/{subject}/remove-image', [App\Http\Controllers\AdminController::class, 'removeSubjectImage'])->name('admin.subjects.remove-image');
         
         // Home Page Content Management
         Route::prefix('home-page')->group(function () {

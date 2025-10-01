@@ -70,13 +70,15 @@
                                 @foreach($enrolledSubjects as $enrollment)
                                     <div class="col-md-6 col-lg-4 mb-3">
                                         <div class="course-card">
-                                            <div class="course-image">
-                                                <i class="fas fa-book"></i>
+                                            <div class="course-image" style="background-image: url('{{ $enrollment->subject && $enrollment->subject->image ? asset('storage/' . $enrollment->subject->image) : '' }}');">
+                                                @if(!$enrollment->subject || !$enrollment->subject->image)
+                                                    <i class="fas fa-book"></i>
+                                                @endif
                                             </div>
                                             <div class="course-content">
-                                                <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : 'Unknown Subject' }}</h6>
-                                                <p class="course-code">{{ $enrollment->subject_code }} - {{ $enrollment->class_code ?? 'TBA' }}</p>
-                                                <small class="text-muted">Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }}</small>
+                                                <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : '-' }}</h6>
+                                                <p class="course-code">{{ $enrollment->subject_code }} - {{ $enrollment->class_code ?? '-' }}</p>
+                                                <small class="text-muted">Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : '-' }}</small>
                                                 <div class="mt-2">
                                                     <a href="{{ route('student.course.class', $enrollment->subject_code) }}" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-arrow-right me-1"></i>Enter Class
@@ -145,11 +147,31 @@
 .course-card .course-image {
     height: 120px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     display: flex;
     align-items: center;
     justify-content: center;
     color: white;
     font-size: 2rem;
+    position: relative;
+}
+
+.course-card .course-image::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.8) 100%);
+    z-index: 1;
+}
+
+.course-card .course-image i {
+    position: relative;
+    z-index: 2;
 }
 
 .course-card .course-content {
