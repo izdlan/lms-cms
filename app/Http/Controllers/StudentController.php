@@ -7,6 +7,8 @@ use App\Models\Program;
 use App\Models\Subject;
 use App\Models\Announcement;
 use App\Models\CourseContent;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -258,7 +260,131 @@ class StudentController extends Controller
             ->where('status', 'enrolled')
             ->get();
 
-        return view('student.assignments', compact('user', 'enrolledSubjects'));
+        // Get assignments for enrolled subjects
+        $subjectCodes = $enrolledSubjects->pluck('subject_code');
+        $classCodes = $enrolledSubjects->pluck('class_code');
+
+        $assignments = Assignment::whereIn('subject_code', $subjectCodes)
+            ->whereIn('class_code', $classCodes)
+            ->where('status', 'published')
+            ->with(['subject', 'classSchedule', 'lecturer'])
+            ->orderBy('due_date', 'asc')
+            ->get();
+
+        // Get student's submissions
+        $submissions = AssignmentSubmission::where('user_id', $user->id)
+            ->with('assignment')
+            ->get()
+            ->keyBy('assignment_id');
+
+        return view('student.assignments', compact('user', 'enrolledSubjects', 'assignments', 'submissions'));
+    }
+
+    public function submitAssignment(Request $request, $assignmentId)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $assignment = Assignment::findOrFail($assignmentId);
+
+        // Check if student is enrolled in this assignment's class
+        $enrollment = $user->enrolledSubjects()
+            ->where('subject_code', $assignment->subject_code)
+            ->where('class_code', $assignment->class_code)
+            ->where('status', 'enrolled')
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['error' => 'You are not enrolled in this course'], 403);
+        }
+
+        // Check if assignment is available for submission
+        if (!$assignment->isAvailableForSubmission()) {
+            return response()->json(['error' => 'Assignment is not available for submission'], 403);
+        }
+
+        $request->validate([
+            'submission_text' => 'nullable|string',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|max:10240' // 10MB max per file
+        ]);
+
+        // Check if already submitted
+        $existingSubmission = AssignmentSubmission::where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if ($existingSubmission) {
+            return response()->json(['error' => 'Assignment already submitted'], 400);
+        }
+
+        // Handle file uploads
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $path = $file->store('assignment-submissions', 'public');
+                $attachments[] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType()
+                ];
+            }
+        }
+
+        // Check if submission is late
+        $isLate = now() > $assignment->due_date;
+
+        $submission = AssignmentSubmission::create([
+            'assignment_id' => $assignmentId,
+            'user_id' => $user->id,
+            'submission_text' => $request->submission_text,
+            'attachments' => $attachments,
+            'is_late' => $isLate,
+            'submitted_at' => now(),
+            'status' => 'submitted'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assignment submitted successfully!',
+            'submission' => $submission
+        ]);
+    }
+
+    public function getAssignmentDetails($assignmentId)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $assignment = Assignment::with(['subject', 'classSchedule', 'lecturer'])
+            ->findOrFail($assignmentId);
+
+        // Check if student is enrolled
+        $enrollment = $user->enrolledSubjects()
+            ->where('subject_code', $assignment->subject_code)
+            ->where('class_code', $assignment->class_code)
+            ->where('status', 'enrolled')
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['error' => 'You are not enrolled in this course'], 403);
+        }
+
+        // Get student's submission if exists
+        $submission = AssignmentSubmission::where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        return response()->json([
+            'success' => true,
+            'assignment' => $assignment,
+            'submission' => $submission
+        ]);
     }
 
     /**

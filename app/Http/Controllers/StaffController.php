@@ -14,6 +14,8 @@ use App\Models\ClassSchedule;
 use App\Models\StudentEnrollment;
 use App\Models\Announcement;
 use App\Models\CourseMaterial;
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 
 class StaffController extends Controller
 {
@@ -286,8 +288,182 @@ class StaffController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
 
-        $programs = Program::active()->get();
-        return view('staff.assignments', compact('user', 'programs'));
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return redirect()->route('login')->with('error', 'Lecturer profile not found.');
+        }
+
+        // Get subjects taught by this lecturer
+        $subjects = Subject::whereHas('classSchedules', function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        })->with(['classSchedules' => function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        }])->get();
+
+        // Get assignments created by this lecturer
+        $assignments = Assignment::where('lecturer_id', $lecturer->id)
+            ->with(['subject', 'classSchedule', 'submissions'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return view('staff.assignments', compact('user', 'lecturer', 'subjects', 'assignments'));
+    }
+
+    public function createAssignment(Request $request)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'subject_code' => 'required|string|exists:subjects,code',
+            'class_code' => 'required|string|exists:class_schedules,class_code',
+            'total_marks' => 'required|numeric|min:0',
+            'passing_marks' => 'required|numeric|min:0',
+            'due_date' => 'required|date|after:now',
+            'available_from' => 'required|date|before:due_date',
+            'type' => 'required|in:individual,group',
+            'instructions' => 'nullable|string',
+            'allow_late_submission' => 'boolean',
+            'late_penalty_percentage' => 'nullable|integer|min:0|max:100'
+        ]);
+
+        // Verify the class belongs to this lecturer
+        $classSchedule = ClassSchedule::where('class_code', $request->class_code)
+            ->where('lecturer_id', $lecturer->id)
+            ->first();
+
+        if (!$classSchedule) {
+            return response()->json(['error' => 'Class not found or access denied'], 404);
+        }
+
+        $assignment = Assignment::create([
+            'title' => $request->title,
+            'description' => $request->description,
+            'subject_code' => $request->subject_code,
+            'class_code' => $request->class_code,
+            'lecturer_id' => $lecturer->id,
+            'total_marks' => $request->total_marks,
+            'passing_marks' => $request->passing_marks,
+            'due_date' => $request->due_date,
+            'available_from' => $request->available_from,
+            'type' => $request->type,
+            'instructions' => $request->instructions,
+            'allow_late_submission' => $request->boolean('allow_late_submission'),
+            'late_penalty_percentage' => $request->late_penalty_percentage ?? 0,
+            'status' => 'draft'
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assignment created successfully!',
+            'assignment' => $assignment
+        ]);
+    }
+
+    public function publishAssignment($id)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
+        $assignment = Assignment::where('id', $id)
+            ->where('lecturer_id', $lecturer->id)
+            ->first();
+
+        if (!$assignment) {
+            return response()->json(['error' => 'Assignment not found'], 404);
+        }
+
+        $assignment->update(['status' => 'published']);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Assignment published successfully!'
+        ]);
+    }
+
+    public function getAssignmentSubmissions($id)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
+        $assignment = Assignment::where('id', $id)
+            ->where('lecturer_id', $lecturer->id)
+            ->with(['submissions.user', 'subject', 'classSchedule'])
+            ->first();
+
+        if (!$assignment) {
+            return response()->json(['error' => 'Assignment not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'assignment' => $assignment,
+            'submissions' => $assignment->submissions
+        ]);
+    }
+
+    public function gradeSubmission(Request $request, $submissionId)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
+        $request->validate([
+            'marks_obtained' => 'required|numeric|min:0',
+            'feedback' => 'nullable|string'
+        ]);
+
+        $submission = AssignmentSubmission::where('id', $submissionId)
+            ->whereHas('assignment', function($query) use ($lecturer) {
+                $query->where('lecturer_id', $lecturer->id);
+            })
+            ->first();
+
+        if (!$submission) {
+            return response()->json(['error' => 'Submission not found'], 404);
+        }
+
+        $submission->update([
+            'marks_obtained' => $request->marks_obtained,
+            'feedback' => $request->feedback,
+            'status' => 'graded',
+            'graded_at' => now(),
+            'graded_by' => $lecturer->id
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Submission graded successfully!'
+        ]);
     }
 
     public function students()

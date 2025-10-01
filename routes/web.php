@@ -62,6 +62,8 @@ Route::prefix('student')->group(function () {
         Route::get('/course/{program}', [App\Http\Controllers\StudentController::class, 'courseSummary'])->name('student.course.summary');
         Route::get('/course/{subjectCode}/class', [App\Http\Controllers\StudentController::class, 'courseClass'])->name('student.course.class');
         Route::get('/assignments', [App\Http\Controllers\StudentController::class, 'assignments'])->name('student.assignments');
+        Route::post('/assignments/{id}/submit', [App\Http\Controllers\StudentController::class, 'submitAssignment'])->name('student.assignments.submit');
+        Route::get('/assignments/{id}/details', [App\Http\Controllers\StudentController::class, 'getAssignmentDetails'])->name('student.assignments.details');
         Route::get('/profile', [App\Http\Controllers\StudentController::class, 'profile'])->name('student.profile');
         Route::post('/profile/picture', [App\Http\Controllers\StudentController::class, 'uploadProfilePicture'])->name('student.profile.picture');
         Route::delete('/profile/picture', [App\Http\Controllers\StudentController::class, 'deleteProfilePicture'])->name('student.profile.picture.delete');
@@ -85,6 +87,10 @@ Route::prefix('staff')->group(function () {
         Route::get('/announcements/get', [App\Http\Controllers\StaffController::class, 'getAnnouncements'])->name('staff.announcements.get');
         Route::get('/contents', [App\Http\Controllers\StaffController::class, 'contents'])->name('staff.contents');
         Route::get('/assignments', [App\Http\Controllers\StaffController::class, 'assignments'])->name('staff.assignments');
+        Route::post('/assignments/create', [App\Http\Controllers\StaffController::class, 'createAssignment'])->name('staff.assignments.create');
+        Route::post('/assignments/{id}/publish', [App\Http\Controllers\StaffController::class, 'publishAssignment'])->name('staff.assignments.publish');
+        Route::get('/assignments/{id}/submissions', [App\Http\Controllers\StaffController::class, 'getAssignmentSubmissions'])->name('staff.assignments.submissions');
+        Route::post('/assignments/submissions/{id}/grade', [App\Http\Controllers\StaffController::class, 'gradeSubmission'])->name('staff.assignments.grade');
         Route::get('/students', [App\Http\Controllers\StaffController::class, 'students'])->name('staff.students');
         Route::get('/profile', [App\Http\Controllers\StaffController::class, 'profile'])->name('staff.profile');
         Route::post('/profile', [App\Http\Controllers\StaffController::class, 'updateProfile'])->name('staff.profile.update');
