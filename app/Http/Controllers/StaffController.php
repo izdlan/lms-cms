@@ -588,17 +588,6 @@ class StaffController extends Controller
         }
     }
 
-    public function students()
-    {
-        $user = Auth::guard('staff')->user();
-        if (!$user || $user->role !== 'lecturer') {
-            return redirect()->route('login')->with('error', 'Please login to access this page.');
-        }
-
-        $programs = Program::active()->get();
-        $students = User::where('role', 'student')->get();
-        return view('staff.students', compact('user', 'programs', 'students'));
-    }
 
     public function profile()
     {

@@ -106,7 +106,6 @@ Route::prefix('staff')->group(function () {
         Route::post('/assignments/submissions/{id}/grade', [App\Http\Controllers\StaffController::class, 'gradeSubmission'])->name('staff.assignments.grade');
         Route::get('/assignments/submissions/{id}/files', [App\Http\Controllers\StaffController::class, 'getSubmissionFiles'])->name('staff.assignments.submission.files');
         Route::get('/assignments/submissions/download/{submissionId}/{fileIndex}', [App\Http\Controllers\StaffController::class, 'downloadSubmissionFile'])->name('staff.assignments.submission.download');
-        Route::get('/students', [App\Http\Controllers\StaffController::class, 'students'])->name('staff.students');
         Route::get('/profile', [App\Http\Controllers\StaffController::class, 'profile'])->name('staff.profile');
         Route::post('/profile', [App\Http\Controllers\StaffController::class, 'updateProfile'])->name('staff.profile.update');
         Route::get('/password/change', [App\Http\Controllers\StaffController::class, 'changePassword'])->name('staff.password.change');
