@@ -355,6 +355,28 @@ Route::prefix('admin')->group(function () {
             return response()->json(['success' => true, 'message' => 'Gallery updated successfully']);
         })->name('admin.gallery.update');
         
+        // Gallery Image Upload
+        Route::post('/gallery/upload', function(Request $request) {
+            $request->validate([
+                'image' => 'required|image|mimes:jpeg,png,jpg,gif,svg,webp|max:5120' // 5MB max
+            ]);
+            
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('public/gallery', $filename);
+                $url = asset('storage/gallery/' . $filename);
+                
+                return response()->json([
+                    'success' => true, 
+                    'url' => $url,
+                    'message' => 'Image uploaded successfully'
+                ]);
+            }
+            
+            return response()->json(['success' => false, 'message' => 'No image file provided']);
+        })->name('admin.gallery.upload');
+        
         // Hero Section Management
         Route::post('/hero/update', function(Request $request) {
             $request->validate([

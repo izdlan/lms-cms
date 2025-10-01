@@ -2,6 +2,10 @@
 
 @section('title', 'Home Page Management')
 
+@section('head')
+<meta name="csrf-token" content="{{ csrf_token() }}">
+@endsection
+
 @section('content')
 <div class="admin-dashboard">
     <div class="container-fluid">
@@ -204,8 +208,18 @@
         
         <div class="add-image-section">
             <h4>Add New Image</h4>
-            <input type="url" id="newImageUrl" placeholder="Enter image URL...">
-            <button class="btn btn-primary" onclick="addGalleryImage()">Add Image</button>
+            <div class="row">
+                <div class="col-md-6">
+                    <label for="imageUpload" class="form-label">Upload Image File</label>
+                    <input type="file" class="form-control" id="imageUpload" accept="image/*" onchange="handleImageUpload(event)">
+                    <small class="form-text text-muted">Upload an image file (JPG, PNG, GIF, etc.)</small>
+                </div>
+                <div class="col-md-6">
+                    <label for="newImageUrl" class="form-label">Or Enter Image URL</label>
+                    <input type="url" class="form-control" id="newImageUrl" placeholder="Enter image URL...">
+                    <button class="btn btn-primary mt-2" onclick="addGalleryImage()">Add Image URL</button>
+                </div>
+            </div>
         </div>
         
         <div class="modal-actions mt-3">
@@ -450,12 +464,20 @@ let currentGalleryImages = @json($images);
 let currentImageIndex = 0;
 
 function openGalleryManager() {
-    document.getElementById('galleryManagerModal').style.display = 'block';
-    loadGalleryImages();
+    const modal = document.getElementById('galleryManagerModal');
+    if (modal) {
+        modal.style.display = 'block';
+        loadGalleryImages();
+    } else {
+        console.error('Gallery manager modal not found');
+    }
 }
 
 function closeGalleryManager() {
-    document.getElementById('galleryManagerModal').style.display = 'none';
+    const modal = document.getElementById('galleryManagerModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 function loadGalleryImages() {
@@ -489,6 +511,62 @@ function addGalleryImage() {
     } else {
         alert('Please enter a valid image URL');
     }
+}
+
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select an image file');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('File size must be less than 5MB');
+            return;
+        }
+        
+        // Upload the file
+        uploadImageFile(file);
+    }
+}
+
+function uploadImageFile(file) {
+    const formData = new FormData();
+    formData.append('image', file);
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').getAttribute('content'));
+    
+    // Show loading state
+    const uploadBtn = document.getElementById('imageUpload');
+    uploadBtn.disabled = true;
+    uploadBtn.value = 'Uploading...';
+    
+    fetch('{{ route("admin.gallery.upload") }}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Add the uploaded image URL to the gallery
+            currentGalleryImages.push(data.url);
+            loadGalleryImages();
+            document.getElementById('imageUpload').value = '';
+            alert('Image uploaded successfully!');
+        } else {
+            alert('Error uploading image: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error uploading image');
+    })
+    .finally(() => {
+        uploadBtn.disabled = false;
+        uploadBtn.value = '';
+    });
 }
 
 function saveGalleryChanges() {
@@ -527,11 +605,19 @@ function removeGalleryImage(index) {
 }
 
 function editHeroSection() {
-    document.getElementById('heroEditModal').style.display = 'block';
+    const modal = document.getElementById('heroEditModal');
+    if (modal) {
+        modal.style.display = 'block';
+    } else {
+        console.error('Hero edit modal not found');
+    }
 }
 
 function closeHeroEdit() {
-    document.getElementById('heroEditModal').style.display = 'none';
+    const modal = document.getElementById('heroEditModal');
+    if (modal) {
+        modal.style.display = 'none';
+    }
 }
 
 function saveHeroChanges() {
@@ -598,5 +684,31 @@ setInterval(() => {
     currentSlide++;
     showSlide(currentSlide);
 }, 5000);
+
+// Close modals when clicking outside
+window.onclick = function(event) {
+    const galleryModal = document.getElementById('galleryManagerModal');
+    const heroModal = document.getElementById('heroEditModal');
+    
+    if (event.target === galleryModal) {
+        closeGalleryManager();
+    }
+    if (event.target === heroModal) {
+        closeHeroEdit();
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Admin home page loaded');
+    console.log('Gallery images:', currentGalleryImages);
+    
+    // Test if buttons exist
+    const editHeroBtn = document.querySelector('[onclick="editHeroSection()"]');
+    const manageGalleryBtn = document.querySelector('[onclick="openGalleryManager()"]');
+    
+    console.log('Edit Hero button found:', !!editHeroBtn);
+    console.log('Manage Gallery button found:', !!manageGalleryBtn);
+});
 </script>
 @endsection
