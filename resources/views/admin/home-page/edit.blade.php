@@ -97,15 +97,6 @@
                                 </div>
                             </div>
 
-                            <div class="mb-3">
-                                <label for="image_url" class="form-label">Or Image URL</label>
-                                <input type="url" class="form-control @error('image_url') is-invalid @enderror" 
-                                       id="image_url" name="image_url" value="{{ old('image_url', $content->image_url) }}" placeholder="https://example.com/image.jpg">
-                                <div class="form-text">Alternative: Enter an image URL instead of uploading</div>
-                                @error('image_url')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
 
                             <div class="mb-3">
                                 <div class="form-check">

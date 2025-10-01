@@ -46,12 +46,11 @@ class AdminContentController extends Controller
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_url' => 'nullable|url',
             'sort_order' => 'required|integer|min:0',
             'is_active' => 'boolean'
         ]);
 
-        $imageUrl = $request->image_url;
+        $imageUrl = null;
         
         // Handle file upload
         if ($request->hasFile('image')) {
@@ -89,12 +88,11 @@ class AdminContentController extends Controller
             'title' => 'nullable|string|max:255',
             'content' => 'nullable|string',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_url' => 'nullable|url',
             'sort_order' => 'required|integer|min:0',
             'is_active' => 'boolean'
         ]);
 
-        $imageUrl = $request->image_url;
+        $imageUrl = $content->image_url; // Keep existing image if no new one uploaded
         
         // Handle file upload
         if ($request->hasFile('image')) {
@@ -202,14 +200,13 @@ class AdminContentController extends Controller
             'category' => 'required|string|max:255',
             'priority' => 'required|in:low,medium,high',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_url' => 'nullable|url',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_featured' => 'boolean',
             'is_active' => 'boolean'
         ]);
 
-        $imageUrl = $request->image_url;
+        $imageUrl = null;
         
         // Handle file upload
         if ($request->hasFile('image')) {
@@ -250,14 +247,13 @@ class AdminContentController extends Controller
             'category' => 'required|string|max:255',
             'priority' => 'required|in:low,medium,high',
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
-            'image_url' => 'nullable|url',
             'published_at' => 'nullable|date',
             'expires_at' => 'nullable|date|after:published_at',
             'is_featured' => 'boolean',
             'is_active' => 'boolean'
         ]);
 
-        $imageUrl = $request->image_url;
+        $imageUrl = $announcement->image_url; // Keep existing image if no new one uploaded
         
         // Handle file upload
         if ($request->hasFile('image')) {

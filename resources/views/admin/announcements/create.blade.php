@@ -101,15 +101,6 @@
                                             <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label for="image_url" class="form-label">Or Image URL</label>
-                                        <input type="url" class="form-control @error('image_url') is-invalid @enderror" 
-                                               id="image_url" name="image_url" value="{{ old('image_url') }}" placeholder="https://example.com/image.jpg">
-                                        <div class="form-text">Alternative: Enter an image URL instead of uploading</div>
-                                        @error('image_url')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
                                 </div>
                             </div>
 

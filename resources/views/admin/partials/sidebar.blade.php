@@ -24,25 +24,13 @@
             <i data-feather="cloud-upload" width="20" height="20"></i>
             Auto Sync
         </a>
-        <a href="{{ route('admin.home-page.preview') }}" class="nav-link {{ request()->routeIs('admin.home-page.preview') ? 'active' : '' }}">
-            <i data-feather="home" width="20" height="20"></i>
-            Home Page
-        </a>
         <a href="{{ route('admin.announcements.preview') }}" class="nav-link {{ request()->routeIs('admin.announcements.preview') ? 'active' : '' }}">
             <i data-feather="bell" width="20" height="20"></i>
             Announcements
         </a>
-        <a href="{{ route('admin.home-page.index') }}" class="nav-link {{ request()->routeIs('admin.home-page.index') || request()->routeIs('admin.home-page.create') || request()->routeIs('admin.home-page.edit') ? 'active' : '' }}">
-            <i data-feather="settings" width="20" height="20"></i>
-            Home Page Settings
-        </a>
         <a href="{{ route('admin.announcements.index') }}" class="nav-link {{ request()->routeIs('admin.announcements.index') || request()->routeIs('admin.announcements.create') || request()->routeIs('admin.announcements.edit') ? 'active' : '' }}">
             <i data-feather="settings" width="20" height="20"></i>
             Announcements Settings
-        </a>
-        <a href="{{ route('admin.subjects') }}" class="nav-link {{ request()->routeIs('admin.subjects*') ? 'active' : '' }}">
-            <i data-feather="image" width="20" height="20"></i>
-            Subject Images
         </a>
         <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i data-feather="log-out" width="20" height="20"></i>
