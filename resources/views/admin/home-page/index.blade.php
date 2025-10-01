@@ -103,3 +103,95 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+/* Ensure action buttons are visible */
+.btn-group {
+    display: flex !important;
+    gap: 0.25rem;
+}
+
+.btn-group .btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0.375rem !important;
+    border: 1px solid !important;
+    border-radius: 0.375rem !important;
+    text-decoration: none !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+.btn-group .btn:hover {
+    text-decoration: none !important;
+    transform: translateY(-1px) !important;
+}
+
+.btn-outline-primary {
+    color: #0d6efd !important;
+    border-color: #0d6efd !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-primary:hover {
+    color: #fff !important;
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}
+
+.btn-outline-danger {
+    color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    background-color: transparent !important;
+}
+
+.btn-outline-danger:hover {
+    color: #fff !important;
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+}
+
+/* Ensure icons are visible */
+.btn i[data-feather] {
+    width: 16px !important;
+    height: 16px !important;
+    display: inline-block !important;
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Home page DOM loaded');
+    console.log('Feather available:', typeof feather !== 'undefined');
+    console.log('SafeFeatherReplace available:', typeof safeFeatherReplace !== 'undefined');
+    
+    // Initialize Feather icons
+    setTimeout(() => {
+        console.log('Initializing Feather icons...');
+        if (typeof safeFeatherReplace === 'function') {
+            console.log('Using safeFeatherReplace');
+            safeFeatherReplace();
+        } else if (typeof feather !== 'undefined') {
+            console.log('Using feather.replace');
+            feather.replace();
+        } else {
+            console.error('Feather icons not available');
+        }
+        
+        // Check if buttons are visible after initialization
+        setTimeout(() => {
+            const actionButtons = document.querySelectorAll('.btn-group .btn');
+            console.log('Action buttons found:', actionButtons.length);
+            actionButtons.forEach((btn, index) => {
+                console.log(`Button ${index + 1}:`, btn.outerHTML);
+            });
+        }, 500);
+    }, 200);
+});
+</script>
+@endpush

@@ -26,7 +26,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('admin.announcements.store') }}" method="POST">
+                        <form action="{{ route('admin.announcements.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             
                             <div class="row">
@@ -83,9 +83,29 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="image_url" class="form-label">Image URL</label>
+                                        <label for="image" class="form-label">Image</label>
+                                        <input type="file" class="form-control @error('image') is-invalid @enderror" 
+                                               id="image" name="image" accept="image/*" onchange="previewImage(this)">
+                                        <div class="form-text">Upload an image file (JPG, PNG, GIF, SVG) - Max 2MB</div>
+                                        @error('image')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div id="imagePreview" class="image-preview" style="display: none;">
+                                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="image_url" class="form-label">Or Image URL</label>
                                         <input type="url" class="form-control @error('image_url') is-invalid @enderror" 
                                                id="image_url" name="image_url" value="{{ old('image_url') }}" placeholder="https://example.com/image.jpg">
+                                        <div class="form-text">Alternative: Enter an image URL instead of uploading</div>
                                         @error('image_url')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
@@ -160,3 +180,36 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+// Initialize Feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        if (typeof safeFeatherReplace === 'function') {
+            safeFeatherReplace();
+        } else if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 200);
+});
+</script>
+@endpush

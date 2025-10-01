@@ -26,7 +26,7 @@
 
                 <div class="card">
                     <div class="card-body">
-                        <form action="{{ route('admin.home-page.store') }}" method="POST">
+                        <form action="{{ route('admin.home-page.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             
                             <div class="row">
@@ -73,9 +73,29 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="image_url" class="form-label">Image URL</label>
+                                <label for="image" class="form-label">Image</label>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <input type="file" class="form-control @error('image') is-invalid @enderror" 
+                                               id="image" name="image" accept="image/*" onchange="previewImage(this)">
+                                        <div class="form-text">Upload an image file (JPG, PNG, GIF, SVG) - Max 2MB</div>
+                                        @error('image')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div id="imagePreview" class="image-preview" style="display: none;">
+                                            <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-width: 200px; max-height: 150px;">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="image_url" class="form-label">Or Image URL</label>
                                 <input type="url" class="form-control @error('image_url') is-invalid @enderror" 
                                        id="image_url" name="image_url" value="{{ old('image_url') }}" placeholder="https://example.com/image.jpg">
+                                <div class="form-text">Alternative: Enter an image URL instead of uploading</div>
                                 @error('image_url')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -108,3 +128,58 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    console.log('File input changed:', input);
+    console.log('Files:', input.files);
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        console.log('Selected file:', {
+            name: file.name,
+            type: file.type,
+            size: file.size
+        });
+        
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.style.display = 'none';
+    }
+}
+
+// Initialize Feather icons
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(() => {
+        if (typeof safeFeatherReplace === 'function') {
+            safeFeatherReplace();
+        } else if (typeof feather !== 'undefined') {
+            feather.replace();
+        }
+    }, 200);
+    
+    // Add form submission debugging
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const fileInput = document.getElementById('image');
+            console.log('Form submitting...');
+            console.log('File input value:', fileInput.value);
+            console.log('File input files:', fileInput.files);
+            console.log('Form data:', new FormData(form));
+        });
+    }
+});
+</script>
+@endpush

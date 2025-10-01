@@ -308,6 +308,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/{content}/edit', [App\Http\Controllers\AdminContentController::class, 'homePageEdit'])->name('admin.home-page.edit');
             Route::put('/{content}', [App\Http\Controllers\AdminContentController::class, 'homePageUpdate'])->name('admin.home-page.update');
             Route::delete('/{content}', [App\Http\Controllers\AdminContentController::class, 'homePageDestroy'])->name('admin.home-page.destroy');
+            Route::post('/upload-image', [App\Http\Controllers\AdminContentController::class, 'uploadImage'])->name('admin.home-page.upload-image');
         });
         
         // Public Announcements Management
@@ -323,6 +324,7 @@ Route::prefix('admin')->group(function () {
             Route::get('/{announcement}/edit', [App\Http\Controllers\AdminContentController::class, 'announcementsEdit'])->name('admin.announcements.edit');
             Route::put('/{announcement}', [App\Http\Controllers\AdminContentController::class, 'announcementsUpdate'])->name('admin.announcements.update');
             Route::delete('/{announcement}', [App\Http\Controllers\AdminContentController::class, 'announcementsDestroy'])->name('admin.announcements.destroy');
+            Route::post('/upload-image', [App\Http\Controllers\AdminContentController::class, 'uploadImage'])->name('admin.announcements.upload-image');
         });
         
         // Home Page Preview
