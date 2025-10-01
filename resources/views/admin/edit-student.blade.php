@@ -405,7 +405,17 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+    if (typeof safeFeatherReplace === 'function') {
+        safeFeatherReplace();
+    } else {
+        try {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        } catch (error) {
+            console.warn('Feather icons error in edit student:', error);
+        }
+    }
 });
 
 function deleteStudent(studentId) {

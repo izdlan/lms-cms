@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Courses')
+@section('title', 'My Program')
 
 @section('content')
 <div class="student-dashboard">
@@ -15,8 +15,8 @@
             <!-- Main Content -->
             <div class="main-content">
                 <div class="courses-header">
-                    <h1>My Courses</h1>
-                    <p>Manage and track your course progress</p>
+                    <h1>My Program</h1>
+                    <p>View your Executive Master in Business Administration program</p>
                     @if(request()->has('course'))
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i>
@@ -25,14 +25,9 @@
                     @endif
                 </div>
 
-                @php
-                    $user = auth('student')->user();
-                    $studentCourses = $user ? ($user->courses ?? []) : [];
-                @endphp
-                
-                @if(count($studentCourses) > 0)
+                @if(count($programs) > 0)
                     <div class="row">
-                        @foreach($studentCourses as $index => $course)
+                        @foreach($programs as $program)
                             <div class="col-md-6 col-lg-4 mb-4">
                                 <div class="course-card">
                                     <div class="course-header">
@@ -40,28 +35,20 @@
                                             <i data-feather="book" width="32" height="32"></i>
                                         </div>
                                         <div class="course-status">
-                                            <span class="badge badge-enrolled">Enrolled</span>
+                                            <span class="badge badge-enrolled">Available</span>
                                         </div>
                                     </div>
                                     <div class="course-body">
-                                        <h5 class="course-title">{{ $course }}</h5>
-                                        <p class="course-description">
-                                            @if($index % 3 == 0)
-                                                Advanced management concepts and strategic planning
-                                            @elseif($index % 3 == 1)
-                                                Research methodology and academic writing
-                                            @else
-                                                Professional development and leadership skills
-                                            @endif
-                                        </p>
+                                        <h5 class="course-title">{{ $program->name }}</h5>
+                                        <p class="course-description">{{ $program->description }}</p>
                                         <div class="course-meta">
                                             <div class="course-duration">
                                                 <i data-feather="clock" width="16" height="16"></i>
-                                                <span>12 weeks</span>
+                                                <span>{{ $program->duration_months }} months</span>
                                             </div>
                                             <div class="course-level">
                                                 <i data-feather="trending-up" width="16" height="16"></i>
-                                                <span>Advanced</span>
+                                                <span>{{ ucfirst($program->level) }}</span>
                                             </div>
                                         </div>
                                     </div>
@@ -74,7 +61,7 @@
                                             <small class="text-muted">{{ $progress }}% Complete</small>
                                         </div>
                                         <div class="course-actions">
-                                            <button class="btn btn-sm btn-primary">Continue</button>
+                                            <a href="{{ route('student.course.summary', strtolower($program->code)) }}" class="btn btn-sm btn-primary">View Program</a>
                                         </div>
                                     </div>
                                 </div>
@@ -86,8 +73,8 @@
                         <div class="empty-state-icon">
                             <i data-feather="book-open" width="64" height="64"></i>
                         </div>
-                        <h3>No Courses Assigned</h3>
-                        <p>You haven't been enrolled in any courses yet. Contact your administrator to get started.</p>
+                        <h3>No Programs Available</h3>
+                        <p>There are currently no programs available. Please check back later or contact your administrator.</p>
                         <a href="{{ route('student.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
                     </div>
                 @endif

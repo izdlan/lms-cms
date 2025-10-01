@@ -98,6 +98,57 @@ class User extends Authenticatable
      */
     public function isStaff(): bool
     {
-        return $this->role === 'staff';
+        return $this->role === 'staff' || $this->role === 'lecturer';
+    }
+
+    /**
+     * Check if user is lecturer (staff)
+     */
+    public function isLecturer(): bool
+    {
+        return $this->role === 'lecturer';
+    }
+
+    /**
+     * Relationship with student enrollments
+     */
+    public function enrollments()
+    {
+        return $this->hasMany(\App\Models\StudentEnrollment::class);
+    }
+
+    /**
+     * Get enrolled subjects for a student
+     */
+    public function enrolledSubjects()
+    {
+        return $this->enrollments()->with(['subject', 'lecturer', 'classSchedule']);
+    }
+
+    /**
+     * Relationship with lecturer profile
+     */
+    public function lecturer()
+    {
+        return $this->hasOne(\App\Models\Lecturer::class);
+    }
+
+    /**
+     * Relationship with student profile
+     */
+    public function student()
+    {
+        return $this->hasOne(\App\Models\Student::class);
+    }
+
+    /**
+     * Find a user by their IC number for authentication.
+     *
+     * @param string $ic
+     * @return \App\Models\User|null
+     */
+    public static function findByIc($ic)
+    {
+        return static::where('ic', $ic)->first();
     }
 }

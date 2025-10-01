@@ -96,9 +96,47 @@
 
     <!-- Admin Scripts -->
     <script>
+        // Safe Feather icons replacement function
+        function safeFeatherReplace() {
+            try {
+                if (typeof feather !== 'undefined') {
+                    // Only replace icons that actually exist and are valid
+                    const featherElements = document.querySelectorAll('[data-feather]');
+                    if (featherElements.length > 0) {
+                        // Check if elements are valid before replacing
+                        const validElements = Array.from(featherElements).filter(el => {
+                            return el && 
+                                   el.getAttribute && 
+                                   el.getAttribute('data-feather') && 
+                                   el.parentNode && 
+                                   el.offsetParent !== null; // Element is visible
+                        });
+                        
+                        if (validElements.length > 0) {
+                            // Replace only valid elements
+                            feather.replace({
+                                'class': 'feather',
+                                'width': 16,
+                                'height': 16
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Feather icons replacement error:', error);
+                // Don't throw the error, just log it
+            }
+        }
+
+        // Make the function globally available
+        window.safeFeatherReplace = safeFeatherReplace;
+
         // Initialize Feather icons
         document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
+            // Wait for all elements to be ready
+            setTimeout(() => {
+                safeFeatherReplace();
+            }, 200);
         });
 
         // Admin specific JavaScript

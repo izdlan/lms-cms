@@ -19,15 +19,15 @@ class GoogleDriveExcelImportService
     public function __construct()
     {
         $this->googleDriveUrl = config('google_sheets.google_drive_url');
-        $this->lmsSheets = config('google_sheets.lms_sheets', [
-            'DHU LMS' => 'DHU LMS',
-            'IUC LMS' => 'IUC LMS',
-            'VIVA-IUC LMS' => 'VIVA-IUC LMS',
-            'LUC LMS' => 'LUC LMS',
-            'EXECUTIVE LMS' => 'EXECUTIVE LMS',
-            'UPM LMS' => 'UPM LMS',
-            'TVET LMS' => 'TVET LMS'
-        ]);
+        $this->lmsSheets = [
+            11 => 'DHU LMS',
+            12 => 'IUC LMS', 
+            13 => 'VIVA-IUC LMS',
+            14 => 'LUC LMS',
+            15 => 'EXECUTIVE LMS',
+            16 => 'UPM LMS',
+            17 => 'TVET LMS'
+        ];
         $this->tempFilePath = storage_path('app/temp_enrollment.xlsx');
     }
 
@@ -54,14 +54,14 @@ class GoogleDriveExcelImportService
                 ];
             }
 
-            // Process each LMS sheet
-            foreach ($this->lmsSheets as $sheetName => $sheetIdentifier) {
-                Log::info("Processing sheet: {$sheetName}");
+            // Process each LMS sheet by index
+            foreach ($this->lmsSheets as $sheetIndex => $sheetName) {
+                Log::info("Processing sheet index {$sheetIndex}: {$sheetName}");
                 
                 try {
                     $import = new StudentsImport();
                     $import->setCurrentSheet($sheetName);
-                    Excel::import($import, $this->tempFilePath, $sheetName);
+                    Excel::import($import, $this->tempFilePath, null, \Maatwebsite\Excel\Excel::XLSX);
                     
                     $stats = $import->getStats();
                     $created = $stats['created'];
@@ -74,24 +74,26 @@ class GoogleDriveExcelImportService
                     
                     $processedSheets[] = [
                         'sheet' => $sheetName,
+                        'sheet_index' => $sheetIndex,
                         'created' => $created,
                         'updated' => $updated,
                         'errors' => $errors
                     ];
                     
-                    Log::info("Completed processing sheet: {$sheetName}", [
+                    Log::info("Completed processing sheet index {$sheetIndex}: {$sheetName}", [
                         'created' => $created,
                         'updated' => $updated,
                         'errors' => $errors
                     ]);
                     
                 } catch (\Exception $e) {
-                    Log::error("Error processing sheet {$sheetName}", [
+                    Log::error("Error processing sheet index {$sheetIndex}: {$sheetName}", [
                         'error' => $e->getMessage()
                     ]);
                     $totalErrors++;
                     $processedSheets[] = [
                         'sheet' => $sheetName,
+                        'sheet_index' => $sheetIndex,
                         'created' => 0,
                         'updated' => 0,
                         'errors' => 1

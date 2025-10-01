@@ -52,6 +52,10 @@
                                 <i data-feather="trash-2" width="16" height="16"></i>
                                 Delete Selected
                             </button>
+                            <button type="button" class="btn btn-outline-info" onclick="testEditFunction()">
+                                <i data-feather="edit" width="16" height="16"></i>
+                                Test Edit
+                            </button>
                         </div>
                     </div>
                     <div class="card-body">
@@ -98,14 +102,20 @@
                                                 <td>{{ $student->created_at->format('M d, Y') }}</td>
                                                 <td>
                                                     <div class="btn-group" role="group">
-                                                        <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-primary">
+                                                        <a href="{{ route('admin.students.edit', $student) }}" 
+                                                           class="btn btn-sm btn-outline-primary" 
+                                                           title="Edit Student"
+                                                           onclick="console.log('Edit button clicked for student:', {{ $student->id }})">
                                                             <i data-feather="edit" width="14" height="14"></i>
+                                                            Edit
                                                         </a>
                                                         <button type="button" class="btn btn-sm btn-outline-danger delete-student-btn" 
                                                                 data-student-id="{{ $student->id }}" 
                                                                 data-student-name="{{ $student->name }}" 
-                                                                data-student-email="{{ $student->email }}">
+                                                                data-student-email="{{ $student->email }}"
+                                                                title="Delete Student">
                                                             <i data-feather="trash-2" width="14" height="14"></i>
+                                                            Delete
                                                         </button>
                                                     </div>
                                                 </td>
@@ -164,7 +174,25 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+    // Safely replace feather icons
+    if (typeof safeFeatherReplace === 'function') {
+        safeFeatherReplace();
+    } else {
+        try {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        } catch (error) {
+            console.warn('Feather icons error:', error);
+        }
+    }
+    
+    // Debug: Check if edit buttons are present
+    const editButtons = document.querySelectorAll('a[href*="edit"]');
+    console.log('Edit buttons found:', editButtons.length);
+    editButtons.forEach((btn, index) => {
+        console.log(`Edit button ${index + 1}:`, btn.href, btn.textContent.trim());
+    });
     
     // Search functionality
     const searchInput = document.getElementById('searchInput');
@@ -210,6 +238,9 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
+    // Initialize bulk delete button state
+    updateBulkDeleteButton();
+    
     // Add event listener for bulk delete button
     if (bulkDeleteBtn) {
         bulkDeleteBtn.addEventListener('click', function(e) {
@@ -222,15 +253,15 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateBulkDeleteButton() {
         const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
         console.log('Updating bulk delete button. Checked boxes:', checkedBoxes.length);
-        // Always enable the button for testing
-        bulkDeleteBtn.disabled = false;
-        bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
         
-        // Add visual feedback
         if (checkedBoxes.length > 0) {
+            bulkDeleteBtn.disabled = false;
+            bulkDeleteBtn.textContent = `Delete Selected (${checkedBoxes.length})`;
             bulkDeleteBtn.style.backgroundColor = '#dc3545';
             bulkDeleteBtn.style.color = 'white';
         } else {
+            bulkDeleteBtn.disabled = true;
+            bulkDeleteBtn.textContent = 'Delete Selected';
             bulkDeleteBtn.style.backgroundColor = '';
             bulkDeleteBtn.style.color = '';
         }
@@ -291,10 +322,6 @@ document.addEventListener('click', function(e) {
             width: '500px'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Create and submit the delete form
-                const deleteForm = document.getElementById('deleteForm');
-                deleteForm.action = `/admin/students/${studentId}`;
-                
                 // Show loading
                 Swal.fire({
                     title: 'Deleting...',
@@ -305,15 +332,51 @@ document.addEventListener('click', function(e) {
                     }
                 });
                 
-                // Submit the form
-                deleteForm.submit();
+                // Use fetch API for single delete
+                fetch(`/admin/students/${studentId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                    },
+                    credentials: 'same-origin'
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: data.message || 'Student deleted successfully.',
+                            icon: 'success',
+                            timer: 2000,
+                            showConfirmButton: false
+                        }).then(() => {
+                            window.location.reload();
+                        });
+                    } else {
+                        throw new Error(data.message || 'Delete failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Failed to delete student: ' + error.message,
+                        icon: 'error'
+                    });
+                });
             }
         });
     }
 });
 
 function bulkDeleteStudents() {
-    alert('Bulk delete function called!');
     console.log('bulkDeleteStudents function called');
     const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
     const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
@@ -386,32 +449,48 @@ function confirmBulkDelete() {
     
     console.log('Student IDs to delete:', studentIds);
     
-    // Create a form to submit multiple delete requests
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/admin/students/bulk-delete';
-    
-    // Add CSRF token
-    const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-    console.log('CSRF Token:', csrfToken);
-    const csrfInput = document.createElement('input');
-    csrfInput.type = 'hidden';
-    csrfInput.name = '_token';
-    csrfInput.value = csrfToken;
-    form.appendChild(csrfInput);
-    
-    // Add student IDs
-    studentIds.forEach(id => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'student_ids[]';
-        input.value = id;
-        form.appendChild(input);
+    // Use fetch API for bulk delete
+    fetch('/admin/students/bulk-delete', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        },
+        credentials: 'same-origin',
+        body: JSON.stringify({
+            student_ids: studentIds
+        })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.success) {
+            Swal.fire({
+                title: 'Success!',
+                text: data.message || 'Students deleted successfully.',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            }).then(() => {
+                window.location.reload();
+            });
+        } else {
+            throw new Error(data.message || 'Bulk delete failed');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: 'Failed to delete students: ' + error.message,
+            icon: 'error'
+        });
     });
-    
-    console.log('Form created, submitting...');
-    document.body.appendChild(form);
-    form.submit();
 }
 
 // Google Sheets Import Function
@@ -422,15 +501,29 @@ function runGoogleSheetsImport() {
     // Show loading state
     importBtn.disabled = true;
     importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
-    feather.replace();
+    
+    // Safely replace feather icons
+    if (typeof safeFeatherReplace === 'function') {
+        safeFeatherReplace();
+    } else {
+        try {
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            }
+        } catch (error) {
+            console.warn('Feather icons error in Google Sheets import:', error);
+        }
+    }
     
     // Make the import request
     fetch('/admin/students/google-sheets-import', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
     })
     .then(response => response.json())
     .then(data => {
@@ -454,7 +547,19 @@ function runGoogleSheetsImport() {
         // Reset button state
         importBtn.disabled = false;
         importBtn.innerHTML = originalText;
-        feather.replace();
+        
+        // Safely replace feather icons
+        if (typeof safeFeatherReplace === 'function') {
+            safeFeatherReplace();
+        } else {
+            try {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            } catch (error) {
+                console.warn('Feather icons error in Google Sheets import finally:', error);
+            }
+        }
     });
 }
 
@@ -465,19 +570,55 @@ function runOneDriveImport() {
     
     // Show loading state
     importBtn.disabled = true;
-    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing...';
-    feather.replace();
+    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing... (This may take up to 5 minutes)';
     
-    // Make the import request
+    // Safely replace feather icons
+    setTimeout(() => {
+        if (typeof safeFeatherReplace === 'function') {
+            safeFeatherReplace();
+        } else {
+            try {
+                if (typeof feather !== 'undefined') {
+                    feather.replace();
+                }
+            } catch (error) {
+                console.warn('Feather icons error in OneDrive import:', error);
+            }
+        }
+    }, 200);
+    
+    // Show progress message
+    showAlert('info', 'OneDrive import started. This may take up to 5 minutes. Please wait...');
+    
+    // Make the import request with extended timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+        console.log('Request timeout reached, but import may still be running in background...');
+        showAlert('warning', 'Request timed out, but the import may still be running in the background. Please refresh the page in a few minutes to check for new students.');
+        controller.abort();
+    }, 60000); // 1 minute timeout for request, but import continues in background
+    
+    console.log('Starting OneDrive import request...');
+    
     fetch('/admin/students/onedrive-import', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-        }
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin',
+        signal: controller.signal
     })
-    .then(response => response.json())
+    .then(response => {
+        console.log('Response received:', response.status, response.statusText);
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        return response.json();
+    })
     .then(data => {
+        console.log('Data received:', data);
         if (data.success) {
             // Show success message with sheet details
             let message = `OneDrive import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`;
@@ -501,14 +642,63 @@ function runOneDriveImport() {
     })
     .catch(error => {
         console.error('Error:', error);
-        showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
+        if (error.name === 'AbortError') {
+            showAlert('danger', 'OneDrive import was aborted due to timeout. The import may still be processing in the background. Please refresh the page in a few minutes to check for new students.');
+        } else {
+            showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
+        }
     })
     .finally(() => {
+        // Clear timeout
+        clearTimeout(timeoutId);
+        
         // Reset button state
         importBtn.disabled = false;
         importBtn.innerHTML = originalText;
-        feather.replace();
+        
+        // Safely replace feather icons
+        setTimeout(() => {
+            if (typeof safeFeatherReplace === 'function') {
+                safeFeatherReplace();
+            } else {
+                try {
+                    if (typeof feather !== 'undefined') {
+                        feather.replace();
+                    }
+                } catch (error) {
+                    console.warn('Feather icons error in OneDrive import finally:', error);
+                }
+            }
+        }, 100);
     });
+}
+
+// Test edit function
+function testEditFunction() {
+    const firstStudentRow = document.querySelector('tbody tr');
+    if (firstStudentRow) {
+        const editButton = firstStudentRow.querySelector('a[href*="edit"]');
+        if (editButton) {
+            console.log('Edit button found:', editButton.href);
+            showAlert('success', 'Edit button is visible and working!');
+            // Test the edit URL
+            fetch(editButton.href)
+                .then(response => {
+                    if (response.ok) {
+                        showAlert('success', 'Edit page is accessible!');
+                    } else {
+                        showAlert('danger', 'Edit page returned status: ' + response.status);
+                    }
+                })
+                .catch(error => {
+                    showAlert('danger', 'Error testing edit page: ' + error.message);
+                });
+        } else {
+            showAlert('danger', 'No edit button found in the first row!');
+        }
+    } else {
+        showAlert('danger', 'No student rows found!');
+    }
 }
 
 // Show alert function

@@ -22,8 +22,8 @@
             Dashboard
         </a>
         <a href="{{ route('student.courses') }}" class="nav-link {{ request()->routeIs('student.courses') ? 'active' : '' }}">
-            <i class="fas fa-book-open"></i>
-            My Courses
+            <i class="fas fa-graduation-cap"></i>
+            My Program
         </a>
         <a href="{{ route('student.profile') }}" class="nav-link {{ request()->routeIs('student.profile') ? 'active' : '' }}">
             <i class="fas fa-user"></i>

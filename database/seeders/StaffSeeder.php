@@ -3,8 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class StaffSeeder extends Seeder
 {
@@ -13,49 +13,38 @@ class StaffSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create staff users
         $staffUsers = [
             [
                 'name' => 'John Smith',
                 'email' => 'john.smith@olympia.edu',
-                'password' => Hash::make('password123'),
-                'role' => 'staff',
-                'phone' => '+60123456789',
-                'must_reset_password' => false,
+                'phone' => '012-3456789',
+                'role' => 'lecturer',
             ],
             [
                 'name' => 'Sarah Johnson',
                 'email' => 'sarah.johnson@olympia.edu',
-                'password' => Hash::make('password123'),
-                'role' => 'staff',
-                'phone' => '+60123456790',
-                'must_reset_password' => false,
+                'phone' => '012-3456790',
+                'role' => 'lecturer',
             ],
             [
                 'name' => 'Michael Brown',
                 'email' => 'michael.brown@olympia.edu',
-                'password' => Hash::make('password123'),
-                'role' => 'staff',
-                'phone' => '+60123456791',
-                'must_reset_password' => false,
-            ],
-            [
-                'name' => 'Emily Davis',
-                'email' => 'emily.davis@olympia.edu',
-                'password' => Hash::make('password123'),
-                'role' => 'staff',
-                'phone' => '+60123456792',
-                'must_reset_password' => false,
+                'phone' => '012-3456791',
+                'role' => 'lecturer',
             ],
         ];
 
-        foreach ($staffUsers as $staff) {
+        foreach ($staffUsers as $staffData) {
             User::updateOrCreate(
-                ['email' => $staff['email']],
-                $staff
+                ['email' => $staffData['email']],
+                [
+                    'name' => $staffData['name'],
+                    'phone' => $staffData['phone'],
+                    'password' => Hash::make('000000'),
+                    'role' => $staffData['role'],
+                    'must_reset_password' => true,
+                ]
             );
         }
-
-        $this->command->info('Staff users created successfully!');
     }
 }

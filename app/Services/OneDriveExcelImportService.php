@@ -18,22 +18,29 @@ class OneDriveExcelImportService
 
     public function __construct()
     {
-        $this->onedriveUrl = config('google_sheets.onedrive_url', 'https://1drv.ms/x/c/57E7A472BE891FFC/ESIdV_VbTeJBhvgxy-itpXcBcmwc-9gKw1B4XayoEDPi7w?e=choAKY');
-        $this->lmsSheets = config('google_sheets.lms_sheets', [
-            'DHU LMS' => 'DHU LMS',
-            'IUC LMS' => 'IUC LMS',
-            'VIVA-IUC LMS' => 'VIVA-IUC LMS',
-            'LUC LMS' => 'LUC LMS',
-            'EXECUTIVE LMS' => 'EXECUTIVE LMS',
-            'UPM LMS' => 'UPM LMS',
-            'TVET LMS' => 'TVET LMS'
-        ]);
+        $this->onedriveUrl = config('google_sheets.onedrive_url') ?: config('services.onedrive.excel_url') ?: env('ONEDRIVE_EXCEL_URL');
+        
+        // Define specific sheets by index (11-17) with their names
+        // Process sheets in order, skipping empty ones
+        $this->lmsSheets = [
+            12 => 'IUC LMS', 
+            13 => 'VIVA-IUC LMS',
+            14 => 'LUC LMS',
+            15 => 'EXECUTIVE LMS',
+            16 => 'UPM LMS',
+            17 => 'TVET LMS'
+            // Skip sheet 11 (DHU LMS) as it's empty
+        ];
+        
         $this->tempFilePath = storage_path('app/temp_enrollment.xlsx');
     }
 
     public function importFromOneDrive()
     {
-        Log::info('Starting OneDrive Excel import');
+        Log::info('Starting OneDrive Excel import', [
+            'onedrive_url' => $this->onedriveUrl,
+            'temp_file_path' => $this->tempFilePath
+        ]);
         
         $totalCreated = 0;
         $totalUpdated = 0;
@@ -41,6 +48,18 @@ class OneDriveExcelImportService
         $processedSheets = [];
 
         try {
+            // Check if OneDrive URL is configured
+            if (empty($this->onedriveUrl)) {
+                return [
+                    'success' => false,
+                    'error' => 'OneDrive URL is not configured. Please set ONEDRIVE_EXCEL_URL in your .env file.',
+                    'created' => 0,
+                    'updated' => 0,
+                    'errors' => 1,
+                    'processed_sheets' => []
+                ];
+            }
+
             // Download the Excel file from OneDrive
             $downloadResult = $this->downloadExcelFile();
             if (!$downloadResult['success']) {
@@ -53,26 +72,59 @@ class OneDriveExcelImportService
                     'processed_sheets' => []
                 ];
             }
+            
+            // Check file size for performance estimation
+            if (file_exists($this->tempFilePath)) {
+                $fileSize = filesize($this->tempFilePath);
+                $fileSizeMB = round($fileSize / 1024 / 1024, 2);
+                Log::info("Excel file downloaded successfully", [
+                    'file_size_bytes' => $fileSize,
+                    'file_size_mb' => $fileSizeMB,
+                    'temp_file' => $this->tempFilePath
+                ]);
+                
+                // Warn if file is very large
+                if ($fileSizeMB > 50) {
+                    Log::warning("Large Excel file detected - import may take longer", [
+                        'file_size_mb' => $fileSizeMB
+                    ]);
+                }
+            }
 
-            // Process each LMS sheet
-            foreach ($this->lmsSheets as $sheetName => $sheetIdentifier) {
-                Log::info("Processing sheet: {$sheetName}");
+            // Process each LMS sheet by index with progress tracking
+            $sheetCount = count($this->lmsSheets);
+            $currentSheet = 0;
+            
+            foreach ($this->lmsSheets as $sheetIndex => $sheetName) {
+                $currentSheet++;
+                Log::info("Processing sheet {$currentSheet}/{$sheetCount} - Index {$sheetIndex}: {$sheetName}");
+                
+                // Add a small delay to prevent overwhelming the system
+                if ($currentSheet > 1) {
+                    usleep(100000); // 0.1 second delay between sheets
+                }
                 
                 try {
+                    // Check if temp file exists
+                    if (!file_exists($this->tempFilePath)) {
+                        Log::error("Temp file not found: {$this->tempFilePath}");
+                        $totalErrors++;
+                        $processedSheets[] = [
+                            'sheet' => $sheetName,
+                            'sheet_index' => $sheetIndex,
+                            'created' => 0,
+                            'updated' => 0,
+                            'errors' => 1
+                        ];
+                        continue;
+                    }
+
+                    // Use Laravel Excel to import the specific sheet by index
                     $import = new StudentsImport();
                     $import->setCurrentSheet($sheetName);
                     
-                    // Use the correct method to import a specific sheet
-                    $reader = \PhpOffice\PhpSpreadsheet\IOFactory::createReader('Xlsx');
-                    $reader->setLoadSheetsOnly([$sheetName]);
-                    $spreadsheet = $reader->load($this->tempFilePath);
-                    $worksheet = $spreadsheet->getSheetByName($sheetName);
-                    
-                    if ($worksheet) {
-                        $import->collection(collect($worksheet->toArray()));
-                    } else {
-                        throw new \Exception("Sheet '{$sheetName}' not found");
-                    }
+                    // Import using Laravel Excel with specific sheet index
+                    Excel::import($import, $this->tempFilePath, null, \Maatwebsite\Excel\Excel::XLSX);
                     
                     $stats = $import->getStats();
                     $created = $stats['created'];
@@ -85,24 +137,28 @@ class OneDriveExcelImportService
                     
                     $processedSheets[] = [
                         'sheet' => $sheetName,
+                        'sheet_index' => $sheetIndex,
                         'created' => $created,
                         'updated' => $updated,
                         'errors' => $errors
                     ];
                     
-                    Log::info("Completed processing sheet: {$sheetName}", [
+                    Log::info("Completed sheet {$currentSheet}/{$sheetCount} - Index {$sheetIndex}: {$sheetName}", [
                         'created' => $created,
                         'updated' => $updated,
-                        'errors' => $errors
+                        'errors' => $errors,
+                        'progress' => round(($currentSheet / $sheetCount) * 100, 1) . '%'
                     ]);
                     
                 } catch (\Exception $e) {
-                    Log::error("Error processing sheet {$sheetName}", [
-                        'error' => $e->getMessage()
+                    Log::error("Error processing sheet {$currentSheet}/{$sheetCount} - Index {$sheetIndex}: {$sheetName}", [
+                        'error' => $e->getMessage(),
+                        'trace' => $e->getTraceAsString()
                     ]);
                     $totalErrors++;
                     $processedSheets[] = [
                         'sheet' => $sheetName,
+                        'sheet_index' => $sheetIndex,
                         'created' => 0,
                         'updated' => 0,
                         'errors' => 1
@@ -147,7 +203,7 @@ class OneDriveExcelImportService
         }
     }
 
-    private function downloadExcelFile(): array
+    public function downloadExcelFile(): array
     {
         try {
             Log::info('Downloading Excel file from OneDrive', [
@@ -158,8 +214,12 @@ class OneDriveExcelImportService
             $downloadUrls = $this->getDownloadUrls();
             $response = null;
             
-            foreach ($downloadUrls as $url) {
-                Log::info('Trying download URL', ['url' => $url]);
+            foreach ($downloadUrls as $index => $url) {
+                Log::info('Trying download URL ' . ($index + 1) . '/' . count($downloadUrls), [
+                    'url' => $url,
+                    'url_type' => strpos($url, '1drv.ms') !== false ? '1drv.ms' : 'other'
+                ]);
+                
                 $response = Http::withHeaders([
                     'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
                     'Accept' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,*/*',
@@ -167,12 +227,19 @@ class OneDriveExcelImportService
                 ])->timeout(30)->get($url);
                 
                 if ($response->successful()) {
-                    Log::info('Successfully downloaded from URL', ['url' => $url]);
+                    Log::info('Successfully downloaded from URL', [
+                        'url' => $url,
+                        'status' => $response->status(),
+                        'content_type' => $response->header('Content-Type'),
+                        'content_length' => $response->header('Content-Length')
+                    ]);
                     break;
                 } else {
                     Log::warning('Failed to download from URL', [
                         'url' => $url,
-                        'status' => $response->status()
+                        'status' => $response->status(),
+                        'response_preview' => substr($response->body(), 0, 200) . '...',
+                        'headers' => $response->headers()
                     ]);
                 }
             }
@@ -234,6 +301,23 @@ class OneDriveExcelImportService
         // Method 2: If URL already has download=1, try it first
         if (strpos($this->onedriveUrl, 'download=1') !== false) {
             array_unshift($urls, $this->onedriveUrl); // Put it first
+        }
+        
+        // Method 2.5: Handle 1drv.ms URLs specifically
+        if (strpos($this->onedriveUrl, '1drv.ms') !== false) {
+            // Your URL: https://1drv.ms/x/c/57E7A472BE891FFC/ESIdV_VbTeJBhvgxy-itpXcBcmwc-9gKw1B4XayoEDPi7w?e=G4v8Jw&download=1
+            // This should work as-is, but let's try variations
+            
+            // Try without the e parameter
+            $urlWithoutE = preg_replace('/[?&]e=[^&]*/', '', $this->onedriveUrl);
+            if ($urlWithoutE !== $this->onedriveUrl) {
+                $urls[] = $urlWithoutE;
+            }
+            
+            // Try with different download parameters
+            $baseUrl = preg_replace('/[?&]download=1/', '', $this->onedriveUrl);
+            $urls[] = $baseUrl . '?download=1';
+            $urls[] = $baseUrl . '?e=download';
         }
         
         // Method 3: Convert to direct download format

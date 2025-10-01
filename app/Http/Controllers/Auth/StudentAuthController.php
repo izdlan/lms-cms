@@ -107,7 +107,12 @@ class StudentAuthController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
-        return view('student.password-change');
+        // Get student's enrolled subjects with lecturer and class information
+        $enrolledSubjects = $user->enrolledSubjects()
+            ->where('status', 'enrolled')
+            ->get();
+        
+        return view('student.password-change', compact('user', 'enrolledSubjects'));
     }
 
     public function changePassword(Request $request)
@@ -135,3 +140,5 @@ class StudentAuthController extends Controller
         return redirect()->route('student.dashboard')->with('success', 'Password changed successfully!');
     }
 }
+
+

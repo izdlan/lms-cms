@@ -11,7 +11,14 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminAuth::class,
+        ]);
+        
+        // Ensure CSRF protection is enabled for web routes
+        $middleware->web(append: [
+            \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

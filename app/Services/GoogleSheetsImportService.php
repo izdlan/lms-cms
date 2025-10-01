@@ -13,15 +13,15 @@ class GoogleSheetsImportService
     private $googleSheetsUrl;
     private $baseUrl;
     
-    // LMS Sheets configuration - these are the specific sheets we need to read
+    // LMS Sheets configuration - specific sheets by index (11-17)
     private $lmsSheets = [
-        'DHU LMS' => 'DHU LMS',
-        'IUC LMS' => 'IUC LMS',
-        'VIVA-IUC LMS' => 'VIVA-IUC LMS',
-        'LUC LMS' => 'LUC LMS',
-        'EXECUTIVE LMS' => 'EXECUTIVE LMS',
-        'UPM LMS' => 'UPM LMS',
-        'TVET LMS' => 'TVET LMS'
+        11 => 'DHU LMS',
+        12 => 'IUC LMS', 
+        13 => 'VIVA-IUC LMS',
+        14 => 'LUC LMS',
+        15 => 'EXECUTIVE LMS',
+        16 => 'UPM LMS',
+        17 => 'TVET LMS'
     ];
     
     public function __construct()
@@ -73,12 +73,13 @@ class GoogleSheetsImportService
             ];
         }
 
-        // Process each individual LMS sheet using sheet names
-        foreach ($this->lmsSheets as $sheetName => $sheetIdentifier) {
-            Log::info("Processing sheet: {$sheetName}");
+        // Process each individual LMS sheet using sheet indices (11-17)
+        foreach ($this->lmsSheets as $sheetIndex => $sheetName) {
+            Log::info("Processing sheet index {$sheetIndex}: {$sheetName}");
             
             try {
-                $csvExportUrl = $this->baseUrl . '/export?format=csv&sheet=' . urlencode($sheetIdentifier);
+                // Use sheet index instead of sheet name for Google Sheets export
+                $csvExportUrl = $this->baseUrl . '/export?format=csv&gid=' . $sheetIndex;
                 
                 // Fetch CSV data from Google Sheets
                 Log::info('Fetching data from Google Sheets', ['url' => $csvExportUrl]);
@@ -118,6 +119,7 @@ class GoogleSheetsImportService
                         
                         $processedSheets[] = [
                             'sheet' => $sheetName,
+                            'sheet_index' => $sheetIndex,
                             'created' => $result['created'],
                             'updated' => $result['updated'],
                             'errors' => $result['errors']
@@ -128,9 +130,18 @@ class GoogleSheetsImportService
             } catch (\Exception $e) {
                 Log::error('Error processing Google Sheets data', [
                     'sheet' => $sheetName,
+                    'sheet_index' => $sheetIndex,
                     'error' => $e->getMessage()
                 ]);
                 $totalErrors++;
+                
+                $processedSheets[] = [
+                    'sheet' => $sheetName,
+                    'sheet_index' => $sheetIndex,
+                    'created' => 0,
+                    'updated' => 0,
+                    'errors' => 1
+                ];
             }
         }
         

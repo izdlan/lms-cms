@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('ic')->unique()->nullable()->after('email');
             $table->string('phone')->nullable()->after('ic');
-            $table->enum('role', ['admin', 'student'])->default('student')->after('phone');
+            $table->enum('role', ['student', 'staff'])->default('student')->after('phone');
             $table->boolean('must_reset_password')->default(false)->after('role');
             $table->json('courses')->nullable()->after('must_reset_password');
         });

@@ -20,9 +20,9 @@
             <i data-feather="refresh-cw" width="20" height="20"></i>
             Sync from Excel/CSV
         </a>
-        <a href="{{ route('admin.automation.onedrive') }}" class="nav-link {{ request()->routeIs('admin.automation.onedrive*') ? 'active' : '' }}">
+        <a href="{{ route('admin.auto-sync') }}" class="nav-link {{ request()->routeIs('admin.auto-sync*') ? 'active' : '' }}">
             <i data-feather="cloud-upload" width="20" height="20"></i>
-            OneDrive Auto Import
+            Auto Sync
         </a>
         <a href="{{ route('admin.logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
             <i data-feather="log-out" width="20" height="20"></i>

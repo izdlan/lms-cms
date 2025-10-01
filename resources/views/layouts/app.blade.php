@@ -960,48 +960,6 @@
                 height: 250px;
             }
         }
-
-        /* Staff Dashboard Styles - Same as Student */
-        .staff-dashboard .sidebar {
-            background: #212529 !important;
-            min-height: 100vh !important;
-            padding: 0 !important;
-            position: fixed !important;
-            top: 80px !important;
-            left: 0 !important;
-            width: 200px !important;
-            z-index: 1000 !important;
-        }
-        
-        .staff-dashboard .sidebar-header {
-            background: #212529 !important;
-            padding: 1.5rem 1rem !important;
-            color: white !important;
-            border-bottom: 1px solid #495057 !important;
-        }
-        
-        .staff-dashboard .main-content {
-            margin-left: 200px !important;
-            padding: 2rem !important;
-            min-height: calc(100vh - 80px) !important;
-            background: #f8f9fa !important;
-        }
-        
-        @media (max-width: 768px) {
-            .staff-dashboard .sidebar {
-                transform: translateX(-100%) !important;
-                transition: transform 0.3s ease !important;
-            }
-            
-            .staff-dashboard .sidebar.show {
-                transform: translateX(0) !important;
-            }
-            
-            .staff-dashboard .main-content {
-                margin-left: 0 !important;
-                padding: 1rem !important;
-            }
-        }
         
     </style>
     
@@ -1157,8 +1115,12 @@
 
 <body class="">
     <div id="app" class=" ">
-        @if(request()->is('student/*') && auth('student')->check())
-            @include('student.partials.student-navbar')
+        @if((request()->is('student/*') && auth('student')->check()) || (request()->is('staff/*') && auth()->check() && auth()->user()->role === 'staff'))
+            @if(request()->is('student/*'))
+                @include('student.partials.student-navbar')
+            @else
+                @include('staff.partials.staff-navbar')
+            @endif
         @else
             @include('partials.top-navbar')
             @include('partials.navbar')
@@ -1166,7 +1128,11 @@
         
         @yield('content')
         
-        @include('partials.footer')
+        @if(Auth::guard('student')->check() || Auth::guard('staff')->check())
+            @include('partials.simple-footer')
+        @else
+            @include('partials.footer')
+        @endif
     </div>
     
     <!-- Template JS File -->
@@ -1197,20 +1163,51 @@
     <script src="/assets/default/vendors/owl-carousel2/owl.carousel.min.js"></script>
     <script src="/assets/default/vendors/parallax/parallax.min.js"></script>
     <script>
-        // Fix parallax error by adding safety check
+        // Override Parallax constructor to add safety checks
+        if (typeof Parallax !== 'undefined') {
+            var OriginalParallax = Parallax;
+            Parallax = function(element) {
+                if (!element || !element.getAttribute) {
+                    console.warn('Parallax: Invalid element provided');
+                    return;
+                }
+                try {
+                    return new OriginalParallax(element);
+                } catch (e) {
+                    console.warn('Parallax initialization failed:', e);
+                    return null;
+                }
+            };
+        }
+        
+        // Fix parallax error by adding comprehensive safety check
         document.addEventListener('DOMContentLoaded', function() {
             try {
                 // Check if parallax elements exist before initializing
                 var parallaxElements = document.querySelectorAll('[data-parallax]');
                 if (parallaxElements.length > 0) {
-                    // Initialize parallax only if elements exist
+                    // Initialize parallax only if elements exist and Parallax is available
                     if (typeof Parallax !== 'undefined') {
-                        new Parallax(document.querySelector('[data-parallax]'));
+                        parallaxElements.forEach(function(element) {
+                            if (element && element.getAttribute) {
+                                try {
+                                    new Parallax(element);
+                                } catch (e) {
+                                    console.warn('Parallax initialization failed for element:', e);
+                                }
+                            }
+                        });
                     }
                 }
             } catch (e) {
                 console.warn('Parallax initialization failed:', e);
             }
+        });
+    </script>
+    <script>
+        // Add safety wrapper for all JavaScript execution
+        window.addEventListener('error', function(e) {
+            console.warn('JavaScript error caught:', e.message, e.filename, e.lineno);
         });
     </script>
     <script src="/assets/default/js/parts/home.min.js"></script>

@@ -22,7 +22,7 @@ class AdminController extends Controller
 
     private function checkAdminAccess()
     {
-        if (!Auth::check() || !Auth::user()->isAdmin()) {
+        if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->isStaff())) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -191,7 +191,17 @@ class AdminController extends Controller
     {
         $this->checkAdminAccess();
         
+        Log::info('Edit student accessed', [
+            'student_id' => $student->id,
+            'student_name' => $student->name,
+            'student_role' => $student->role
+        ]);
+        
         if ($student->role !== 'student') {
+            Log::warning('Attempt to edit non-student user', [
+                'user_id' => $student->id,
+                'user_role' => $student->role
+            ]);
             abort(404);
         }
         
@@ -256,14 +266,20 @@ class AdminController extends Controller
                 'deleted_by' => Auth::user()->name
             ]);
             
-            return redirect()->route('admin.students')->with('success', 'Student deleted successfully!');
+            return response()->json([
+                'success' => true,
+                'message' => 'Student deleted successfully!'
+            ]);
         } catch (\Exception $e) {
             Log::error('Error deleting student', [
                 'student_id' => $student->id,
                 'error' => $e->getMessage()
             ]);
             
-            return redirect()->route('admin.students')->with('error', 'Error deleting student: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting student: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -302,10 +318,17 @@ class AdminController extends Controller
 
             Log::info('Bulk delete completed', ['deleted_count' => $deletedCount]);
 
-            return redirect()->route('admin.students')->with('success', $message);
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'deleted_count' => $deletedCount
+            ]);
         } catch (\Exception $e) {
             Log::error('Bulk delete error: ' . $e->getMessage());
-            return redirect()->route('admin.students')->with('error', 'Error deleting students: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting students: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -356,18 +379,37 @@ class AdminController extends Controller
     {
         $this->checkAdminAccess();
         
+        // Increase execution time limit and memory for OneDrive import
+        set_time_limit(300); // 5 minutes timeout
+        ini_set('memory_limit', '512M'); // Increase memory limit to 512MB
+        ini_set('max_execution_time', 300); // 5 minutes execution time limit
+        ini_set('max_input_time', 300); // 5 minutes input time limitimage.png  yes
+        
         try {
-            $oneDriveService = new \App\Services\OneDriveExcelImportService();
-            $result = $oneDriveService->importFromOneDrive();
+            Log::info('OneDrive import request received', [
+                'memory_limit' => ini_get('memory_limit'),
+                'max_execution_time' => ini_get('max_execution_time'),
+                'time_limit' => ini_get('time_limit')
+            ]);
+            
+            $googleDriveService = new \App\Services\GoogleDriveImportService();
+            
+            // Skip connection test and go straight to import to avoid double download
+            Log::info('Starting Google Drive import from admin panel');
+            
+            $result = $googleDriveService->importFromGoogleDrive();
+            
+            Log::info('Google Drive import completed', $result);
             
             if ($result['success']) {
                 // Update cache with results
-                cache()->put('last_onedrive_import_time', now(), now()->addDays(30));
-                cache()->put('last_onedrive_import_results', $result, now()->addDays(30));
+                cache()->put('last_google_drive_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_drive_import_results', $result, now()->addDays(30));
+                cache()->put('last_google_drive_sync', now(), now()->addDays(30));
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'OneDrive import completed successfully!',
+                    'message' => 'Google Drive import completed successfully!',
                     'created' => $result['created'],
                     'updated' => $result['updated'],
                     'errors' => $result['errors'],
@@ -383,7 +425,21 @@ class AdminController extends Controller
                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('OneDrive import error: ' . $e->getMessage());
+            Log::error('OneDrive import error: ' . $e->getMessage(), [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            // Check if it's a timeout error
+            if (strpos($e->getMessage(), 'timeout') !== false || strpos($e->getMessage(), 'Maximum execution time') !== false) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'OneDrive import timed out. The file might be too large or the connection is slow. Please try again or contact support.',
+                    'created' => 0,
+                    'updated' => 0,
+                    'errors' => 1
+                ]);
+            }
             
             return response()->json([
                 'success' => false,
@@ -1224,6 +1280,220 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         return view('admin.automation-onedrive');
+    }
+
+    public function testOneDriveConnection()
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            $oneDriveService = new \App\Services\OneDriveExcelImportService();
+            $result = $oneDriveService->testConnection();
+            
+            // Also test download speed
+            $startTime = microtime(true);
+            $downloadResult = $oneDriveService->testConnection();
+            $endTime = microtime(true);
+            $downloadTime = round($endTime - $startTime, 2);
+            
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'error' => $result['error'] ?? null,
+                'onedrive_url' => config('google_sheets.onedrive_url'),
+                'env_url' => env('ONEDRIVE_EXCEL_URL'),
+                'download_test' => [
+                    'success' => $downloadResult['success'],
+                    'time_seconds' => $downloadTime,
+                    'error' => $downloadResult['error'] ?? null
+                ]
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Test failed: ' . $e->getMessage(),
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
+
+    // Auto-sync methods
+    public function startAutoSync(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        // Increase execution time for auto-sync
+        set_time_limit(300); // 5 minutes
+        
+        try {
+            $syncService = new \App\Services\GoogleDriveImportService();
+            $result = $syncService->importFromGoogleDrive();
+            
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'new_students' => $result['new_students'] ?? 0,
+                'created' => $result['created'] ?? 0,
+                'updated' => $result['updated'] ?? 0,
+                'errors' => $result['errors'] ?? 0
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Auto-sync failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Auto-sync failed: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function stopAutoSync(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        // Clear sync cache to effectively "stop" auto-sync
+        \Illuminate\Support\Facades\Cache::forget('last_google_drive_sync');
+        \Illuminate\Support\Facades\Cache::forget('last_google_drive_file_hash');
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Auto-sync stopped successfully'
+        ]);
+    }
+
+    public function getAutoSyncStatus(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        try {
+            Log::info('Getting auto-sync status');
+            // For Google Drive, we'll return a simple status since we don't have a dedicated sync service
+            $lastSync = \Illuminate\Support\Facades\Cache::get('last_google_drive_sync');
+            $status = [
+                'is_running' => false,
+                'last_sync' => $lastSync ? $lastSync->format('Y-m-d H:i:s') : 'Never',
+                'next_sync' => 'Manual only',
+                'file_hash' => 'Google Drive file',
+                'sync_interval' => 5
+            ];
+            
+            Log::info('Auto-sync status retrieved', ['status' => $status]);
+            
+            return response()->json([
+                'success' => true,
+                'status' => $status
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Failed to get auto-sync status', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to get sync status: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function forceAutoSync(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        // Increase execution time for force sync
+        set_time_limit(300); // 5 minutes
+        
+        try {
+            $syncService = new \App\Services\GoogleDriveImportService();
+            $result = $syncService->importFromGoogleDrive();
+            
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'new_students' => $result['new_students'] ?? 0,
+                'created' => $result['created'] ?? 0,
+                'updated' => $result['updated'] ?? 0,
+                'errors' => $result['errors'] ?? 0
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Force sync failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Force sync failed: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    public function setAutoSyncInterval(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $request->validate([
+            'interval' => 'required|integer|min:1|max:60'
+        ]);
+        
+        try {
+            $syncService = new \App\Services\AutoOneDriveSyncService();
+            $syncService->setSyncInterval($request->input('interval'));
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Sync interval updated to ' . $request->input('interval') . ' minutes'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to set sync interval: ' . $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * HTTP Cron endpoint for external cron services
+     * No authentication required - for external cron services
+     */
+    public function oneDriveImportCron(Request $request)
+    {
+        // Set execution time limit for cron import
+        set_time_limit(300); // 5 minutes
+        
+        try {
+            Log::info('HTTP Cron: Starting Google Drive import');
+            
+            // Use the new Google Drive import service
+            $googleDriveService = new \App\Services\GoogleDriveImportService();
+            $result = $googleDriveService->importFromGoogleDrive();
+            
+            Log::info('HTTP Cron: Import completed', $result);
+            
+            return response()->json([
+                'success' => $result['success'],
+                'message' => $result['message'],
+                'timestamp' => now()->toISOString(),
+                'new_students' => $result['new_students'] ?? 0,
+                'created' => $result['created'] ?? 0,
+                'updated' => $result['updated'] ?? 0,
+                'errors' => $result['errors'] ?? 0
+            ]);
+        } catch (\Exception $e) {
+            Log::error('HTTP Cron: Import failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Import failed: ' . $e->getMessage(),
+                'timestamp' => now()->toISOString()
+            ], 500);
+        }
     }
 
     public function setupAutomation(Request $request)

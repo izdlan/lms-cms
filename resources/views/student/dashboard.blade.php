@@ -53,29 +53,35 @@
                             <div class="icon info">
                                 <i class="fas fa-book-open"></i>
                             </div>
-                            <h4>0</h4>
-                            <p class="text-muted mb-0">TOTAL COURSES</p>
+                            <h4>{{ $enrolledSubjects->count() }}</h4>
+                            <p class="text-muted mb-0">MY SUBJECTS</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- My Courses Section -->
+                <!-- My Subjects Section -->
                 <div class="card">
                     <div class="card-header">
-                        <h5><i data-feather="book-open" width="20" height="20" class="me-2"></i>My Courses</h5>
+                        <h5><i data-feather="book-open" width="20" height="20" class="me-2"></i>My Subjects</h5>
                     </div>
                     <div class="card-body">
-                        @if(auth('student')->user()->courses && count(auth('student')->user()->courses) > 0)
+                        @if($enrolledSubjects->count() > 0)
                             <div class="row">
-                                @foreach(auth('student')->user()->courses as $course)
+                                @foreach($enrolledSubjects as $enrollment)
                                     <div class="col-md-6 col-lg-4 mb-3">
                                         <div class="course-card">
                                             <div class="course-image">
                                                 <i class="fas fa-book"></i>
                                             </div>
                                             <div class="course-content">
-                                                <h6 class="course-title">{{ $course }}</h6>
-                                                <p class="course-code">Course Code: {{ $course }}</p>
+                                                <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : 'Unknown Subject' }}</h6>
+                                                <p class="course-code">{{ $enrollment->subject_code }} - {{ $enrollment->class_code ?? 'TBA' }}</p>
+                                                <small class="text-muted">Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }}</small>
+                                                <div class="mt-2">
+                                                    <a href="{{ route('student.course.class', $enrollment->subject_code) }}" class="btn btn-sm btn-outline-primary">
+                                                        <i class="fas fa-arrow-right me-1"></i>Enter Class
+                                                    </a>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -84,8 +90,8 @@
                         @else
                             <div class="text-center py-4">
                                 <i data-feather="book-open" width="48" height="48" class="text-muted mb-3"></i>
-                                <h5 class="text-muted">No courses assigned</h5>
-                                <p class="text-muted">Your courses will appear here once they are assigned by your administrator.</p>
+                                <h5 class="text-muted">No subjects enrolled</h5>
+                                <p class="text-muted">Your enrolled subjects will appear here once you are registered for courses.</p>
                             </div>
                         @endif
                     </div>

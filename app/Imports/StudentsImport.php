@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Log;
 
 class StudentsImport implements ToCollection
 {
-    protected $allowedSheets = ['DHU LMS', 'IUC LMS', 'VIVA-IUC LMS', 'LUC LMS'];
+    protected $allowedSheets = ['DHU LMS', 'IUC LMS', 'LUC LMS', 'EXECUTIVE LMS', 'UPM LMS', 'TVET LMS'];
     protected $currentSheet = '';
     
     // Statistics tracking
@@ -76,15 +76,22 @@ class StudentsImport implements ToCollection
                 return !empty(trim($cell));
             }));
             
-            // Check if this row contains header keywords
+            // Check if this row contains header keywords - be more specific
             $headerKeywords = ['name', 'ic', 'passport', 'email', 'address', 'contact', 'student', 'programme', 'learners'];
+            $keywordCount = 0;
             foreach ($headerKeywords as $keyword) {
                 if (stripos($currentRowText, $keyword) !== false) {
-                    $hasHeaderKeywords = true;
-                    $headerRowIndex = $i;
-                    $headerRow = $currentRow;
-                    break 2; // Break out of both loops
+                    $keywordCount++;
                 }
+            }
+            
+            // Only consider it a header if it has at least 2 header keywords (reduced from 3)
+            if ($keywordCount >= 2) {
+                $hasHeaderKeywords = true;
+                $headerRowIndex = $i;
+                $headerRow = $currentRow;
+                Log::info("Header row found at index {$i} with {$keywordCount} keywords: " . $currentRowText);
+                break;
             }
         }
         
@@ -158,21 +165,20 @@ class StudentsImport implements ToCollection
                 continue;
             }
             
-            // Map based on header content, not position
-            if ((strpos($headerName, 'name') !== false || strpos($headerName, 'learners') !== false) && 
-                strpos($headerName, 'programme') === false && 
-                strpos($headerName, 'program') === false &&
-                strpos($headerName, 'progame') === false &&
-                strpos($headerName, 'programe') === false) {
+            // Map based on header content, not position - be more specific
+            if (strtolower(trim($headerName)) === 'name' || 
+                (strpos($headerName, 'name') !== false && strpos($headerName, 'programme') === false && strpos($headerName, 'program') === false)) {
                 $mappedHeader[$index] = 'name';
                 Log::info("Mapped to 'name'");
             } elseif (strpos($headerName, 'address') !== false) {
                 $mappedHeader[$index] = 'address';
                 Log::info("Mapped to 'address'");
-            } elseif (strpos($headerName, 'ic') !== false || strpos($headerName, 'passport') !== false) {
+            } elseif (strpos($headerName, 'ic') !== false || strpos($headerName, 'passport') !== false || 
+                      strpos($headerName, 'ic/passport') !== false || strpos($headerName, 'ic passport') !== false ||
+                      strpos($headerName, 'ic / passport') !== false) {
                 $mappedHeader[$index] = 'ic/passport';
-                Log::info("Mapped to 'ic/passport'");
-            } elseif (strpos($headerName, 'email') !== false) {
+                Log::info("Mapped to 'ic/passport' - Header: '$headerName'");
+            } elseif (strtolower(trim($headerName)) === 'email' || strpos($headerName, 'email') !== false) {
                 $mappedHeader[$index] = 'email';
                 Log::info("Mapped to 'email'");
             } elseif (strpos($headerName, 'contact') !== false || strpos($headerName, 'phone') !== false) {
@@ -193,6 +199,9 @@ class StudentsImport implements ToCollection
             } elseif (strpos($headerName, 'category') !== false) {
                 $mappedHeader[$index] = 'category';
                 Log::info("Mapped to 'category'");
+            } elseif (strpos($headerName, 'no') !== false && strpos($headerName, 'name') === false) {
+                $mappedHeader[$index] = 'skip'; // Skip row numbers
+                Log::info("Mapped to 'skip' (row number)");
             } else {
                 $mappedHeader[$index] = 'unknown_' . $index;
                 Log::info("Mapped to 'unknown_{$index}'");
@@ -200,6 +209,9 @@ class StudentsImport implements ToCollection
         }
         
         Log::info('Mapped headers:', $mappedHeader);
+        
+        // Apply position-based mapping for specific LMS systems
+        $this->applyPositionBasedMapping($mappedHeader, $this->currentSheet);
         
         // Reset statistics
         $this->created = 0;
@@ -215,8 +227,12 @@ class StudentsImport implements ToCollection
                 continue;
             }
             
-            // Skip rows that contain program names or categories instead of student data
+            // Skip rows that contain program names, categories, or summary data instead of student data
             $firstColumnValue = $rowArray[0] ?? '';
+            $rowText = strtoupper(implode(' ', array_filter($rowArray, function($cell) {
+                return !empty(trim($cell));
+            })));
+            
             if (is_string($firstColumnValue) && (
                 stripos($firstColumnValue, 'PHILOSOPHY') !== false ||
                 stripos($firstColumnValue, 'INTERNATIONAL') !== false ||
@@ -224,14 +240,33 @@ class StudentsImport implements ToCollection
                 stripos($firstColumnValue, 'PROGRAMME') !== false ||
                 stripos($firstColumnValue, 'DOCTOR') !== false ||
                 stripos($firstColumnValue, 'MASTER') !== false ||
-                stripos($firstColumnValue, 'BACHELOR') !== false
+                stripos($firstColumnValue, 'BACHELOR') !== false ||
+                stripos($firstColumnValue, 'TOTAL') !== false ||
+                stripos($firstColumnValue, 'FILE STATUS') !== false ||
+                stripos($firstColumnValue, 'SUMMARY') !== false ||
+                stripos($firstColumnValue, 'LEARNERS') !== false ||
+                stripos($firstColumnValue, 'STUDENTS') !== false ||
+                stripos($firstColumnValue, 'COUNT') !== false ||
+                stripos($firstColumnValue, 'STATISTICS') !== false
             )) {
-                Log::info("Skipping program/category row " . ($index + 1) . " - contains: " . $firstColumnValue);
+                Log::info("Skipping summary/program row " . ($index + 1) . " - contains: " . $firstColumnValue);
                 continue;
             }
             
-            Log::info("Processing row " . ($index + 1) . " with " . count($rowArray) . " columns");
-            Log::info("Row data:", $rowArray);
+            // Also skip rows that are clearly summary rows based on content
+            if (stripos($rowText, 'TOTAL LEARNERS') !== false ||
+                stripos($rowText, 'FILE STATUS') !== false ||
+                stripos($rowText, 'SUMMARY') !== false ||
+                stripos($rowText, 'STATISTICS') !== false ||
+                stripos($rowText, 'COUNT') !== false) {
+                Log::info("Skipping summary row " . ($index + 1) . " - contains summary text: " . $rowText);
+                continue;
+            }
+            
+            // Only log every 10th row to reduce overhead
+            if (($index + 1) % 10 === 0) {
+                Log::info("Processing row " . ($index + 1) . " with " . count($rowArray) . " columns");
+            }
 
                    // skip rows that don't match header column count
                    if (count($header) !== count($rowArray)) {
@@ -251,35 +286,7 @@ class StudentsImport implements ToCollection
             }
             Log::info("Combined data for row " . ($index + 1) . ":", $data);
 
-                   // Check if we have required fields (treat "-" as valid)
-                   // For certain sheet types, make IC and email optional
-                   $isResearchSheet = stripos($this->currentSheet, 'VIVA') !== false || 
-                                     stripos($this->currentSheet, 'RESEARCH') !== false ||
-                                     stripos($this->currentSheet, 'TVET') !== false;
-                   
-                   $hasName = !empty($data['name']) && $data['name'] !== '-';
-                   $hasIc = !empty($data['ic/passport']) && $data['ic/passport'] !== '-';
-                   $hasEmail = !empty($data['email']) && $data['email'] !== '-';
-                   
-                   if (!$hasName) {
-                       $this->addError("Missing required field 'name' for row " . ($index + 1), [
-                           'name' => $data['name'] ?? 'MISSING',
-                           'ic/passport' => $data['ic/passport'] ?? 'MISSING', 
-                           'email' => $data['email'] ?? 'MISSING'
-                       ]);
-                       continue;
-                   }
-                   
-                   // Generate default values for missing IC and email for all sheets
-                   if (!$hasIc) {
-                       $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
-                   }
-                   if (!$hasEmail) {
-                       $emailName = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $data['name']));
-                       $data['email'] = $emailName . '@olympia.edu.my';
-                   }
-
-            // Check if we have the required fields with flexible matching
+            // Check if we have required fields with flexible matching
             $hasName = false;
             $hasEmail = false;
             $hasIc = false;
@@ -297,14 +304,73 @@ class StudentsImport implements ToCollection
                 }
             }
             
-            if (!$hasName || !$hasEmail || !$hasIc) {
-                $this->addError('Missing required fields after flexible matching', [
-                    'hasName' => $hasName,
-                    'hasEmail' => $hasEmail,
-                    'hasIc' => $hasIc,
-                    'data' => $data
+            // Name is always required
+            if (!$hasName) {
+                $this->addError("Missing required field 'name' for row " . ($index + 1), [
+                    'name' => $data['name'] ?? 'MISSING',
+                    'ic/passport' => $data['ic/passport'] ?? 'MISSING', 
+                    'email' => $data['email'] ?? 'MISSING'
                 ]);
                 continue;
+            }
+            
+            // Additional validation: Skip rows that look like summary data or non-student data
+            $nameValue = $data['name'] ?? '';
+            if (stripos($nameValue, 'TOTAL') !== false ||
+                stripos($nameValue, 'LEARNERS') !== false ||
+                stripos($nameValue, 'STUDENTS') !== false ||
+                stripos($nameValue, 'SUMMARY') !== false ||
+                stripos($nameValue, 'COUNT') !== false ||
+                stripos($nameValue, 'STATISTICS') !== false ||
+                stripos($nameValue, 'FILE STATUS') !== false ||
+                stripos($nameValue, 'EMAIL') !== false ||
+                stripos($nameValue, 'ID STUDENT') !== false ||
+                stripos($nameValue, '=') !== false || // Skip formulas like =SUM(F3:F4)
+                is_numeric($nameValue) || // Skip pure numbers
+                strlen(trim($nameValue)) < 3) { // Skip very short names
+                Log::info("Skipping non-student row " . ($index + 1) . " - name: " . $nameValue);
+                continue;
+            }
+            
+            // Generate default values for missing IC and email
+            if (!$hasIc) {
+                // Only generate auto IC if we truly don't have an IC column
+                $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
+                Log::warning("Generated auto IC for student: " . $data['name'] . " - IC: " . $data['ic/passport']);
+            }
+            if (!$hasEmail) {
+                $emailName = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $data['name']));
+                $data['email'] = $emailName . '@olympia.edu.my';
+            }
+
+            // Additional validation for IC numbers - reject obviously fake ones
+            $icValue = $data['ic/passport'] ?? '';
+            if (!empty($icValue) && $icValue !== '-') {
+                // Check if IC looks like a real Malaysian IC (format: YYMMDD-XX-####)
+                $isValidMalaysianIC = preg_match('/^\d{6}-\d{2}-\d{4}$/', $icValue);
+                // Check if IC looks like a passport number (letters + numbers)
+                $isValidPassport = preg_match('/^[A-Z]{2}\d{7}$/', $icValue);
+                // Check if IC looks like a fake value (names, titles, etc.)
+                $isFakeIC = in_array(strtolower($icValue), ['en harris', 'miss shana', 'dato', 'dr', 'prof', 'mr', 'mrs', 'ms']) ||
+                           stripos($icValue, 'harris') !== false ||
+                           stripos($icValue, 'shana') !== false ||
+                           stripos($icValue, 'dato') !== false ||
+                           stripos($icValue, 'miss') !== false ||
+                           stripos($icValue, 'en ') !== false ||
+                           stripos($icValue, 'dr ') !== false ||
+                           stripos($icValue, 'prof') !== false;
+                
+                // For VIVA-IUC LMS, allow numeric IDs (like 45866)
+                $isNumericId = is_numeric($icValue) && strlen($icValue) >= 4;
+                
+                if ($isFakeIC) {
+                    Log::warning("Rejecting fake IC number: " . $icValue . " for student: " . $data['name']);
+                    $this->addError("Invalid IC number format: " . $icValue . " for student: " . $data['name'], $data);
+                    continue;
+                } elseif (!$isValidMalaysianIC && !$isValidPassport && !$isNumericId && !str_starts_with($icValue, 'X')) {
+                    // Log but don't reject - might be valid in some contexts
+                    Log::info("Non-standard IC format: " . $icValue . " for student: " . $data['name'] . " (sheet: " . $this->currentSheet . ")");
+                }
             }
 
             // Create validator for the extracted data
@@ -347,9 +413,23 @@ class StudentsImport implements ToCollection
             $dateOfCommencement = '';
             $colDate = '';
 
+            // Only log data structure for every 20th row to reduce overhead
+            if (($index + 1) % 20 === 0) {
+                Log::info("Extracting data from row " . ($index + 1), [
+                    'data_keys' => array_keys($data),
+                    'data_values' => array_values($data),
+                    'mapped_header' => $mappedHeader
+                ]);
+            }
+
             foreach ($data as $key => $value) {
                 $keyLower = strtolower(trim($key));
                 $value = trim($value);
+                
+                // Reduced logging for performance
+                if (($index + 1) % 20 === 0) {
+                    Log::info("Processing field: '{$key}' -> '{$value}' (keyLower: '{$keyLower}')");
+                }
                 
                 if (strpos($keyLower, 'name') !== false && empty($name)) {
                     $name = $value;
@@ -422,6 +502,21 @@ class StudentsImport implements ToCollection
                         $portalPassword = str_replace('Password:', '', $part);
                     }
                 }
+            }
+
+            // Only log final values for every 50th row to reduce overhead
+            if (($index + 1) % 50 === 0) {
+                Log::info("Final extracted values for row " . ($index + 1), [
+                    'name' => $name,
+                    'email' => $email,
+                    'ic' => $ic,
+                    'phone' => $phone,
+                    'address' => $address,
+                    'student_id' => $studentId,
+                    'programme_name' => $programmeName,
+                    'category' => $category,
+                    'source_sheet' => $this->currentSheet
+                ]);
             }
 
             try {
@@ -532,5 +627,83 @@ class StudentsImport implements ToCollection
     public function getErrorCount()
     {
         return $this->errorCount;
+    }
+    
+    /**
+     * Apply position-based mapping for specific LMS systems
+     * This handles cases where IC/Passport is in specific columns regardless of header text
+     */
+    private function applyPositionBasedMapping(&$mappedHeader, $sheetName)
+    {
+        // Define column mappings for different LMS systems
+        // Based on actual Excel structure analysis - ALL sheets have IC/Passport in Column C (index 2)
+        $lmsColumnMappings = [
+            'DHU LMS' => [
+                'ic_column' => 2, // Column C (0-indexed = 2)
+                'name_column' => 0, // Column A (0-indexed = 0)
+                'email_column' => 10, // Column K (0-indexed = 10)
+                'phone_column' => 9, // Column J (0-indexed = 9)
+                'address_column' => 1, // Column B (0-indexed = 1)
+            ],
+            'IUC LMS' => [
+                'ic_column' => 2, // Column C (0-indexed = 2)
+                'name_column' => 0, // Column A (0-indexed = 0)
+                'email_column' => 9, // Column J (0-indexed = 9)
+                'phone_column' => 8, // Column I (0-indexed = 8)
+                'address_column' => 1, // Column B (0-indexed = 1)
+            ],
+            'LUC LMS' => [
+                'ic_column' => 2, // Column C (0-indexed = 2)
+                'name_column' => 0, // Column A (0-indexed = 0)
+                'email_column' => 9, // Column J (0-indexed = 9)
+                'phone_column' => 8, // Column I (0-indexed = 8)
+                'address_column' => 1, // Column B (0-indexed = 1)
+            ],
+            'UPM LMS' => [
+                'ic_column' => 2, // Column C (0-indexed = 2)
+                'name_column' => 0, // Column A (0-indexed = 0)
+                'email_column' => 9, // Column J (0-indexed = 9)
+                'phone_column' => 8, // Column I (0-indexed = 8)
+                'address_column' => 1, // Column B (0-indexed = 1)
+            ]
+        ];
+        
+        // Check if we have a mapping for this sheet
+        if (isset($lmsColumnMappings[$sheetName])) {
+            $mapping = $lmsColumnMappings[$sheetName];
+            
+            Log::info("Applying position-based mapping for {$sheetName}", [
+                'mapping' => $mapping,
+                'current_mapped_headers' => $mappedHeader
+            ]);
+            
+            // Override specific column mappings based on position
+            if (isset($mapping['ic_column']) && isset($mappedHeader[$mapping['ic_column']])) {
+                $mappedHeader[$mapping['ic_column']] = 'ic/passport';
+                Log::info("Position-based IC mapping applied", [
+                    'sheet' => $sheetName,
+                    'column' => $mapping['ic_column'],
+                    'new_mapping' => 'ic/passport'
+                ]);
+            }
+            
+            if (isset($mapping['name_column']) && isset($mappedHeader[$mapping['name_column']])) {
+                $mappedHeader[$mapping['name_column']] = 'name';
+            }
+            
+            if (isset($mapping['email_column']) && isset($mappedHeader[$mapping['email_column']])) {
+                $mappedHeader[$mapping['email_column']] = 'email';
+            }
+            
+            if (isset($mapping['phone_column']) && isset($mappedHeader[$mapping['phone_column']])) {
+                $mappedHeader[$mapping['phone_column']] = 'contact no.';
+            }
+            
+            if (isset($mapping['address_column']) && isset($mappedHeader[$mapping['address_column']])) {
+                $mappedHeader[$mapping['address_column']] = 'address';
+            }
+            
+            Log::info("Updated mapped headers after position-based mapping:", $mappedHeader);
+        }
     }
 }

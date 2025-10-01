@@ -18,13 +18,13 @@ class AdminUserSeeder extends Seeder
         User::create([
             'name' => 'Admin User',
             'email' => 'admin@lms-olympia.com',
-            'password' => Hash::make('admin123'),
+            'password' => Hash::make('000000'),
             'role' => 'admin',
             'must_reset_password' => false,
         ]);
 
         $this->command->info('Admin user created successfully!');
         $this->command->info('Email: admin@lms-olympia.com');
-        $this->command->info('Password: admin123');
+        $this->command->info('Password: 000000');
     }
 }

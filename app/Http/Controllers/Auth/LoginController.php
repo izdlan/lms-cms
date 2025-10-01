@@ -17,49 +17,27 @@ class LoginController extends Controller
 
     public function login(Request $request)
     {
+        $request->validate([
+            'login_type' => 'required|in:student,lecturer,admin',
+            'password' => 'required|string',
+        ]);
+
         $loginType = $request->input('login_type');
         
-        // Debug: Check what's being submitted
-        if (empty($loginType)) {
-            return back()->withErrors([
-                'login_type' => 'Please select a login type.',
-            ])->withInput();
-        }
-        
-        // Validate based on login type
         if ($loginType === 'student') {
-            $request->validate([
-                'login_type' => 'required|in:student,staff,admin',
-                'ic' => 'required|string',
-                'password' => 'required|string',
-            ]);
             return $this->handleStudentLogin($request);
-        } elseif ($loginType === 'staff') {
-            // Debug: Log staff login attempt
-            \Log::info('Staff login attempt', [
-                'login_type' => $loginType,
-                'email' => $request->input('email'),
-                'has_email' => !empty($request->input('email'))
-            ]);
-            
-            $request->validate([
-                'login_type' => 'required|in:student,staff,admin',
-                'email' => 'required|email',
-                'password' => 'required|string',
-            ]);
-            return $this->handleStaffLogin($request);
-        } else {
-            $request->validate([
-                'login_type' => 'required|in:student,staff,admin',
-                'email' => 'required|email',
-                'password' => 'required|string',
-            ]);
+        } elseif ($loginType === 'lecturer') {
+            return $this->handleLecturerLogin($request);
+        } elseif ($loginType === 'admin') {
             return $this->handleAdminLogin($request);
         }
     }
 
     private function handleStudentLogin(Request $request)
     {
+        $request->validate([
+            'ic' => 'required|string',
+        ]);
 
         $credentials = [
             'ic' => $request->input('ic'),
@@ -83,31 +61,31 @@ class LoginController extends Controller
         ])->withInput($request->only('ic', 'login_type'));
     }
 
-    private function handleStaffLogin(Request $request)
+    private function handleLecturerLogin(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
 
-        $credentials = [
-            'email' => $request->input('email'),
-            'password' => $request->input('password'),
-        ];
+        // Find user by email and role
+        $user = User::where('email', $request->input('email'))
+                   ->where('role', 'lecturer')
+                   ->first();
 
-        // First try to authenticate with the default guard
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $user = Auth::user();
+        if ($user && Hash::check($request->input('password'), $user->password)) {
+            // Log in using staff guard
+            Auth::guard('staff')->login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
             
-            // Check if the user has staff role
-            if ($user->role === 'staff') {
-                // Keep using the default guard but store the role in session
-                $request->session()->put('user_role', 'staff');
-                $request->session()->regenerate();
-                return redirect()->intended(route('staff.dashboard'));
-            } else {
-                // User exists but doesn't have staff role
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Access denied. This account does not have staff privileges.',
-                ])->withInput($request->only('email', 'login_type'));
+            // Store user role in session
+            $request->session()->put('user_role', 'lecturer');
+            
+            // Check if password reset is required
+            if ($user->must_reset_password) {
+                return redirect()->route('staff.password.change');
             }
+            
+            return redirect()->intended(route('staff.dashboard'));
         }
 
         return back()->withErrors([
@@ -117,29 +95,29 @@ class LoginController extends Controller
 
     private function handleAdminLogin(Request $request)
     {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
 
-        $credentials = [
-            'email' => $request->input('email'),
-            'password' => $request->input('password'),
-        ];
+        // Find user by email and role
+        $user = User::where('email', $request->input('email'))
+                   ->where('role', 'admin')
+                   ->first();
 
-        // First try to authenticate with the default guard
-        if (Auth::attempt($credentials, $request->boolean('remember'))) {
-            $user = Auth::user();
+        if ($user && Hash::check($request->input('password'), $user->password)) {
+            // Log in using web guard
+            Auth::login($user, $request->boolean('remember'));
+            $request->session()->regenerate();
             
-            // Check if the user has admin role
-            if ($user->role === 'admin') {
-                // Keep using the default guard but store the role in session
-                $request->session()->put('user_role', 'admin');
-                $request->session()->regenerate();
-                return redirect()->intended(route('admin.dashboard'));
-            } else {
-                // User exists but doesn't have admin role
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'Access denied. This account does not have admin privileges.',
-                ])->withInput($request->only('email', 'login_type'));
+            // Store user role in session
+            $request->session()->put('user_role', 'admin');
+            
+            // Check if password reset is required
+            if ($user->must_reset_password) {
+                return redirect()->route('admin.password.change');
             }
+            
+            return redirect()->intended(route('admin.dashboard'));
         }
 
         return back()->withErrors([
@@ -154,8 +132,8 @@ class LoginController extends Controller
             Auth::guard('student')->logout();
         } elseif (Auth::guard('staff')->check()) {
             Auth::guard('staff')->logout();
-        } elseif (Auth::guard('admin')->check()) {
-            Auth::guard('admin')->logout();
+        } else {
+            Auth::logout();
         }
 
         $request->session()->invalidate();

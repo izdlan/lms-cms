@@ -19,7 +19,7 @@ class StudentSeeder extends Seeder
                 'ic' => '123456789012',
                 'name' => 'Ahmad Bin Ali',
                 'email' => 'ahmad.ali@example.com',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('000000'),
                 'phone' => '0123456789',
                 'role' => 'student',
                 'must_reset_password' => false,
@@ -28,7 +28,7 @@ class StudentSeeder extends Seeder
                 'ic' => '987654321098',
                 'name' => 'Siti Nurhaliza',
                 'email' => 'siti.nurhaliza@example.com',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('000000'),
                 'phone' => '0198765432',
                 'role' => 'student',
                 'must_reset_password' => false,
@@ -37,7 +37,7 @@ class StudentSeeder extends Seeder
                 'ic' => '112233445566',
                 'name' => 'Muhammad Rahman',
                 'email' => 'muhammad.rahman@example.com',
-                'password' => Hash::make('password123'),
+                'password' => Hash::make('000000'),
                 'phone' => '0134567890',
                 'role' => 'student',
                 'must_reset_password' => false,
@@ -50,8 +50,8 @@ class StudentSeeder extends Seeder
 
         $this->command->info('Student users created successfully!');
         $this->command->info('Student Login Credentials:');
-        $this->command->info('IC: 123456789012, Password: password123');
-        $this->command->info('IC: 987654321098, Password: password123');
-        $this->command->info('IC: 112233445566, Password: password123');
+        $this->command->info('IC: 123456789012, Password: 000000');
+        $this->command->info('IC: 987654321098, Password: 000000');
+        $this->command->info('IC: 112233445566, Password: 000000');
     }
 }

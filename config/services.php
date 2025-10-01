@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    'onedrive' => [
+        'excel_url' => env('ONEDRIVE_EXCEL_URL'),
+        'timeout' => env('ONEDRIVE_TIMEOUT', 30),
+    ],
+
+    'google_sheets' => [
+        'api_key' => env('GOOGLE_SHEETS_API_KEY'),
+        'spreadsheet_id' => env('GOOGLE_SHEETS_SPREADSHEET_ID'),
+        'credentials_path' => env('GOOGLE_SHEETS_CREDENTIALS_PATH'),
+    ],
+
 ];

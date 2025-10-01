@@ -15,47 +15,86 @@
         <!-- Right Side -->
         <div class="navbar-nav-right">
             @auth('student')
-                <!-- My Courses Dropdown -->
+                <!-- My Program Dropdown -->
                 <div class="dropdown courses-dropdown-right">
                     <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="fas fa-graduation-cap"></i>
-                        My Courses
+                        My Program
                     </button>
                     <ul class="dropdown-menu courses-dropdown-menu" aria-labelledby="coursesDropdown">
                         <li class="dropdown-header">
                             <i class="fas fa-graduation-cap"></i>
-                            My Courses
+                            My Program
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         @php
-                            // Get actual student courses from database
-                            $studentCourses = auth('student')->user()->courses ?? [];
+                            // Get EMBA program from database
+                            $embaProgram = \App\Models\Program::where('code', 'EMBA')->first();
                         @endphp
-                        @if(count($studentCourses) > 0)
-                            @foreach($studentCourses as $course)
-                                <li>
-                                    <a class="dropdown-item course-item" href="{{ route('course.summary', strtolower($course)) }}">
-                                        <div class="course-icon">
-                                            <i class="fas fa-graduation-cap"></i>
-                                        </div>
-                                        <span class="course-code">{{ $course }}</span>
-                                    </a>
-                                </li>
-                            @endforeach
-                        @else
-                            <li>
-                                <a class="dropdown-item text-muted" href="/maintenance">
-                                    <i class="fas fa-info-circle"></i>
-                                    No courses registered
+                        @if($embaProgram)
+                            <!-- Program Header -->
+                            <div class="program-header">
+                                <a class="dropdown-item program-item" href="{{ route('student.courses') }}">
+                                    <div class="program-icon">
+                                        <i class="fas fa-graduation-cap"></i>
+                                    </div>
+                                    <div class="program-info">
+                                        <div class="program-code">{{ $embaProgram->code }}</div>
+                                        <div class="program-name">{{ $embaProgram->name }}</div>
+                                    </div>
                                 </a>
-                            </li>
+                            </div>
+                            
+                            @if(isset($enrolledSubjects) && $enrolledSubjects->count() > 0)
+                                <!-- Subjects Header -->
+                                <div class="subjects-header">
+                                    <i class="fas fa-book"></i>
+                                    My Subjects ({{ $enrolledSubjects->count() }})
+                                </div>
+                                
+                                <!-- Subjects List -->
+               @foreach($enrolledSubjects as $enrollment)
+                   <a class="dropdown-item subject-item" href="{{ route('student.course.class', $enrollment->subject_code) }}">
+                       <div class="subject-icon">
+                           <i class="fas fa-book-open"></i>
+                       </div>
+                       <div class="subject-info">
+                           <span class="subject-code">{{ $enrollment->subject_code }}</span>
+                           <span class="subject-title">{{ $enrollment->subject ? $enrollment->subject->name : 'Unknown Subject' }}</span>
+                           <div class="lecturer-info">
+                               <i class="fas fa-user-tie"></i>
+                               {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }}
+                           </div>
+                           <div class="class-info">
+                               <i class="fas fa-chalkboard-teacher"></i>
+                               {{ $enrollment->class_code ?? 'TBA' }}
+                           </div>
+                       </div>
+                   </a>
+               @endforeach
+                            @else
+                                <div class="subjects-header">
+                                    <i class="fas fa-info-circle"></i>
+                                    No Subjects Enrolled
+                                </div>
+                                <div class="text-center p-4 text-muted">
+                                    <i class="fas fa-book-open fa-2x mb-2"></i>
+                                    <p>No subjects enrolled yet</p>
+                                </div>
+                            @endif
+                        @else
+                            <div class="program-header">
+                                <div class="text-center text-white">
+                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                                    <p class="mb-0">No program available</p>
+                                </div>
+                            </div>
                         @endif
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-center" href="{{ route('student.courses') }}">
-                                <i class="fas fa-eye"></i> View All Courses
-                            </a>
-                        </li>
+                        
+                        <!-- View All Button -->
+                        <a class="view-all-btn" href="{{ route('student.courses') }}">
+                            <i class="fas fa-eye"></i> View All Subjects
+                        </a>
                     </ul>
                 </div>
 

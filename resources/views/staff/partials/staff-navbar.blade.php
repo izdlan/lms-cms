@@ -15,59 +15,6 @@
         <!-- Right Side -->
         <div class="navbar-nav-right">
             @auth
-                <!-- My Courses Dropdown -->
-                <div class="dropdown courses-dropdown-right">
-                    <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="fas fa-graduation-cap"></i>
-                        Manage Courses
-                    </button>
-                    <ul class="dropdown-menu courses-dropdown-menu" aria-labelledby="coursesDropdown">
-                        <li class="dropdown-header">
-                            <i class="fas fa-graduation-cap"></i>
-                            Course Management
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item course-item" href="{{ route('staff.courses') }}">
-                                <div class="course-icon">
-                                    <i class="fas fa-book-open"></i>
-                                </div>
-                                <span class="course-code">All Courses</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item course-item" href="{{ route('staff.announcements') }}">
-                                <div class="course-icon">
-                                    <i class="fas fa-bullhorn"></i>
-                                </div>
-                                <span class="course-code">Announcements</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item course-item" href="{{ route('staff.contents') }}">
-                                <div class="course-icon">
-                                    <i class="fas fa-file-alt"></i>
-                                </div>
-                                <span class="course-code">Course Contents</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item course-item" href="{{ route('staff.assignments') }}">
-                                <div class="course-icon">
-                                    <i class="fas fa-tasks"></i>
-                                </div>
-                                <span class="course-code">Assignments</span>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-center" href="{{ route('staff.courses') }}">
-                                <i class="fas fa-eye"></i> View All Courses
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-
                 <!-- Staff Profile Dropdown -->
                 <div class="dropdown">
                     <button class="btn btn-outline-primary dropdown-toggle staff-profile-btn" type="button" id="staffDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -76,7 +23,7 @@
                                 <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="Profile" class="profile-pic-nav">
                             @else
                                 <div class="profile-pic-placeholder-nav">
-                                    <i class="fas fa-user-tie"></i>
+                                    <i class="fas fa-user"></i>
                                 </div>
                             @endif
                             <span class="staff-name">{{ auth()->user()->name }}</span>
