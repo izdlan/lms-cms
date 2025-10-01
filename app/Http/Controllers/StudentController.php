@@ -178,6 +178,22 @@ class StudentController extends Controller
             ->orderBy('published_at', 'desc')
             ->get();
 
+        // Get assignments for this subject and class
+        $assignments = Assignment::where('subject_code', $subjectCode)
+            ->where('class_code', $enrollment->class_code)
+            ->where('status', 'published')
+            ->with(['subject', 'classSchedule', 'lecturer'])
+            ->orderBy('available_from', 'asc')
+            ->get();
+
+        // Get student's submissions for these assignments
+        $assignmentIds = $assignments->pluck('id');
+        $submissions = AssignmentSubmission::where('user_id', $user->id)
+            ->whereIn('assignment_id', $assignmentIds)
+            ->with('assignment')
+            ->get()
+            ->keyBy('assignment_id');
+
         // Format data for the view
         $subjectDetails = [
             'name' => $subject->name,
@@ -200,7 +216,7 @@ class StudentController extends Controller
         ];
 
 
-        return view('student.course-class', compact('user', 'enrolledSubjects', 'enrollment', 'subjectDetails', 'announcements', 'courseContents', 'courseMaterials'));
+        return view('student.course-class', compact('user', 'enrolledSubjects', 'enrollment', 'subjectDetails', 'announcements', 'courseContents', 'courseMaterials', 'assignments', 'submissions'));
     }
 
     /**

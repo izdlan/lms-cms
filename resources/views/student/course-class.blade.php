@@ -269,7 +269,102 @@
                                 <h5><i class="fas fa-tasks me-2"></i>Assignments</h5>
                             </div>
                             <div class="card-body">
-                                <p class="text-muted">No assignments available yet.</p>
+                                @if($assignments->count() > 0)
+                                    <div class="row">
+                                        @foreach($assignments as $assignment)
+                                            @php
+                                                $submission = $submissions->get($assignment->id);
+                                                $isOverdue = $assignment->due_date < now() && !$submission;
+                                                $isSubmitted = $submission && $submission->status === 'submitted';
+                                                $isGraded = $submission && $submission->status === 'graded';
+                                                $isAvailable = $assignment->isAvailableForSubmission();
+                                                $isNotYetAvailable = $assignment->available_from > now();
+                                                $isPastDue = $assignment->due_date < now() && !$assignment->allow_late_submission;
+                                            @endphp
+                                            
+                                            <div class="col-md-6 mb-4">
+                                                <div class="card h-100 {{ $isOverdue ? 'border-danger' : ($isGraded ? 'border-success' : '') }}">
+                                                    <div class="card-header d-flex justify-content-between align-items-center">
+                                                        <h6 class="card-title mb-0">{{ $assignment->title }}</h6>
+                                                        <span class="badge bg-{{ $isGraded ? 'success' : ($isSubmitted ? 'info' : ($isOverdue ? 'danger' : ($isNotYetAvailable ? 'secondary' : 'warning'))) }}">
+                                                            @if($isGraded)
+                                                                Graded
+                                                            @elseif($isSubmitted)
+                                                                Submitted
+                                                            @elseif($isOverdue)
+                                                                Overdue
+                                                            @elseif($isNotYetAvailable)
+                                                                Not Yet Available
+                                                            @else
+                                                                Available
+                                                            @endif
+                                                        </span>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <p class="card-text">{{ Str::limit($assignment->description, 100) }}</p>
+                                                        
+                                                        <div class="row mb-2">
+                                                            <div class="col-6">
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-calendar"></i> Due: {{ $assignment->due_date->format('M d, Y H:i') }}
+                                                                </small>
+                                                            </div>
+                                                            <div class="col-6">
+                                                                <small class="text-muted">
+                                                                    <i class="fas fa-star"></i> {{ $assignment->total_marks }} marks
+                                                                </small>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        @if($isNotYetAvailable)
+                                                            <div class="alert alert-info mb-2">
+                                                                <small>
+                                                                    <i class="fas fa-clock"></i> 
+                                                                    Available from: {{ $assignment->available_from->format('M d, Y H:i') }}
+                                                                </small>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                    <div class="card-footer">
+                                                        <div class="d-flex justify-content-between">
+                                                            <button class="btn btn-sm btn-outline-primary" onclick="viewAssignmentDetails({{ $assignment->id }})">
+                                                                <i class="fas fa-eye"></i> View Details
+                                                            </button>
+                                                            
+                                                            @if($isNotYetAvailable)
+                                                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                                    <i class="fas fa-clock"></i> Not Yet Available
+                                                                </button>
+                                                            @elseif($isAvailable && !$isSubmitted)
+                                                                <button class="btn btn-sm btn-primary" onclick="submitAssignment({{ $assignment->id }})">
+                                                                    <i class="fas fa-upload"></i> Submit
+                                                                </button>
+                                                            @elseif($isSubmitted && !$isGraded)
+                                                                <button class="btn btn-sm btn-secondary" disabled>
+                                                                    <i class="fas fa-clock"></i> Submitted
+                                                                </button>
+                                                            @elseif($isGraded)
+                                                                <button class="btn btn-sm btn-success" onclick="viewAssignmentDetails({{ $assignment->id }})">
+                                                                    <i class="fas fa-eye"></i> View Grade
+                                                                </button>
+                                                            @else
+                                                                <button class="btn btn-sm btn-outline-secondary" disabled>
+                                                                    <i class="fas fa-lock"></i> Not Available
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <div class="text-center py-4">
+                                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                        <h4 class="text-muted">No Assignments Available</h4>
+                                        <p class="text-muted">You don't have any assignments yet. Check back later or contact your lecturer.</p>
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
