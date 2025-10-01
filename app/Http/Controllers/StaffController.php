@@ -489,8 +489,8 @@ class StaffController extends Controller
         ]);
 
         $submission = AssignmentSubmission::where('id', $submissionId)
-            ->whereHas('assignment', function($query) use ($lecturer) {
-                $query->where('lecturer_id', $lecturer->id);
+            ->whereHas('assignment', function($query) use ($user) {
+                $query->where('lecturer_id', $user->id);
             })
             ->first();
 
@@ -503,7 +503,7 @@ class StaffController extends Controller
             'feedback' => $request->feedback,
             'status' => 'graded',
             'graded_at' => now(),
-            'graded_by' => $lecturer->id
+            'graded_by' => $user->id
         ]);
 
         return response()->json([
