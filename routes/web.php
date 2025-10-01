@@ -449,3 +449,11 @@ Route::post('/test-onedrive-import', function() {
         ], 500);
     }
 });
+
+// Maintenance route - catch all URLs with # and redirect to maintenance page
+Route::get('/{any}', function ($any) {
+    if (strpos($any, '#') !== false) {
+        return view('maintenance');
+    }
+    abort(404);
+})->where('any', '.*');
