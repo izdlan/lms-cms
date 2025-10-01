@@ -432,26 +432,25 @@ function showSubmissionFilesModal(submission) {
                             </div>
                             <div class="col-md-8">
                                 <h6>Submitted Files (PDF)</h6>
-                                ${submission.attachments && submission.attachments.length > 0 ? `
-                                    <div class="list-group">
-                                        ${submission.attachments.map((file, index) => `
-                                            <div class="list-group-item d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <i class="fas fa-file-pdf text-danger"></i> ${file.original_name}
-                                                    <small class="text-muted d-block">${(file.file_size / 1024).toFixed(1)} KB</small>
-                                                </div>
-                                                <div>
-                                                    <button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab('${file.file_path}')">
-                                                        <i class="fas fa-external-link-alt"></i> View
-                                                    </button>
-                                                    <a href="/staff/assignments/submissions/download/${submission.id}/${index}" class="btn btn-sm btn-outline-success" target="_blank">
-                                                        <i class="fas fa-download"></i> Download
-                                                    </a>
-                        </div>
-                    </div>
-                                        `).join('')}
-                                </div>
-                                ` : '<p class="text-muted">No files submitted.</p>'}
+                                ${submission.attachments && submission.attachments.length > 0 ? 
+                                    '<div class="list-group">' +
+                                        submission.attachments.map((file, index) => 
+                                            '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                                '<div>' +
+                                                    '<i class="fas fa-file-pdf text-danger"></i> ' + file.original_name +
+                                                    '<small class="text-muted d-block">' + (file.file_size / 1024).toFixed(1) + ' KB</small>' +
+                                                '</div>' +
+                                                '<div>' +
+                                                    '<button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab(\'' + file.file_path + '\')">' +
+                                                        '<i class="fas fa-external-link-alt"></i> View' +
+                                                    '</button>' +
+                                                    '<a href="/staff/assignments/submissions/download/' + submission.id + '/' + index + '" class="btn btn-sm btn-outline-success" target="_blank">' +
+                                                        '<i class="fas fa-download"></i> Download' +
+                                                    '</a>' +
+                                                '</div>' +
+                                            '</div>'
+                                        ).join('') +
+                                    '</div>' : '<p class="text-muted">No files submitted.</p>'}
                             </div>
                         </div>
                     </div>
@@ -482,7 +481,7 @@ function showSubmissionFilesModal(submission) {
 
 // View PDF in new tab
 function viewPdfInNewTab(filePath) {
-    window.open(`/storage/${filePath}`, '_blank');
+    window.open('/storage/' + filePath, '_blank');
 }
 
 // Enhanced grading function

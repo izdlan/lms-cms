@@ -572,29 +572,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const classSelectionModal = new bootstrap.Modal(document.getElementById('classSelectionModal'));
     
     // Subject classes data from backend
-    const subjectClasses = {
-        @foreach($subjects as $subject)
-        '{{ $subject->code }}': [
-            @foreach($subject->classSchedules->where('lecturer_id', $lecturer->id) as $class)
-            { 
-                classCode: '{{ $class->class_code }}', 
-                className: '{{ $class->class_name }}',
-                description: '{{ $class->description }}',
-                venue: '{{ $class->venue }}',
-                dayOfWeek: '{{ $class->day_of_week }}',
-                startTime: '{{ $class->start_time }}',
-                endTime: '{{ $class->end_time }}'
-            },
-            @endforeach
-        ],
-        @endforeach
-    };
+    const subjectClasses = {!! json_encode($subjects->mapWithKeys(function($subject) use ($lecturer) {
+        return [
+            $subject->code => $subject->classSchedules->where('lecturer_id', $lecturer->id)->map(function($class) {
+                return [
+                    'classCode' => $class->class_code,
+                    'className' => $class->class_name,
+                    'description' => $class->description,
+                    'venue' => $class->venue,
+                    'dayOfWeek' => $class->day_of_week,
+                    'startTime' => $class->start_time,
+                    'endTime' => $class->end_time
+                ];
+            })->values()->toArray()
+        ];
+    })) !!};
     
-    const subjectNames = {
-        @foreach($subjects as $subject)
-        '{{ $subject->code }}': '{{ $subject->name }}',
-        @endforeach
-    };
+    const subjectNames = {!! json_encode($subjects->pluck('name', 'code')) !!};
     
     selectCourseBtns.forEach(btn => {
         btn.addEventListener('click', function() {

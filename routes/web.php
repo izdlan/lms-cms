@@ -295,11 +295,6 @@ Route::prefix('admin')->group(function () {
             return redirect()->route('admin.dashboard')->with('success', 'Password changed successfully!');
         })->name('admin.password.change.submit');
         
-        // Subject Images Management
-        Route::get('/subjects', [App\Http\Controllers\AdminController::class, 'subjects'])->name('admin.subjects');
-        Route::post('/subjects/{subject}/upload-image', [App\Http\Controllers\AdminController::class, 'uploadSubjectImage'])->name('admin.subjects.upload-image');
-        Route::delete('/subjects/{subject}/remove-image', [App\Http\Controllers\AdminController::class, 'removeSubjectImage'])->name('admin.subjects.remove-image');
-        
         // Home Page Content Management
         Route::prefix('home-page')->group(function () {
             Route::get('/', [App\Http\Controllers\AdminContentController::class, 'homePageIndex'])->name('admin.home-page.index');

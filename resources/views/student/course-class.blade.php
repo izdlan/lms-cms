@@ -240,7 +240,7 @@
                                                                         <i class="fas fa-external-link-alt me-1"></i>Open
                                                                     </a>
                                                                 @else
-                                                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadMaterial({{ $material->id }}, '{{ $material->title }}')">
+                                                                    <button class="btn btn-sm btn-outline-primary" onclick="downloadMaterial({{ $material->id }}, '{{ addslashes($material->title) }}')">
                                                                         <i class="fas fa-download me-1"></i>Download
                                                                     </button>
                                                                 @endif
@@ -711,14 +711,14 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <div class="mb-3">
                                     <strong>Assignment Files:</strong>
                                     <ul class="list-group">
-                                        ${assignment.attachments.map((file, index) => `
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                <span><i class="fas fa-file-pdf text-danger"></i> ${file.original_name}</span>
-                                                <a href="/student/assignments/download/${assignment.id}/${index}" class="btn btn-sm btn-outline-primary" target="_blank">
-                                                    <i class="fas fa-download"></i> Download
-                                                </a>
-                                            </li>
-                                        `).join('')}
+                                        ${assignment.attachments.map((file, index) => 
+                                            '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                                                '<span><i class="fas fa-file-pdf text-danger"></i> ' + file.original_name + '</span>' +
+                                                '<a href="/student/assignments/download/' + assignment.id + '/' + index + '" class="btn btn-sm btn-outline-primary" target="_blank">' +
+                                                    '<i class="fas fa-download"></i> Download' +
+                                                '</a>' +
+                                            '</li>'
+                                        ).join('')}
                                     </ul>
                                 </div>
                             ` : ''}

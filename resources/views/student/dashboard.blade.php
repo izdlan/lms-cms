@@ -70,10 +70,8 @@
                                 @foreach($enrolledSubjects as $enrollment)
                                     <div class="col-md-6 col-lg-4 mb-3">
                                         <div class="course-card">
-                                            <div class="course-image" style="background-image: url('{{ $enrollment->subject && $enrollment->subject->image ? asset('storage/' . $enrollment->subject->image) : '' }}');">
-                                                @if(!$enrollment->subject || !$enrollment->subject->image)
-                                                    <i class="fas fa-book"></i>
-                                                @endif
+                                            <div class="course-image">
+                                                <i class="fas fa-book"></i>
                                             </div>
                                             <div class="course-content">
                                                 <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : '-' }}</h6>
