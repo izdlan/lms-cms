@@ -18,9 +18,9 @@
                     <label for="categoryFilter" class="form-label">Filter by Category:</label>
                     <select class="form-select" id="categoryFilter">
                         <option value="">All Categories</option>
-                        <option value="Academic">Academic</option>
-                        <option value="Events">Events</option>
-                        <option value="Financial">Financial</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category }}">{{ ucfirst($category) }}</option>
+                        @endforeach
                     </select>
                 </div>
             </div>
@@ -34,34 +34,34 @@
 
         <!-- Announcements List -->
         <div class="announcements-list">
-            @foreach($announcements as $announcement)
-            <div class="announcement-card" data-category="{{ $announcement['category'] }}" data-title="{{ strtolower($announcement['title']) }}" data-content="{{ strtolower($announcement['content']) }}">
+            @forelse($announcements as $announcement)
+            <div class="announcement-card" data-category="{{ $announcement->category }}" data-title="{{ strtolower($announcement->title) }}" data-content="{{ strtolower($announcement->content) }}">
                 <!-- Poster Image Section -->
-                @if($announcement['has_poster'] && $announcement['poster'])
+                @if($announcement->image_url)
                 <div class="announcement-poster">
-                    <a href="{{ route('announcements.show', $announcement['id']) }}">
-                        <img src="{{ $announcement['poster'] }}" alt="{{ $announcement['title'] }}" class="poster-image">
+                    <a href="{{ route('announcements.show', $announcement->id) }}">
+                        <img src="{{ $announcement->image_url }}" alt="{{ $announcement->title }}" class="poster-image">
                     </a>
                 </div>
                 @endif
                 
                 <div class="announcement-header">
                     <div class="announcement-meta">
-                        <span class="announcement-category badge badge-{{ $announcement['priority'] === 'high' ? 'danger' : ($announcement['priority'] === 'medium' ? 'warning' : 'info') }}">
-                            {{ $announcement['category'] }}
+                        <span class="announcement-category badge badge-{{ $announcement->priority === 'high' ? 'danger' : ($announcement->priority === 'medium' ? 'warning' : 'info') }}">
+                            {{ ucfirst($announcement->category) }}
                         </span>
                         <span class="announcement-date">
                             <i class="fas fa-calendar-alt me-1"></i>
-                            {{ date('M d, Y', strtotime($announcement['date'])) }}
+                            {{ $announcement->published_at->format('M d, Y') }}
                         </span>
                     </div>
                     <div class="announcement-priority">
-                        @if($announcement['priority'] === 'high')
+                        @if($announcement->priority === 'high')
                             <span class="priority-badge high">
                                 <i class="fas fa-exclamation-triangle"></i>
                                 High Priority
                             </span>
-                        @elseif($announcement['priority'] === 'medium')
+                        @elseif($announcement->priority === 'medium')
                             <span class="priority-badge medium">
                                 <i class="fas fa-info-circle"></i>
                                 Medium Priority
@@ -77,26 +77,39 @@
                 
                 <div class="announcement-body">
                     <h3 class="announcement-title">
-                        <a href="{{ route('announcements.show', $announcement['id']) }}">
-                            {{ $announcement['title'] }}
+                        <a href="{{ route('announcements.show', $announcement->id) }}">
+                            {{ $announcement->title }}
                         </a>
                     </h3>
                     <p class="announcement-content">
-                        {{ Str::limit($announcement['content'], 150) }}
+                        {{ Str::limit(strip_tags($announcement->content), 150) }}
                     </p>
                     <div class="announcement-footer">
                         <div class="announcement-author">
                             <i class="fas fa-user me-1"></i>
-                            {{ $announcement['author'] }}
+                            {{ $announcement->admin->name }}
                         </div>
-                        <a href="{{ route('announcements.show', $announcement['id']) }}" class="read-more-btn">
+                        <a href="{{ route('announcements.show', $announcement->id) }}" class="read-more-btn">
                             Read More <i class="fas fa-arrow-right ms-1"></i>
                         </a>
                     </div>
                 </div>
             </div>
-            @endforeach
+            @empty
+            <div class="no-announcements text-center py-5">
+                <i class="fas fa-bullhorn fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No announcements found</h4>
+                <p class="text-muted">Check back later for updates.</p>
+            </div>
+            @endforelse
         </div>
+
+        <!-- Pagination -->
+        @if($announcements->hasPages())
+        <div class="pagination-wrapper mt-5">
+            {{ $announcements->links() }}
+        </div>
+        @endif
 
         <!-- No Results Message -->
         <div class="no-results" style="display: none;">

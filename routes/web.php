@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AutomationController;
@@ -13,7 +15,9 @@ Route::get('/maintenance', function () {
 
 // Main routes - show home page
 Route::get('/', function () {
-    return view('home');
+    $homePageContents = \App\Models\HomePageContent::active()->ordered()->get();
+    $announcements = \App\Models\PublicAnnouncement::active()->published()->featured()->latest()->take(3)->get();
+    return view('home', compact('homePageContents', 'announcements'));
 });
 
 Route::get('/classes', function () {
@@ -26,8 +30,15 @@ Route::get('/professional-demo', function () {
 })->name('professional.demo');
 
 // Announcements routes
-Route::get('/announcements', [App\Http\Controllers\AnnouncementController::class, 'index'])->name('announcements.index');
-Route::get('/announcements/{id}', [App\Http\Controllers\AnnouncementController::class, 'show'])->name('announcements.show');
+Route::get('/announcements', function() {
+    $announcements = \App\Models\PublicAnnouncement::active()->published()->latest()->paginate(10);
+    $categories = \App\Models\PublicAnnouncement::active()->published()->distinct()->pluck('category');
+    return view('announcements.index', compact('announcements', 'categories'));
+})->name('announcements.index');
+Route::get('/announcements/{id}', function($id) {
+    $announcement = \App\Models\PublicAnnouncement::active()->published()->findOrFail($id);
+    return view('announcements.show', compact('announcement'));
+})->name('announcements.show');
 
 // Bootstrap test route
 Route::get('/test-bootstrap', function () {
@@ -260,6 +271,120 @@ Route::prefix('admin')->group(function () {
                 ]);
             }
         })->name('admin.debug.test-edit');
+        
+        // Password change route
+        Route::get('/password/change', function() {
+            return view('admin.password-change');
+        })->name('admin.password.change');
+        Route::post('/password/change', function(Request $request) {
+            $request->validate([
+                'current_password' => 'required',
+                'password' => 'required|min:6|confirmed',
+            ]);
+            
+            $user = auth()->user();
+            if (!Hash::check($request->current_password, $user->password)) {
+                return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+            }
+            
+            $user->update([
+                'password' => Hash::make($request->password),
+                'must_reset_password' => false
+            ]);
+            
+            return redirect()->route('admin.dashboard')->with('success', 'Password changed successfully!');
+        })->name('admin.password.change.submit');
+        
+        // Home Page Content Management
+        Route::prefix('home-page')->group(function () {
+            Route::get('/', [App\Http\Controllers\AdminContentController::class, 'homePageIndex'])->name('admin.home-page.index');
+            Route::get('/create', [App\Http\Controllers\AdminContentController::class, 'homePageCreate'])->name('admin.home-page.create');
+            Route::post('/', [App\Http\Controllers\AdminContentController::class, 'homePageStore'])->name('admin.home-page.store');
+            Route::get('/{content}/edit', [App\Http\Controllers\AdminContentController::class, 'homePageEdit'])->name('admin.home-page.edit');
+            Route::put('/{content}', [App\Http\Controllers\AdminContentController::class, 'homePageUpdate'])->name('admin.home-page.update');
+            Route::delete('/{content}', [App\Http\Controllers\AdminContentController::class, 'homePageDestroy'])->name('admin.home-page.destroy');
+        });
+        
+        // Public Announcements Management
+        Route::prefix('announcements')->group(function () {
+            Route::get('/', [App\Http\Controllers\AdminContentController::class, 'announcementsIndex'])->name('admin.announcements.index');
+            Route::get('/preview', function() {
+                $announcements = \App\Models\PublicAnnouncement::active()->published()->latest()->paginate(10);
+                $categories = \App\Models\PublicAnnouncement::active()->published()->distinct()->pluck('category');
+                return view('admin.announcements.admin-announcements', compact('announcements', 'categories'));
+            })->name('admin.announcements.preview');
+            Route::get('/create', [App\Http\Controllers\AdminContentController::class, 'announcementsCreate'])->name('admin.announcements.create');
+            Route::post('/', [App\Http\Controllers\AdminContentController::class, 'announcementsStore'])->name('admin.announcements.store');
+            Route::get('/{announcement}/edit', [App\Http\Controllers\AdminContentController::class, 'announcementsEdit'])->name('admin.announcements.edit');
+            Route::put('/{announcement}', [App\Http\Controllers\AdminContentController::class, 'announcementsUpdate'])->name('admin.announcements.update');
+            Route::delete('/{announcement}', [App\Http\Controllers\AdminContentController::class, 'announcementsDestroy'])->name('admin.announcements.destroy');
+        });
+        
+        // Home Page Preview
+        Route::get('/home-page/preview', function() {
+            $homePageContents = \App\Models\HomePageContent::active()->ordered()->get();
+            $announcements = \App\Models\PublicAnnouncement::active()->published()->featured()->latest()->take(3)->get();
+            return view('admin.home-page.admin-home', compact('homePageContents', 'announcements'));
+        })->name('admin.home-page.preview');
+        
+        // Gallery Management
+        Route::post('/gallery/update', function(Request $request) {
+            $request->validate([
+                'images' => 'required|array',
+                'images.*' => 'url'
+            ]);
+            
+            $gallerySection = \App\Models\HomePageContent::where('section_name', 'gallery')->first();
+            
+            if (!$gallerySection) {
+                $gallerySection = \App\Models\HomePageContent::create([
+                    'section_name' => 'gallery',
+                    'title' => 'Gallery',
+                    'content' => '',
+                    'metadata' => json_encode(['images' => $request->images]),
+                    'sort_order' => 2,
+                    'is_active' => true,
+                    'admin_id' => auth()->id()
+                ]);
+            } else {
+                $gallerySection->update([
+                    'metadata' => json_encode(['images' => $request->images])
+                ]);
+            }
+            
+            return response()->json(['success' => true, 'message' => 'Gallery updated successfully']);
+        })->name('admin.gallery.update');
+        
+        // Hero Section Management
+        Route::post('/hero/update', function(Request $request) {
+            $request->validate([
+                'title' => 'required|string|max:255',
+                'content' => 'required|string',
+                'image_url' => 'required|url'
+            ]);
+            
+            $heroSection = \App\Models\HomePageContent::where('section_name', 'hero')->first();
+            
+            if (!$heroSection) {
+                $heroSection = \App\Models\HomePageContent::create([
+                    'section_name' => 'hero',
+                    'title' => $request->title,
+                    'content' => $request->content,
+                    'image_url' => $request->image_url,
+                    'sort_order' => 1,
+                    'is_active' => true,
+                    'admin_id' => auth()->id()
+                ]);
+            } else {
+                $heroSection->update([
+                    'title' => $request->title,
+                    'content' => $request->content,
+                    'image_url' => $request->image_url
+                ]);
+            }
+            
+            return response()->json(['success' => true, 'message' => 'Hero section updated successfully']);
+        })->name('admin.hero.update');
     });
 });
 
@@ -471,3 +596,4 @@ Route::get('/{any}', function ($any) {
     }
     abort(404);
 })->where('any', '.*');
+
