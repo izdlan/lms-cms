@@ -136,7 +136,7 @@ class LecturerSubjectAssignmentSeeder extends Seeder
                 $user = User::create([
                     'name' => $lecturerData['name'],
                     'email' => $lecturerData['email'],
-                    'password' => Hash::make('lecturer123'), // Default password
+                    'password' => Hash::make('000000'), // Default password
                     'role' => 'lecturer',
                     'phone' => '+6012345678' . $index, // Unique phone numbers
                     'must_reset_password' => true,
@@ -206,7 +206,7 @@ class LecturerSubjectAssignmentSeeder extends Seeder
         }
 
         $this->command->info("\n✅ Successfully created 12 lecturers and assigned them to subjects!");
-        $this->command->info("Default password for all lecturers: lecturer123");
+        $this->command->info("Default password for all lecturers: 000000");
         $this->command->info("All lecturers are required to change their password on first login.");
     }
 }
