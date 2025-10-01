@@ -333,7 +333,9 @@ class StaffController extends Controller
             'type' => 'required|in:individual,group',
             'instructions' => 'nullable|string',
             'allow_late_submission' => 'boolean',
-            'late_penalty_percentage' => 'nullable|integer|min:0|max:100'
+            'late_penalty_percentage' => 'nullable|integer|min:0|max:100',
+            'assignment_files' => 'nullable|array',
+            'assignment_files.*' => 'file|mimes:pdf|max:10240' // 10MB max per file
         ]);
 
         // Verify the class belongs to this lecturer
@@ -343,6 +345,20 @@ class StaffController extends Controller
 
         if (!$classSchedule) {
             return response()->json(['error' => 'Class not found or access denied'], 404);
+        }
+
+        // Handle file uploads
+        $attachments = [];
+        if ($request->hasFile('assignment_files')) {
+            foreach ($request->file('assignment_files') as $file) {
+                $path = $file->store('assignment-files', 'public');
+                $attachments[] = [
+                    'original_name' => $file->getClientOriginalName(),
+                    'file_path' => $path,
+                    'file_size' => $file->getSize(),
+                    'mime_type' => $file->getMimeType()
+                ];
+            }
         }
 
         $assignment = Assignment::create([
@@ -359,6 +375,7 @@ class StaffController extends Controller
             'instructions' => $request->instructions,
             'allow_late_submission' => $request->boolean('allow_late_submission'),
             'late_penalty_percentage' => $request->late_penalty_percentage ?? 0,
+            'attachments' => $attachments,
             'status' => 'draft'
         ]);
 

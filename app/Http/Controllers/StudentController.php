@@ -268,7 +268,7 @@ class StudentController extends Controller
             ->whereIn('class_code', $classCodes)
             ->where('status', 'published')
             ->with(['subject', 'classSchedule', 'lecturer'])
-            ->orderBy('due_date', 'asc')
+            ->orderBy('available_from', 'asc')
             ->get();
 
         // Get student's submissions
@@ -307,8 +307,8 @@ class StudentController extends Controller
 
         $request->validate([
             'submission_text' => 'nullable|string',
-            'attachments' => 'nullable|array',
-            'attachments.*' => 'file|max:10240' // 10MB max per file
+            'attachments' => 'required|array|min:1',
+            'attachments.*' => 'file|mimes:pdf|max:10240' // PDF only, 10MB max per file
         ]);
 
         // Check if already submitted
@@ -385,6 +385,40 @@ class StudentController extends Controller
             'assignment' => $assignment,
             'submission' => $submission
         ]);
+    }
+
+    public function downloadAssignmentFile($assignmentId, $fileIndex)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return redirect()->route('login')->with('error', 'Unauthorized');
+        }
+
+        $assignment = Assignment::findOrFail($assignmentId);
+        
+        // Check if student is enrolled in this assignment's class
+        $enrollment = $user->enrolledSubjects()
+            ->where('subject_code', $assignment->subject_code)
+            ->where('class_code', $assignment->class_code)
+            ->where('status', 'enrolled')
+            ->first();
+
+        if (!$enrollment) {
+            return redirect()->back()->with('error', 'You are not enrolled in this course.');
+        }
+
+        if (!$assignment->attachments || !isset($assignment->attachments[$fileIndex])) {
+            return redirect()->back()->with('error', 'File not found.');
+        }
+
+        $file = $assignment->attachments[$fileIndex];
+        $filePath = storage_path('app/public/' . $file['file_path']);
+
+        if (!file_exists($filePath)) {
+            return redirect()->back()->with('error', 'File not found on server.');
+        }
+
+        return response()->download($filePath, $file['original_name']);
     }
 
     /**

@@ -73,6 +73,7 @@ Route::prefix('student')->group(function () {
         Route::get('/payment', [App\Http\Controllers\StudentController::class, 'payment'])->name('student.payment');
         Route::get('/receipt', [App\Http\Controllers\StudentController::class, 'receipt'])->name('student.receipt');
         Route::get('/materials/download/{id}', [App\Http\Controllers\StudentController::class, 'downloadMaterial'])->name('student.materials.download');
+        Route::get('/assignments/download/{assignmentId}/{fileIndex}', [App\Http\Controllers\StudentController::class, 'downloadAssignmentFile'])->name('student.assignments.download');
     });
 });
 

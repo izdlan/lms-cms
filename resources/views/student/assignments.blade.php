@@ -16,6 +16,7 @@
             <select class="form-select" id="statusFilter">
                 <option value="all">All Assignments</option>
                 <option value="available">Available</option>
+                <option value="not_yet_available">Not Yet Available</option>
                 <option value="submitted">Submitted</option>
                 <option value="graded">Graded</option>
                 <option value="overdue">Overdue</option>
@@ -53,22 +54,26 @@
                         $isOverdue = $assignment->due_date < now() && !$submission;
                         $isSubmitted = $submission && $submission->status === 'submitted';
                         $isGraded = $submission && $submission->status === 'graded';
-                        $isAvailable = $assignment->available_from <= now() && $assignment->due_date >= now();
+                        $isAvailable = $assignment->isAvailableForSubmission();
+                        $isNotYetAvailable = $assignment->available_from > now();
+                        $isPastDue = $assignment->due_date < now() && !$assignment->allow_late_submission;
                     @endphp
                     
                     <div class="col-md-6 mb-4 assignment-card" 
-                         data-status="{{ $isGraded ? 'graded' : ($isSubmitted ? 'submitted' : ($isOverdue ? 'overdue' : 'available')) }}"
+                         data-status="{{ $isGraded ? 'graded' : ($isSubmitted ? 'submitted' : ($isOverdue ? 'overdue' : ($isNotYetAvailable ? 'not_yet_available' : 'available'))) }}"
                          data-subject="{{ $assignment->subject_code }}">
                         <div class="card h-100 {{ $isOverdue ? 'border-danger' : ($isGraded ? 'border-success' : '') }}">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <h6 class="card-title mb-0">{{ $assignment->title }}</h6>
-                                <span class="badge bg-{{ $isGraded ? 'success' : ($isSubmitted ? 'info' : ($isOverdue ? 'danger' : 'warning')) }}">
+                                <span class="badge bg-{{ $isGraded ? 'success' : ($isSubmitted ? 'info' : ($isOverdue ? 'danger' : ($isNotYetAvailable ? 'secondary' : 'warning'))) }}">
                                     @if($isGraded)
                                         Graded
                                     @elseif($isSubmitted)
                                         Submitted
                                     @elseif($isOverdue)
                                         Overdue
+                                    @elseif($isNotYetAvailable)
+                                        Not Yet Available
                                     @else
                                         Available
                                     @endif
@@ -102,6 +107,29 @@
                                         </small>
                                     </div>
                                 </div>
+                                
+                                @if($isNotYetAvailable)
+                                    <div class="alert alert-info mb-2">
+                                        <small>
+                                            <i class="fas fa-clock"></i> 
+                                            Available from: {{ $assignment->available_from->format('M d, Y H:i') }}
+                                        </small>
+                                    </div>
+                                @endif
+                                
+                                @if($assignment->attachments && count($assignment->attachments) > 0)
+                                    <div class="mb-2">
+                                        <small class="text-muted">
+                                            <i class="fas fa-file-pdf"></i> Assignment Files:
+                                            @foreach($assignment->attachments as $index => $attachment)
+                                                <a href="{{ route('student.assignments.download', ['assignmentId' => $assignment->id, 'fileIndex' => $index]) }}" class="text-primary">
+                                                    <i class="fas fa-file-pdf text-danger"></i> {{ $attachment['original_name'] }}
+                                                </a>
+                                                @if(!$loop->last), @endif
+                                            @endforeach
+                                        </small>
+                                    </div>
+                                @endif
                                 
                                 @if($submission)
                                     <div class="alert alert-info mb-2">
@@ -140,7 +168,11 @@
                                         <i class="fas fa-eye"></i> View Details
                                     </button>
                                     
-                                    @if($isAvailable && !$isSubmitted)
+                                    @if($isNotYetAvailable)
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>
+                                            <i class="fas fa-clock"></i> Not Yet Available
+                                        </button>
+                                    @elseif($isAvailable && !$isSubmitted)
                                         <button class="btn btn-sm btn-primary" onclick="submitAssignment({{ $assignment->id }})">
                                             <i class="fas fa-upload"></i> Submit
                                         </button>
@@ -151,6 +183,10 @@
                                     @elseif($isGraded)
                                         <button class="btn btn-sm btn-success" onclick="viewAssignmentDetails({{ $assignment->id }})">
                                             <i class="fas fa-eye"></i> View Grade
+                                        </button>
+                                    @elseif($isPastDue)
+                                        <button class="btn btn-sm btn-outline-danger" disabled>
+                                            <i class="fas fa-times"></i> Past Due
                                         </button>
                                     @else
                                         <button class="btn btn-sm btn-outline-secondary" disabled>
@@ -207,9 +243,14 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="attachments" class="form-label">Attachments</label>
-                        <input type="file" class="form-control" id="attachments" name="attachments[]" multiple accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png">
-                        <div class="form-text">You can upload multiple files. Maximum 10MB per file.</div>
+                        <label for="attachments" class="form-label">Attachments (PDF only) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="attachments" name="attachments[]" multiple accept=".pdf" required>
+                        <div class="form-text">Upload your assignment files in PDF format only. Maximum 10MB per file. At least one PDF file is required.</div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important:</strong> Only PDF files are accepted. Please convert your documents to PDF before uploading.
                     </div>
                     
                     <div class="alert alert-info">
@@ -337,6 +378,22 @@ function displayAssignmentDetails(assignment, submission) {
                 <strong>Passing Marks:</strong> ${assignment.passing_marks}
             </div>
         </div>
+        
+        ${assignment.attachments && assignment.attachments.length > 0 ? `
+            <div class="mb-3">
+                <strong>Assignment Files:</strong>
+                <ul class="list-group mt-2">
+                    ${assignment.attachments.map((attachment, index) => 
+                        `<li class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="/student/assignments/download/${assignment.id}/${index}" class="text-decoration-none">
+                                <i class="fas fa-file-pdf text-danger"></i> ${attachment.original_name}
+                            </a>
+                            <small class="text-muted">${(attachment.file_size / 1024 / 1024).toFixed(2)} MB</small>
+                        </li>`
+                    ).join('')}
+                </ul>
+            </div>
+        ` : ''}
     `;
     
     if (submission) {

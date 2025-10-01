@@ -77,6 +77,12 @@
             <textarea class="form-control" id="instructions" name="instructions" rows="3"></textarea>
         </div>
         
+        <div class="mt-3">
+            <label for="assignmentFiles" class="form-label">Assignment Files (PDF only)</label>
+            <input type="file" class="form-control" id="assignmentFiles" name="assignment_files[]" multiple accept=".pdf">
+            <div class="form-text">Upload assignment files in PDF format. Students will download these files.</div>
+        </div>
+        
         <div class="row mt-3">
             <div class="col-md-6">
                 <div class="form-check">
