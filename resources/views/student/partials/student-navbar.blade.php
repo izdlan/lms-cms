@@ -60,14 +60,14 @@
                        </div>
                        <div class="subject-info">
                            <span class="subject-code">{{ $enrollment->subject_code }}</span>
-                           <span class="subject-title">{{ $enrollment->subject ? $enrollment->subject->name : 'Unknown Subject' }}</span>
+                           <span class="subject-title">{{ $enrollment->subject ? $enrollment->subject->name : '-' }}</span>
                            <div class="lecturer-info">
                                <i class="fas fa-user-tie"></i>
-                               {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }}
+                               {{ $enrollment->lecturer ? $enrollment->lecturer->name : '-' }}
                            </div>
                            <div class="class-info">
                                <i class="fas fa-chalkboard-teacher"></i>
-                               {{ $enrollment->class_code ?? 'TBA' }}
+                               {{ $enrollment->class_code ?? '-' }}
                            </div>
                        </div>
                    </a>

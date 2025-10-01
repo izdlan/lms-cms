@@ -74,9 +74,9 @@
                                                 <i class="fas fa-book"></i>
                                             </div>
                                             <div class="course-content">
-                                                <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : 'Unknown Subject' }}</h6>
-                                                <p class="course-code">{{ $enrollment->subject_code }} - {{ $enrollment->class_code ?? 'TBA' }}</p>
-                                                <small class="text-muted">Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : 'TBA' }}</small>
+                                                <h6 class="course-title">{{ $enrollment->subject ? $enrollment->subject->name : '-' }}</h6>
+                                                <p class="course-code">{{ $enrollment->subject_code }} - {{ $enrollment->class_code ?? '-' }}</p>
+                                                <small class="text-muted">Lecturer: {{ $enrollment->lecturer ? $enrollment->lecturer->name : '-' }}</small>
                                                 <div class="mt-2">
                                                     <a href="{{ route('student.course.class', $enrollment->subject_code) }}" class="btn btn-sm btn-outline-primary">
                                                         <i class="fas fa-arrow-right me-1"></i>Enter Class
