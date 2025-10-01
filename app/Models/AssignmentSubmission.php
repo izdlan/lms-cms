@@ -44,7 +44,7 @@ class AssignmentSubmission extends Model
     // Relationship with grader (lecturer)
     public function grader(): BelongsTo
     {
-        return $this->belongsTo(Lecturer::class, 'graded_by');
+        return $this->belongsTo(User::class, 'graded_by');
     }
 
     // Scope for submitted assignments
