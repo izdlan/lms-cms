@@ -102,7 +102,7 @@
             <button type="submit" class="btn btn-primary">
                 <i class="fas fa-save"></i> Create Assignment
             </button>
-            <button type="button" class="btn btn-secondary" onclick="resetForm()">
+            <button type="button" class="btn btn-secondary" id="resetFormBtn">
                 <i class="fas fa-undo"></i> Reset
             </button>
         </div>
@@ -143,14 +143,14 @@
                             <td>
                                 <div class="btn-group" role="group">
                                     @if($assignment->status === 'draft')
-                                        <button class="btn btn-sm btn-success" onclick="publishAssignment({{ $assignment->id }})" title="Publish Assignment">
+                                        <button class="btn btn-sm btn-success publish-assignment-btn" data-assignment-id="{{ $assignment->id }}" title="Publish Assignment">
                                             <i class="fas fa-eye"></i> Publish
                                         </button>
                                     @endif
-                                    <button class="btn btn-sm btn-info" onclick="viewSubmissions({{ $assignment->id }})" title="View Submissions">
+                                    <button class="btn btn-sm btn-info view-submissions-btn" data-assignment-id="{{ $assignment->id }}" title="View Submissions">
                                         <i class="fas fa-eye"></i> View
                                     </button>
-                                    <button class="btn btn-sm btn-danger" onclick="deleteAssignment({{ $assignment->id }})" title="Delete Assignment">
+                                    <button class="btn btn-sm btn-danger delete-assignment-btn" data-assignment-id="{{ $assignment->id }}" title="Delete Assignment">
                                         <i class="fas fa-trash"></i> Delete
                                     </button>
                                 </div>
@@ -185,6 +185,73 @@
 </div>
 
 <script>
+// Subjects data from backend
+const subjects = {!! json_encode($subjects) !!};
+
+// Add event listeners for assignment buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // Reset form button
+    document.getElementById('resetFormBtn').addEventListener('click', function() {
+        resetForm();
+    });
+    
+    // Publish assignment buttons
+    document.querySelectorAll('.publish-assignment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            publishAssignment(assignmentId);
+        });
+    });
+    
+    // View submissions buttons
+    document.querySelectorAll('.view-submissions-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            viewSubmissions(assignmentId);
+        });
+    });
+    
+    // Delete assignment buttons
+    document.querySelectorAll('.delete-assignment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            deleteAssignment(assignmentId);
+        });
+    });
+    
+    // Use event delegation for dynamically generated buttons
+    document.addEventListener('click', function(e) {
+        // View submission files buttons
+        if (e.target.closest('.view-submission-files-btn')) {
+            const button = e.target.closest('.view-submission-files-btn');
+            const submissionId = button.getAttribute('data-submission-id');
+            viewSubmissionFiles(submissionId);
+        }
+        
+        // Grade submission buttons
+        if (e.target.closest('.grade-submission-btn')) {
+            const button = e.target.closest('.grade-submission-btn');
+            const submissionId = button.getAttribute('data-submission-id');
+            gradeSubmission(submissionId);
+        }
+        
+        // View PDF buttons
+        if (e.target.closest('.view-pdf-btn')) {
+            const button = e.target.closest('.view-pdf-btn');
+            const submissionId = button.getAttribute('data-submission-id');
+            const fileIndex = button.getAttribute('data-file-index');
+            viewPdfInNewTab(submissionId, fileIndex);
+        }
+        
+        // Grade submission modal buttons
+        if (e.target.closest('.grade-submission-modal-btn')) {
+            const button = e.target.closest('.grade-submission-modal-btn');
+            const submissionId = button.getAttribute('data-submission-id');
+            gradeSubmission(submissionId);
+        }
+    });
+});
+
 // Load classes when subject is selected
 document.getElementById('subjectSelect').addEventListener('change', function() {
     const subjectCode = this.value;
@@ -192,8 +259,7 @@ document.getElementById('subjectSelect').addEventListener('change', function() {
     
     if (subjectCode) {
         // Get classes for this subject
-        const subject = @json($subjects);
-        const selectedSubject = subject.find(s => s.code === subjectCode);
+        const selectedSubject = subjects.find(s => s.code === subjectCode);
         
         classSelect.innerHTML = '<option value="">Choose a class...</option>';
         
@@ -327,10 +393,10 @@ function displaySubmissions(assignment, submissions) {
                     <td>${submission.marks_obtained || '-'}</td>
                     <td>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-outline-primary" onclick="viewSubmissionFiles(${submission.id})" title="View PDF Files">
+                            <button class="btn btn-sm btn-outline-primary view-submission-files-btn" data-submission-id="${submission.id}" title="View PDF Files">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-primary" onclick="gradeSubmission(${submission.id})" title="Grade Assignment">
+                            <button class="btn btn-sm btn-primary grade-submission-btn" data-submission-id="${submission.id}" title="Grade Assignment">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -441,7 +507,7 @@ function showSubmissionFilesModal(submission) {
                                                     '<small class="text-muted d-block">' + (file.file_size / 1024).toFixed(1) + ' KB</small>' +
                                                 '</div>' +
                                                 '<div>' +
-                                                    '<button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab(' + submission.id + ', ' + index + ')">' +
+                                                    '<button class="btn btn-sm btn-outline-primary me-2 view-pdf-btn" data-submission-id="' + submission.id + '" data-file-index="' + index + '">' +
                                                         '<i class="fas fa-external-link-alt"></i> View' +
                                                     '</button>' +
                                                     '<a href="/staff/assignments/submissions/download/' + submission.id + '/' + index + '" class="btn btn-sm btn-outline-success" target="_blank">' +
@@ -456,7 +522,7 @@ function showSubmissionFilesModal(submission) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary" onclick="gradeSubmission(${submission.id})">
+                        <button type="button" class="btn btn-primary grade-submission-modal-btn" data-submission-id="${submission.id}">
                             <i class="fas fa-edit"></i> Grade This Submission
                         </button>
                     </div>

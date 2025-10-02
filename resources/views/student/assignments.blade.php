@@ -164,7 +164,7 @@
                             </div>
                             <div class="card-footer">
                                 <div class="d-flex justify-content-between">
-                                    <button class="btn btn-sm btn-outline-primary" onclick="viewAssignmentDetails({{ $assignment->id }})">
+                                    <button class="btn btn-sm btn-outline-primary view-assignment-btn" data-assignment-id="{{ $assignment->id }}">
                                         <i class="fas fa-eye"></i> View Details
                                     </button>
                                     
@@ -173,7 +173,7 @@
                                             <i class="fas fa-clock"></i> Not Yet Available
                                         </button>
                                     @elseif($isAvailable && !$isSubmitted)
-                                        <button class="btn btn-sm btn-primary" onclick="submitAssignment({{ $assignment->id }})">
+                                        <button class="btn btn-sm btn-primary submit-assignment-btn" data-assignment-id="{{ $assignment->id }}">
                                             <i class="fas fa-upload"></i> Submit
                                         </button>
                                     @elseif($isSubmitted && !$isGraded)
@@ -181,7 +181,7 @@
                                             <i class="fas fa-clock"></i> Submitted
                                         </button>
                                     @elseif($isGraded)
-                                        <button class="btn btn-sm btn-success" onclick="viewAssignmentDetails({{ $assignment->id }})">
+                                        <button class="btn btn-sm btn-success view-assignment-btn" data-assignment-id="{{ $assignment->id }}">
                                             <i class="fas fa-eye"></i> View Grade
                                         </button>
                                     @elseif($isPastDue)
@@ -274,6 +274,25 @@
 document.getElementById('statusFilter').addEventListener('change', filterAssignments);
 document.getElementById('subjectFilter').addEventListener('change', filterAssignments);
 document.getElementById('sortBy').addEventListener('change', sortAssignments);
+
+// Add event listeners for assignment buttons
+document.addEventListener('DOMContentLoaded', function() {
+    // View assignment details buttons
+    document.querySelectorAll('.view-assignment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            viewAssignmentDetails(assignmentId);
+        });
+    });
+    
+    // Submit assignment buttons
+    document.querySelectorAll('.submit-assignment-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            submitAssignment(assignmentId);
+        });
+    });
+});
 
 function filterAssignments() {
     const statusFilter = document.getElementById('statusFilter').value;
