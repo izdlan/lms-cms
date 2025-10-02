@@ -305,7 +305,11 @@ class GoogleDriveImportService
                 for ($row = $startRow; $row <= $endRow; $row++) {
                     try {
                         $rowData = [];
-                        for ($col = 'A'; $col <= $highestColumn; $col++) {
+                        // Convert column letter to number for proper iteration
+                        $highestColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($highestColumn);
+                        
+                        for ($colIndex = 1; $colIndex <= $highestColumnIndex; $colIndex++) {
+                            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
                             $cellValue = $worksheet->getCell($col . $row)->getCalculatedValue();
                             $rowData[] = $cellValue;
                         }
@@ -328,8 +332,7 @@ class GoogleDriveImportService
                         // Skip rows that are clearly not student data
                         $firstCol = trim($rowData[0] ?? '');
                         if ($firstCol === 'LOCAL' || $firstCol === 'INTERNATIONAL' || 
-                            $firstCol === 'TOTAL LEARNERS' || $firstCol === 'FILE STATUS' ||
-                            is_numeric($firstCol) && count($rowData) > 1 && empty(trim($rowData[1] ?? ''))) {
+                            $firstCol === 'TOTAL LEARNERS' || $firstCol === 'FILE STATUS') {
                             continue;
                         }
                         
@@ -466,12 +469,12 @@ class GoogleDriveImportService
         $name = '';
         $startIndex = 1; // Start searching for IC from index 1
         
-        if (is_numeric($firstCol) && isset($rowData[1])) {
+        if (is_numeric($firstCol) && isset($rowData[1]) && !empty(trim($rowData[1]))) {
             // First column is row number, second column is name
             $name = trim($rowData[1] ?? '');
             $startIndex = 2; // Start searching for IC from index 2
         } else {
-            // First column is name
+            // First column is name (most common case)
             $name = $firstCol;
             $startIndex = 1;
         }
@@ -486,37 +489,40 @@ class GoogleDriveImportService
         $phone = '';
         $address = '';
         
-        // Try to find IC/Passport in any column (comprehensive patterns)
-        // Prioritize IC detection over phone detection
-        for ($i = $startIndex; $i < count($rowData); $i++) {
-            $value = trim($rowData[$i] ?? '');
-            // Malaysian IC patterns (most specific first) - YYMMDD-PB-GGGG format
-            if (preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || 
-                preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) ||
-                preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) ||
-                preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) ||
-                preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) ||
-                preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) ||
-                preg_match('/^\d{6}-\d{2}-\d{7}$/', $value)) {
-                $ic = $value;
-                break;
+        // Based on Excel analysis, ALL sheets have IC/Passport in column C (index 2)
+        // Priority 1: Check column C directly (most reliable based on analysis)
+        if (isset($rowData[2])) {
+            $columnC = trim($rowData[2] ?? '');
+            
+            if (!empty($columnC)) {
+                // Malaysian IC patterns - simplified and more flexible
+                if (preg_match('/^\d{6}-\d{2}-\d{1,7}$/', $columnC)) {
+                    $ic = $columnC;
+                }
+                // Passport patterns - more flexible for international students
+                elseif (preg_match('/^[A-Z]{1,4}\d{6,9}$/', $columnC) && 
+                        !preg_match('/^(COL|REF|ID|PGD|STU)\d+$/', $columnC)) {
+                    $ic = $columnC;
+                }
             }
-            // Passport patterns (but exclude obvious column references like COL123456)
-            elseif (preg_match('/^[A-Z]\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]\d{8}$/', $value) ||
-                    preg_match('/^[A-Z]\d{9}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{8}$/', $value) ||
-                    preg_match('/^[A-Z]{3}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{3}\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]{4}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{4}\d{7}$/', $value)) {
-                // Additional validation: exclude obvious column references
-                if (!preg_match('/^COL\d+$/', $value) && 
-                    !preg_match('/^REF\d+$/', $value) && 
-                    !preg_match('/^ID\d+$/', $value) &&
-                    !preg_match('/^STU\d+$/', $value)) {
+        }
+        
+        // Priority 2: Fallback search in other columns if column C failed
+        if (empty($ic)) {
+            for ($i = $startIndex; $i < count($rowData); $i++) {
+                if ($i === 2) continue; // Skip column C as we already checked it
+                
+                $value = trim($rowData[$i] ?? '');
+                if (empty($value)) continue;
+                
+                // Malaysian IC patterns
+                if (preg_match('/^\d{6}-\d{2}-\d{1,7}$/', $value)) {
+                    $ic = $value;
+                    break;
+                }
+                // Passport patterns with exclusions
+                elseif (preg_match('/^[A-Z]{1,4}\d{6,9}$/', $value) && 
+                        !preg_match('/^(COL|REF|ID|PGD|STU|HRDC|TPN|EDP|MQA)\d+$/', $value)) {
                     $ic = $value;
                     break;
                 }
@@ -592,14 +598,22 @@ class GoogleDriveImportService
         try {
             $user = null;
             
-            // Only match by IC if IC is not empty
-            if (!empty($data['ic'])) {
+            // Only match by IC if IC is not empty and not an AUTO IC
+            if (!empty($data['ic']) && strpos($data['ic'], 'AUTO_') !== 0) {
                 $user = User::where('ic', $data['ic'])->first();
             }
             
             // If no match by IC, try email
-            if (!$user) {
+            if (!$user && !empty($data['email'])) {
                 $user = User::where('email', $data['email'])->first();
+            }
+            
+            // If still no match, try to find student with AUTO IC by name (prioritize updating AUTO ICs)
+            if (!$user && !empty($data['ic']) && strpos($data['ic'], 'AUTO_') !== 0) {
+                $user = User::where('name', $data['name'])
+                           ->where('role', 'student')
+                           ->where('ic', 'like', 'AUTO_%')
+                           ->first();
             }
             
             // If still no match, try name and source sheet combination
@@ -648,6 +662,11 @@ class GoogleDriveImportService
                 if (strpos($user->ic, 'AUTO_') === 0 && !empty($data['ic']) && strpos($data['ic'], 'AUTO_') !== 0) {
                     $updateData['ic'] = $data['ic'];
                     $updateData['password'] = Hash::make($data['ic']); // Update password to match new IC
+                    
+                    // Only update email if it's a real email (not auto-generated)
+                    if (!empty($data['email']) && !strpos($data['email'], '@lms.local')) {
+                        $updateData['email'] = $data['email'];
+                    }
                 }
                 
                 $user->update($updateData);
