@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Payment Receipt - Student Bills')
+@section('title', 'Payment Receipt | Student | Olympia Education')
 
 @section('content')
 <div class="student-dashboard">

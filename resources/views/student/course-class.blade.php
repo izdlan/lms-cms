@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', $subjectDetails['name'] . ' - Class')
+@section('title', $subjectDetails['name'] . ' | Student | Olympia Education')
 
 @section('content')
 <div class="student-dashboard">

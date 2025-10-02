@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'My Program')
+@section('title', 'My Program | Student | Olympia Education')
 
 @section('content')
 <div class="student-dashboard">
