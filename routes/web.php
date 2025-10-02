@@ -75,6 +75,9 @@ Route::prefix('student')->group(function () {
         Route::get('/assignments', [App\Http\Controllers\StudentController::class, 'assignments'])->name('student.assignments');
         Route::post('/assignments/{id}/submit', [App\Http\Controllers\StudentController::class, 'submitAssignment'])->name('student.assignments.submit');
         Route::get('/assignments/{id}/details', [App\Http\Controllers\StudentController::class, 'getAssignmentDetails'])->name('student.assignments.details');
+        Route::get('/assignments/{id}/submission', [App\Http\Controllers\StudentController::class, 'getSubmission'])->name('student.assignments.submission');
+        Route::get('/assignments/submissions/view/{submissionId}/{fileIndex}', [App\Http\Controllers\StudentController::class, 'viewSubmissionFile'])->name('student.assignments.submissions.view');
+        Route::get('/assignments/submissions/download/{submissionId}/{fileIndex}', [App\Http\Controllers\StudentController::class, 'downloadSubmissionFile'])->name('student.assignments.submissions.download');
         Route::get('/profile', [App\Http\Controllers\StudentController::class, 'profile'])->name('student.profile');
         Route::post('/profile/picture', [App\Http\Controllers\StudentController::class, 'uploadProfilePicture'])->name('student.profile.picture');
         Route::delete('/profile/picture', [App\Http\Controllers\StudentController::class, 'deleteProfilePicture'])->name('student.profile.picture.delete');

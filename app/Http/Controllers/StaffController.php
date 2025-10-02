@@ -301,7 +301,7 @@ class StaffController extends Controller
         }])->get();
 
         // Get assignments created by this lecturer
-        $assignments = Assignment::where('lecturer_id', $user->id)
+        $assignments = Assignment::where('lecturer_id', $lecturer->id)
             ->with(['subject', 'classSchedule', 'submissions'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -366,7 +366,7 @@ class StaffController extends Controller
             'description' => $request->description,
             'subject_code' => $request->subject_code,
             'class_code' => $request->class_code,
-            'lecturer_id' => $user->id,
+            'lecturer_id' => $lecturer->id,
             'total_marks' => $request->total_marks,
             'passing_marks' => $request->passing_marks,
             'due_date' => $request->due_date,
@@ -399,7 +399,7 @@ class StaffController extends Controller
         }
 
         $assignment = Assignment::where('id', $id)
-            ->where('lecturer_id', $user->id)
+            ->where('lecturer_id', $lecturer->id)
             ->first();
 
         if (!$assignment) {
@@ -427,7 +427,7 @@ class StaffController extends Controller
         }
 
         $assignment = Assignment::where('id', $id)
-            ->where('lecturer_id', $user->id)
+            ->where('lecturer_id', $lecturer->id)
             ->first();
 
         if (!$assignment) {
@@ -456,7 +456,7 @@ class StaffController extends Controller
         }
 
         $assignment = Assignment::where('id', $id)
-            ->where('lecturer_id', $user->id)
+            ->where('lecturer_id', $lecturer->id)
             ->with(['submissions.user', 'subject', 'classSchedule'])
             ->first();
 
@@ -489,8 +489,8 @@ class StaffController extends Controller
         ]);
 
         $submission = AssignmentSubmission::where('id', $submissionId)
-            ->whereHas('assignment', function($query) use ($user) {
-                $query->where('lecturer_id', $user->id);
+            ->whereHas('assignment', function($query) use ($lecturer) {
+                $query->where('lecturer_id', $lecturer->id);
             })
             ->first();
 
@@ -523,6 +523,11 @@ class StaffController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
         $submission = AssignmentSubmission::with(['user', 'assignment.lecturer'])
             ->where('id', $submissionId)
             ->first();
@@ -532,7 +537,7 @@ class StaffController extends Controller
         }
 
         // Check if the lecturer owns this assignment
-        if ($submission->assignment->lecturer_id !== $user->id) {
+        if ($submission->assignment->lecturer_id !== $lecturer->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized to view this submission'], 403);
         }
 
@@ -553,6 +558,11 @@ class StaffController extends Controller
             return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
         }
 
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
         $submission = AssignmentSubmission::with('assignment')
             ->where('id', $submissionId)
             ->first();
@@ -562,7 +572,7 @@ class StaffController extends Controller
         }
 
         // Check if the lecturer owns this assignment
-        if ($submission->assignment->lecturer_id !== $user->id) {
+        if ($submission->assignment->lecturer_id !== $lecturer->id) {
             return response()->json(['success' => false, 'message' => 'Unauthorized to download this file'], 403);
         }
 
@@ -881,10 +891,15 @@ class StaffController extends Controller
             return response()->json(['error' => 'Unauthorized'], 401);
         }
 
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['error' => 'Lecturer profile not found'], 404);
+        }
+
         try {
             $submission = AssignmentSubmission::where('id', $submissionId)
-                ->whereHas('assignment', function($query) use ($user) {
-                    $query->where('lecturer_id', $user->id);
+                ->whereHas('assignment', function($query) use ($lecturer) {
+                    $query->where('lecturer_id', $lecturer->id);
                 })
                 ->first();
 

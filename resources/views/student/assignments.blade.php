@@ -57,6 +57,9 @@
                         $isAvailable = $assignment->isAvailableForSubmission();
                         $isNotYetAvailable = $assignment->available_from > now();
                         $isPastDue = $assignment->due_date < now() && !$assignment->allow_late_submission;
+                        
+                        // Debug info (remove in production)
+                        echo "<!-- Debug for {$assignment->title}: submission=" . ($submission ? $submission->status : 'none') . ", isGraded=" . ($isGraded ? 'true' : 'false') . ", isSubmitted=" . ($isSubmitted ? 'true' : 'false') . ", isAvailable=" . ($isAvailable ? 'true' : 'false') . " -->";
                     @endphp
                     
                     <div class="col-md-6 mb-4 assignment-card" 
@@ -172,17 +175,23 @@
                                         <button class="btn btn-sm btn-outline-secondary" disabled>
                                             <i class="fas fa-clock"></i> Not Yet Available
                                         </button>
-                                    @elseif($isAvailable && !$isSubmitted)
-                                        <button class="btn btn-sm btn-primary submit-assignment-btn" data-assignment-id="{{ $assignment->id }}">
-                                            <i class="fas fa-upload"></i> Submit
+                                    @if($isGraded)
+                                        <button class="btn btn-sm btn-success view-assignment-btn" data-assignment-id="{{ $assignment->id }}">
+                                            <i class="fas fa-eye"></i> View Grade
                                         </button>
-                                    @elseif($isSubmitted && !$isGraded)
+                                        <button class="btn btn-sm btn-outline-info view-submission-btn" data-assignment-id="{{ $assignment->id }}">
+                                            <i class="fas fa-file-pdf"></i> View Submission
+                                        </button>
+                                    @elseif($isSubmitted)
+                                        <button class="btn btn-sm btn-outline-info view-submission-btn" data-assignment-id="{{ $assignment->id }}">
+                                            <i class="fas fa-file-pdf"></i> View Submission
+                                        </button>
                                         <button class="btn btn-sm btn-secondary" disabled>
                                             <i class="fas fa-clock"></i> Submitted
                                         </button>
-                                    @elseif($isGraded)
-                                        <button class="btn btn-sm btn-success view-assignment-btn" data-assignment-id="{{ $assignment->id }}">
-                                            <i class="fas fa-eye"></i> View Grade
+                                    @elseif($isAvailable)
+                                        <button class="btn btn-sm btn-primary submit-assignment-btn" data-assignment-id="{{ $assignment->id }}">
+                                            <i class="fas fa-upload"></i> Submit
                                         </button>
                                     @elseif($isPastDue)
                                         <button class="btn btn-sm btn-outline-danger" disabled>
@@ -290,6 +299,14 @@ document.addEventListener('DOMContentLoaded', function() {
         button.addEventListener('click', function() {
             const assignmentId = this.getAttribute('data-assignment-id');
             submitAssignment(assignmentId);
+        });
+    });
+    
+    // View submission buttons
+    document.querySelectorAll('.view-submission-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const assignmentId = this.getAttribute('data-assignment-id');
+            viewSubmission(assignmentId);
         });
     });
 });
@@ -486,6 +503,102 @@ function submitAssignmentForm() {
         console.error('Error:', error);
         alert('An error occurred while submitting the assignment');
     });
+}
+
+// View submission function
+function viewSubmission(assignmentId) {
+    fetch(`/student/assignments/${assignmentId}/submission`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            displaySubmissionModal(data.submission);
+        } else {
+            alert('Error: ' + (data.error || 'Failed to load submission'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while loading submission');
+    });
+}
+
+// Display submission modal
+function displaySubmissionModal(submission) {
+    const modalHtml = `
+        <div class="modal fade" id="submissionViewModal" tabindex="-1">
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Your Submission</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <h6>Submission Details</h6>
+                                <p><strong>Submitted:</strong> ${new Date(submission.submitted_at).toLocaleString()}</p>
+                                <p><strong>Status:</strong> <span class="badge bg-${submission.status === 'graded' ? 'success' : 'info'}">${submission.status}</span></p>
+                                ${submission.is_late ? '<p class="text-warning"><i class="fas fa-exclamation-triangle"></i> Late Submission</p>' : ''}
+                                ${submission.marks_obtained ? `<p><strong>Grade:</strong> ${submission.marks_obtained}/100</p>` : ''}
+                            </div>
+                            <div class="col-md-8">
+                                <h6>Submitted Files (Read-Only)</h6>
+                                ${submission.attachments && submission.attachments.length > 0 ? 
+                                    '<div class="list-group">' +
+                                        submission.attachments.map((file, index) => 
+                                            '<div class="list-group-item d-flex justify-content-between align-items-center">' +
+                                                '<div>' +
+                                                    '<i class="fas fa-file-pdf text-danger"></i> ' + file.original_name +
+                                                    '<small class="text-muted d-block">' + (file.file_size / 1024).toFixed(1) + ' KB</small>' +
+                                                '</div>' +
+                                                '<div>' +
+                                                    '<button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab(' + submission.id + ', ' + index + ')">' +
+                                                        '<i class="fas fa-external-link-alt"></i> View' +
+                                                    '</button>' +
+                                                    '<a href="/student/assignments/submissions/download/' + submission.id + '/' + index + '" class="btn btn-sm btn-outline-success" target="_blank">' +
+                                                        '<i class="fas fa-download"></i> Download' +
+                                                    '</a>' +
+                                                '</div>' +
+                                            '</div>'
+                                        ).join('') +
+                                    '</div>' :
+                                    '<p class="text-muted">No files submitted</p>'
+                                }
+                                ${submission.submission_text ? 
+                                    '<div class="mt-3"><h6>Submission Text:</h6><div class="alert alert-light">' + submission.submission_text + '</div></div>' : 
+                                    ''
+                                }
+                                ${submission.feedback ? 
+                                    '<div class="mt-3"><h6>Feedback:</h6><div class="alert alert-info">' + submission.feedback + '</div></div>' : 
+                                    ''
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Remove existing modal if any
+    const existingModal = document.getElementById('submissionViewModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Add modal to body
+    document.body.insertAdjacentHTML('beforeend', modalHtml);
+    
+    // Show modal
+    new bootstrap.Modal(document.getElementById('submissionViewModal')).show();
+}
+
+// View PDF in new tab
+function viewPdfInNewTab(submissionId, fileIndex) {
+    window.open('/student/assignments/submissions/view/' + submissionId + '/' + fileIndex, '_blank');
 }
 </script>
 @endsection

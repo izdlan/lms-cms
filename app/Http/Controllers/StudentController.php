@@ -333,6 +333,9 @@ class StudentController extends Controller
             ->first();
 
         if ($existingSubmission) {
+            if ($existingSubmission->status === 'graded') {
+                return response()->json(['error' => 'Assignment has been graded and cannot be resubmitted'], 400);
+            }
             return response()->json(['error' => 'Assignment already submitted'], 400);
         }
 
@@ -703,5 +706,115 @@ class StudentController extends Controller
             ->get();
         
         return view('student.receipt', compact('user', 'enrolledSubjects'));
+    }
+
+    public function getSubmission($assignmentId)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        $assignment = Assignment::findOrFail($assignmentId);
+
+        // Check if student is enrolled
+        $enrollment = $user->enrolledSubjects()
+            ->where('subject_code', $assignment->subject_code)
+            ->where('class_code', $assignment->class_code)
+            ->where('status', 'enrolled')
+            ->first();
+
+        if (!$enrollment) {
+            return response()->json(['error' => 'You are not enrolled in this course'], 403);
+        }
+
+        // Get student's submission
+        $submission = AssignmentSubmission::where('assignment_id', $assignmentId)
+            ->where('user_id', $user->id)
+            ->first();
+
+        if (!$submission) {
+            return response()->json(['error' => 'Submission not found'], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'submission' => $submission
+        ]);
+    }
+
+    public function viewSubmissionFile($submissionId, $fileIndex)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $submission = AssignmentSubmission::where('id', $submissionId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$submission) {
+                return response()->json(['error' => 'Submission not found'], 404);
+            }
+
+            $attachments = $submission->attachments;
+            if (!$attachments || !isset($attachments[$fileIndex])) {
+                return response()->json(['error' => 'File not found'], 404);
+            }
+
+            $file = $attachments[$fileIndex];
+            $filePath = storage_path('app/public/' . $file['file_path']);
+
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => 'File does not exist'], 404);
+            }
+
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $file['original_name'] . '"'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error viewing submission file: ' . $e->getMessage());
+            return response()->json(['error' => 'Error viewing file'], 500);
+        }
+    }
+
+    public function downloadSubmissionFile($submissionId, $fileIndex)
+    {
+        $user = Auth::guard('student')->user();
+        if (!$user || $user->role !== 'student') {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $submission = AssignmentSubmission::where('id', $submissionId)
+                ->where('user_id', $user->id)
+                ->first();
+
+            if (!$submission) {
+                return response()->json(['error' => 'Submission not found'], 404);
+            }
+
+            $attachments = $submission->attachments;
+            if (!$attachments || !isset($attachments[$fileIndex])) {
+                return response()->json(['error' => 'File not found'], 404);
+            }
+
+            $file = $attachments[$fileIndex];
+            $filePath = storage_path('app/public/' . $file['file_path']);
+
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => 'File does not exist'], 404);
+            }
+
+            return response()->download($filePath, $file['original_name']);
+
+        } catch (\Exception $e) {
+            Log::error('Error downloading submission file: ' . $e->getMessage());
+            return response()->json(['error' => 'Error downloading file'], 500);
+        }
     }
 }

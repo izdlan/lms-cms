@@ -187,6 +187,19 @@
 <script>
 // Subjects data from backend
 const subjects = {!! json_encode($subjects) !!};
+let currentAssignmentId = null;
+
+// Function to clean up modals and backdrops
+function cleanupModals() {
+    // Remove all modal backdrops
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+    
+    // Remove body classes that might be added by Bootstrap
+    document.body.classList.remove('modal-open');
+    document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+}
 
 // Add event listeners for assignment buttons
 document.addEventListener('DOMContentLoaded', function() {
@@ -335,6 +348,9 @@ function publishAssignment(assignmentId) {
 
 // View submissions
 function viewSubmissions(assignmentId) {
+    // Store the current assignment ID for later use
+    currentAssignmentId = assignmentId;
+    
     fetch(`/staff/assignments/${assignmentId}/submissions`)
     .then(response => response.json())
     .then(data => {
@@ -393,10 +409,10 @@ function displaySubmissions(assignment, submissions) {
                     <td>${submission.marks_obtained || '-'}</td>
                     <td>
                         <div class="btn-group" role="group">
-                            <button class="btn btn-sm btn-outline-primary view-submission-files-btn" data-submission-id="${submission.id}" title="View PDF Files">
+                            <button class="btn btn-sm btn-outline-primary" title="View PDF Files" onclick="viewSubmissionFiles(${submission.id})">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-primary grade-submission-btn" data-submission-id="${submission.id}" title="Grade Assignment">
+                            <button class="btn btn-sm btn-primary" title="Grade Assignment" onclick="gradeSubmission(${submission.id})">
                                 <i class="fas fa-edit"></i>
                             </button>
                         </div>
@@ -417,40 +433,6 @@ function displaySubmissions(assignment, submissions) {
     content.innerHTML = html;
 }
 
-// Grade submission
-function gradeSubmission(submissionId) {
-    const marks = prompt('Enter marks obtained:');
-    if (marks !== null && marks !== '') {
-        const feedback = prompt('Enter feedback (optional):');
-        
-        fetch(`/staff/assignments/submissions/${submissionId}/grade`, {
-            method: 'POST',
-            headers: {
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                marks_obtained: parseFloat(marks),
-                feedback: feedback || ''
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Submission graded successfully!');
-                // Refresh the submissions view
-                const assignmentId = document.querySelector('[onclick*="viewSubmissions"]').getAttribute('onclick').match(/\d+/)[0];
-                viewSubmissions(assignmentId);
-            } else {
-                alert('Error: ' + (data.error || 'Failed to grade submission'));
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('An error occurred while grading the submission');
-        });
-    }
-}
 
 // View submission files
 function viewSubmissionFiles(submissionId) {
@@ -604,8 +586,15 @@ function gradeSubmission(submissionId) {
         submitGrade(submissionId);
     });
     
+    // Add event listeners for modal cleanup
+    const modalElement = document.getElementById('gradingModal');
+    modalElement.addEventListener('hidden.bs.modal', function() {
+        cleanupModals();
+        modalElement.remove();
+    });
+    
     // Show modal
-    const modal = new bootstrap.Modal(document.getElementById('gradingModal'));
+    const modal = new bootstrap.Modal(modalElement);
     modal.show();
 }
 
@@ -631,12 +620,22 @@ function submitGrade(submissionId) {
     .then(data => {
         if (data.success) {
             alert('Grade saved successfully!');
-            // Close modal
+            // Close modal and clean up
             const modal = bootstrap.Modal.getInstance(document.getElementById('gradingModal'));
-            modal.hide();
-            // Refresh the submissions view
-            const assignmentId = document.querySelector('[onclick*="viewSubmissions"]').getAttribute('onclick').match(/\d+/)[0];
-            viewSubmissions(assignmentId);
+            if (modal) {
+                modal.hide();
+            }
+            // Clean up any remaining modal artifacts
+            cleanupModals();
+            // Remove modal from DOM
+            const gradingModal = document.getElementById('gradingModal');
+            if (gradingModal) {
+                gradingModal.remove();
+            }
+            // Refresh the submissions view using stored assignment ID
+            if (currentAssignmentId) {
+                viewSubmissions(currentAssignmentId);
+            }
         } else {
             alert('Error: ' + (data.error || 'Failed to save grade'));
         }
