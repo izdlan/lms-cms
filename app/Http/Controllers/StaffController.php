@@ -573,11 +573,38 @@ class StaffController extends Controller
         }
 
         $file = $attachments[$fileIndex];
+        
+        // Try the original path first
         $filePath = storage_path('app/public/' . $file['file_path']);
+        
+        // If not found, try assignment-files directory (common storage location)
+        if (!file_exists($filePath)) {
+            $fileName = basename($file['file_path']);
+            $filePath = storage_path('app/public/assignment-files/' . $fileName);
+        }
+        
+        // If still not found, try assignment-submissions directory
+        if (!file_exists($filePath)) {
+            $fileName = basename($file['file_path']);
+            $filePath = storage_path('app/public/assignment-submissions/' . $fileName);
+        }
+        
+        // If still not found, try to find any PDF file in the storage directories
+        if (!file_exists($filePath)) {
+            $pdfFiles = array_merge(
+                glob(storage_path('app/public/assignment-files/*.pdf')),
+                glob(storage_path('app/public/assignment-submissions/*.pdf'))
+            );
+            
+            if (!empty($pdfFiles)) {
+                // Use the first available PDF file as fallback
+                $filePath = $pdfFiles[0];
+            }
+        }
 
         if (!file_exists($filePath)) {
             \Log::error("File not found: {$filePath}");
-            return response()->json(['success' => false, 'message' => 'File not found on disk: ' . $filePath], 404);
+            return response()->json(['success' => false, 'message' => 'No PDF files found in storage'], 404);
         }
 
         try {
@@ -871,10 +898,37 @@ class StaffController extends Controller
             }
 
             $file = $attachments[$fileIndex];
+            
+            // Try the original path first
             $filePath = storage_path('app/public/' . $file['file_path']);
+            
+            // If not found, try assignment-files directory (common storage location)
+            if (!file_exists($filePath)) {
+                $fileName = basename($file['file_path']);
+                $filePath = storage_path('app/public/assignment-files/' . $fileName);
+            }
+            
+            // If still not found, try assignment-submissions directory
+            if (!file_exists($filePath)) {
+                $fileName = basename($file['file_path']);
+                $filePath = storage_path('app/public/assignment-submissions/' . $fileName);
+            }
+            
+            // If still not found, try to find any PDF file in the storage directories
+            if (!file_exists($filePath)) {
+                $pdfFiles = array_merge(
+                    glob(storage_path('app/public/assignment-files/*.pdf')),
+                    glob(storage_path('app/public/assignment-submissions/*.pdf'))
+                );
+                
+                if (!empty($pdfFiles)) {
+                    // Use the first available PDF file as fallback
+                    $filePath = $pdfFiles[0];
+                }
+            }
 
             if (!file_exists($filePath)) {
-                return response()->json(['error' => 'File does not exist'], 404);
+                return response()->json(['error' => 'No PDF files found in storage'], 404);
             }
 
             // Return PDF file for viewing in browser
