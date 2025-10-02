@@ -6,7 +6,7 @@ $app->make('Illuminate\Contracts\Console\Kernel')->bootstrap();
 
 echo "=== DEBUGGING STUDENT DATA MAPPING ===\n\n";
 
-$localFilePath = 'Enrollment OEM.xlsx';
+$localFilePath = 'storage/app/students/Enrollment OEM.xlsx';
 
 // Test with IUC LMS sheet
 $sheetName = 'IUC LMS';

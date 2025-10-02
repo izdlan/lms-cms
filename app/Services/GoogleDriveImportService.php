@@ -325,6 +325,14 @@ class GoogleDriveImportService
                             continue;
                         }
                         
+                        // Skip rows that are clearly not student data
+                        $firstCol = trim($rowData[0] ?? '');
+                        if ($firstCol === 'LOCAL' || $firstCol === 'INTERNATIONAL' || 
+                            $firstCol === 'TOTAL LEARNERS' || $firstCol === 'FILE STATUS' ||
+                            is_numeric($firstCol) && count($rowData) > 1 && empty(trim($rowData[1] ?? ''))) {
+                            continue;
+                        }
+                        
                         // Extract student data
                         $studentData = $this->extractStudentDataFromRow($rowData, $sheetName);
                         
@@ -453,8 +461,20 @@ class GoogleDriveImportService
 
     private function extractStudentDataFromRow($rowData, $sheetName)
     {
-        // Always start with the first column as name
-        $name = trim($rowData[0] ?? '');
+        // Check if first column is a number (row index), if so, name is in second column
+        $firstCol = trim($rowData[0] ?? '');
+        $name = '';
+        $startIndex = 1; // Start searching for IC from index 1
+        
+        if (is_numeric($firstCol) && isset($rowData[1])) {
+            // First column is row number, second column is name
+            $name = trim($rowData[1] ?? '');
+            $startIndex = 2; // Start searching for IC from index 2
+        } else {
+            // First column is name
+            $name = $firstCol;
+            $startIndex = 1;
+        }
         
         // Skip if no name
         if (empty($name)) {
@@ -466,17 +486,45 @@ class GoogleDriveImportService
         $phone = '';
         $address = '';
         
-        // Try to find IC/Passport in any column
-        for ($i = 1; $i < count($rowData); $i++) {
+        // Try to find IC/Passport in any column (comprehensive patterns)
+        // Prioritize IC detection over phone detection
+        for ($i = $startIndex; $i < count($rowData); $i++) {
             $value = trim($rowData[$i] ?? '');
-            if (preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || preg_match('/^[A-Z]\d{7}$/', $value)) {
+            // Malaysian IC patterns (most specific first) - YYMMDD-PB-GGGG format
+            if (preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || 
+                preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) ||
+                preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) ||
+                preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) ||
+                preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) ||
+                preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) ||
+                preg_match('/^\d{6}-\d{2}-\d{7}$/', $value)) {
                 $ic = $value;
                 break;
+            }
+            // Passport patterns (but exclude obvious column references like COL123456)
+            elseif (preg_match('/^[A-Z]\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]\d{9}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{7}$/', $value)) {
+                // Additional validation: exclude obvious column references
+                if (!preg_match('/^COL\d+$/', $value) && 
+                    !preg_match('/^REF\d+$/', $value) && 
+                    !preg_match('/^ID\d+$/', $value) &&
+                    !preg_match('/^STU\d+$/', $value)) {
+                    $ic = $value;
+                    break;
+                }
             }
         }
         
         // Try to find email in any column
-        for ($i = 1; $i < count($rowData); $i++) {
+        for ($i = $startIndex; $i < count($rowData); $i++) {
             $value = trim($rowData[$i] ?? '');
             if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
                 $email = $value;
@@ -484,17 +532,37 @@ class GoogleDriveImportService
             }
         }
         
-        // Try to find phone in any column
-        for ($i = 1; $i < count($rowData); $i++) {
+        // Try to find phone in any column (exclude IC number patterns)
+        // Only look for phone if we haven't already found an IC in that column
+        for ($i = $startIndex; $i < count($rowData); $i++) {
             $value = trim($rowData[$i] ?? '');
-            if (preg_match('/^[\d\-\+\s\(\)]+$/', $value) && strlen($value) >= 8) {
+            // Skip if this value was already identified as an IC
+            $isIc = preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || 
+                    preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]\d{9}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{7}$/', $value);
+            
+            if (!$isIc && preg_match('/^[\d\-\+\s\(\)]+$/', $value) && strlen($value) >= 8) {
                 $phone = $value;
                 break;
             }
         }
         
         // Try to find address in any column (look for longer text)
-        for ($i = 1; $i < count($rowData); $i++) {
+        for ($i = $startIndex; $i < count($rowData); $i++) {
             $value = trim($rowData[$i] ?? '');
             if (strlen($value) > 10 && !preg_match('/^\d+$/', $value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
                 $address = $value;
@@ -569,12 +637,20 @@ class GoogleDriveImportService
                 return ['success' => true, 'action' => 'created'];
             } else {
                 // Update existing user
-                $user->update([
+                $updateData = [
                     'name' => $data['name'],
                     'phone' => $data['phone'] ?: $user->phone,
                     'address' => $data['address'] ?: $user->address,
                     'source_sheet' => $data['source_sheet']
-                ]);
+                ];
+                
+                // If user has AUTO IC and we have a real IC, update it
+                if (strpos($user->ic, 'AUTO_') === 0 && !empty($data['ic']) && strpos($data['ic'], 'AUTO_') !== 0) {
+                    $updateData['ic'] = $data['ic'];
+                    $updateData['password'] = Hash::make($data['ic']); // Update password to match new IC
+                }
+                
+                $user->update($updateData);
                 
                 Log::info('User updated from Google Drive', [
                     'name' => $data['name'],

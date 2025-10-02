@@ -299,7 +299,8 @@ class StudentsImport implements ToCollection
                 if (strpos($keyLower, 'email') !== false && !empty($value) && $value !== '-') {
                     $hasEmail = true;
                 }
-                if ((strpos($keyLower, 'ic') !== false || strpos($keyLower, 'passport') !== false) && !empty($value) && $value !== '-') {
+                // Check if IC column exists (regardless of value) - this is the key fix
+                if (strpos($keyLower, 'ic') !== false || strpos($keyLower, 'passport') !== false) {
                     $hasIc = true;
                 }
             }
@@ -337,6 +338,16 @@ class StudentsImport implements ToCollection
                 // Only generate auto IC if we truly don't have an IC column
                 $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
                 Log::warning("Generated auto IC for student: " . $data['name'] . " - IC: " . $data['ic/passport']);
+            } else {
+                // IC column exists, but check if the value is empty or invalid
+                $icValue = $data['ic/passport'] ?? '';
+                if (empty($icValue) || $icValue === '-' || $icValue === 'N/A') {
+                    // Generate auto IC only if the IC value is empty/invalid
+                    $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
+                    Log::warning("Generated auto IC for student with empty IC: " . $data['name'] . " - IC: " . $data['ic/passport']);
+                } else {
+                    Log::info("Using real IC for student: " . $data['name'] . " - IC: " . $icValue);
+                }
             }
             if (!$hasEmail) {
                 $emailName = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $data['name']));

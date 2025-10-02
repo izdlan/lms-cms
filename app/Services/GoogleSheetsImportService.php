@@ -498,9 +498,39 @@ class GoogleSheetsImportService
             } elseif (strpos($keyLower, 'email') !== false && empty($extracted['email'])) {
                 $extracted['email'] = $value;
             } elseif ((strpos($keyLower, 'ic') !== false || strpos($keyLower, 'passport') !== false) && empty($extracted['ic'])) {
-                $extracted['ic'] = $value;
+                // Validate that this is actually an IC number, not a phone number
+                if (preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || 
+                    preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) ||
+                    preg_match('/^\d{6}-\d{2}-\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]\d{9}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{2}\d{8}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{3}\d{7}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{6}$/', $value) ||
+                    preg_match('/^[A-Z]{4}\d{7}$/', $value)) {
+                    $extracted['ic'] = $value;
+                }
             } elseif ((strpos($keyLower, 'contact') !== false || strpos($keyLower, 'phone') !== false) && empty($extracted['phone'])) {
-                $extracted['phone'] = $value;
+                // Validate that this is actually a phone number, not an IC number
+                if (preg_match('/^[\d\-\+\s\(\)]+$/', $value) && 
+                    strlen($value) >= 8 && 
+                    !preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) && // Not Malaysian IC
+                    !preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) && // Not alternative IC
+                    !preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) && // Not alternative IC
+                    !preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) && // Not alternative IC
+                    !preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) && // Not alternative IC
+                    !preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) && // Not alternative IC
+                    !preg_match('/^\d{6}-\d{2}-\d{7}$/', $value)) { // Not alternative IC
+                    $extracted['phone'] = $value;
+                }
             } elseif (strpos($keyLower, 'address') !== false && empty($extracted['address'])) {
                 $extracted['address'] = $value;
             } elseif ((strpos($keyLower, 'col') !== false && strpos($keyLower, 'ref') !== false) && empty($extracted['colRefNo'])) {
