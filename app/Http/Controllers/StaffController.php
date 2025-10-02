@@ -843,4 +843,49 @@ class StaffController extends Controller
             'message' => 'Material deleted successfully!'
         ]);
     }
+
+    /**
+     * View submission file in browser
+     */
+    public function viewSubmissionFile($submissionId, $fileIndex)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || !$user->isLecturer()) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $submission = AssignmentSubmission::where('id', $submissionId)
+                ->whereHas('assignment', function($query) use ($user) {
+                    $query->where('lecturer_id', $user->id);
+                })
+                ->first();
+
+            if (!$submission) {
+                return response()->json(['error' => 'Submission not found'], 404);
+            }
+
+            $attachments = $submission->attachments;
+            if (!$attachments || !isset($attachments[$fileIndex])) {
+                return response()->json(['error' => 'File not found'], 404);
+            }
+
+            $file = $attachments[$fileIndex];
+            $filePath = storage_path('app/public/' . $file['file_path']);
+
+            if (!file_exists($filePath)) {
+                return response()->json(['error' => 'File does not exist'], 404);
+            }
+
+            // Return PDF file for viewing in browser
+            return response()->file($filePath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . $file['original_name'] . '"'
+            ]);
+
+        } catch (\Exception $e) {
+            Log::error('Error viewing submission file: ' . $e->getMessage());
+            return response()->json(['error' => 'Error viewing file'], 500);
+        }
+    }
 }

@@ -102,6 +102,7 @@ Route::prefix('staff')->group(function () {
         Route::post('/assignments/create', [App\Http\Controllers\StaffController::class, 'createAssignment'])->name('staff.assignments.create');
         Route::post('/assignments/{id}/publish', [App\Http\Controllers\StaffController::class, 'publishAssignment'])->name('staff.assignments.publish');
         Route::delete('/assignments/{id}/delete', [App\Http\Controllers\StaffController::class, 'deleteAssignment'])->name('staff.assignments.delete');
+        Route::get('/assignments/submissions/{submissionId}/view/{fileIndex}', [App\Http\Controllers\StaffController::class, 'viewSubmissionFile'])->name('staff.assignments.submissions.view-file');
         Route::get('/assignments/{id}/submissions', [App\Http\Controllers\StaffController::class, 'getAssignmentSubmissions'])->name('staff.assignments.submissions');
         Route::post('/assignments/submissions/{id}/grade', [App\Http\Controllers\StaffController::class, 'gradeSubmission'])->name('staff.assignments.grade');
         Route::get('/assignments/submissions/{id}/files', [App\Http\Controllers\StaffController::class, 'getSubmissionFiles'])->name('staff.assignments.submission.files');

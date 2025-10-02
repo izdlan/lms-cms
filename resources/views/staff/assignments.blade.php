@@ -441,7 +441,7 @@ function showSubmissionFilesModal(submission) {
                                                     '<small class="text-muted d-block">' + (file.file_size / 1024).toFixed(1) + ' KB</small>' +
                                                 '</div>' +
                                                 '<div>' +
-                                                    '<button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab(\'' + file.file_path + '\')">' +
+                                                    '<button class="btn btn-sm btn-outline-primary me-2" onclick="viewPdfInNewTab(' + submission.id + ', ' + index + ')">' +
                                                         '<i class="fas fa-external-link-alt"></i> View' +
                                                     '</button>' +
                                                     '<a href="/staff/assignments/submissions/download/' + submission.id + '/' + index + '" class="btn btn-sm btn-outline-success" target="_blank">' +
@@ -480,8 +480,8 @@ function showSubmissionFilesModal(submission) {
 }
 
 // View PDF in new tab
-function viewPdfInNewTab(filePath) {
-    window.open('/storage/' + filePath, '_blank');
+function viewPdfInNewTab(submissionId, fileIndex) {
+    window.open('/staff/assignments/submissions/' + submissionId + '/view/' + fileIndex, '_blank');
 }
 
 // Enhanced grading function
