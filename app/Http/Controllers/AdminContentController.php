@@ -150,8 +150,20 @@ class AdminContentController extends Controller
     private function uploadImageFile($file, $folder = 'home-page-images')
     {
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+        \Log::info('Uploading file', [
+            'original_name' => $file->getClientOriginalName(),
+            'generated_filename' => $filename,
+            'folder' => $folder,
+            'size' => $file->getSize()
+        ]);
+        
         $path = $file->storeAs($folder, $filename, 'public');
-        return '/storage/' . $path;
+        \Log::info('File stored', ['path' => $path]);
+        
+        $fullUrl = '/storage/' . $path;
+        \Log::info('Generated URL', ['url' => $fullUrl]);
+        
+        return $fullUrl;
     }
 
     private function getOrCreateAdminId($userId)
@@ -210,7 +222,13 @@ class AdminContentController extends Controller
         
         // Handle file upload
         if ($request->hasFile('image')) {
+            \Log::info('Announcement image upload started', [
+                'file_name' => $request->file('image')->getClientOriginalName(),
+                'file_size' => $request->file('image')->getSize(),
+                'mime_type' => $request->file('image')->getMimeType()
+            ]);
             $imageUrl = $this->uploadImageFile($request->file('image'), 'announcements');
+            \Log::info('Announcement image upload completed', ['image_url' => $imageUrl]);
         }
 
         // Get or create admin record for the current user

@@ -50,39 +50,50 @@
                     <div class="gallery-main">
                         <div class="gallery-image-container">
                             @php
-                                $gallerySection = $homePageContents->where('section_name', 'gallery')->first();
-                                $galleryImages = $gallerySection ? json_decode($gallerySection->metadata, true)['images'] ?? [] : [];
-                                $defaultImages = [
-                                    '/assets/default/img/home/poster1.jpeg',
-                                    '/assets/default/img/home/poster2.jpeg',
-                                    '/assets/default/img/home/poster3.jpeg',
-                                    '/assets/default/img/home/poster4.jpeg',
-                                    '/assets/default/img/home/poster5.jpeg',
-                                    '/assets/default/img/home/poster6.jpg',
-                                    '/assets/default/img/home/poster7.jpg'
-                                ];
-                                $images = !empty($galleryImages) ? $galleryImages : $defaultImages;
+                                // Use announcement images instead of static gallery images
+                                $announcementImages = $galleryAnnouncements->filter(function($announcement) {
+                                    return !empty($announcement->image_url);
+                                });
                             @endphp
                             
-                            @foreach($images as $index => $image)
-                                <img src="{{ $image }}" alt="Olympia Education Poster {{ $index + 1 }}" class="main-gallery-image {{ $index === 0 ? 'active' : '' }}" data-index="{{ $index }}" style="width: 100% !important; height: 100% !important; object-fit: cover !important;">
-                            @endforeach
+                            @if($announcementImages->count() > 0)
+                                @foreach($announcementImages as $index => $announcement)
+                                    <img src="{{ $announcement->image_url }}" 
+                                         alt="{{ $announcement->title }}" 
+                                         class="main-gallery-image {{ $index === 0 ? 'active' : '' }}" 
+                                         data-index="{{ $index }}" 
+                                         data-announcement-id="{{ $announcement->id }}"
+                                         style="width: 100% !important; height: 100% !important; object-fit: cover !important; cursor: pointer;"
+                                         onclick="redirectToAnnouncement({{ $announcement->id }})">
+                                @endforeach
+                            @else
+                                <!-- Fallback message when no announcements with images exist -->
+                                <div class="no-gallery-message text-center p-5">
+                                    <i class="fas fa-images fa-3x text-muted mb-3"></i>
+                                    <h4 class="text-muted">No Announcements with Images</h4>
+                                    <p class="text-muted">Gallery will automatically update when announcements with images are added.</p>
+                                </div>
+                            @endif
                         </div>
                         
                         <!-- Navigation Arrows -->  
-                        <button class="gallery-nav gallery-prev" onclick="changeImage(-1)">
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <button class="gallery-nav gallery-next" onclick="changeImage(1)">
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                        @if($announcementImages->count() > 1)
+                            <button class="gallery-nav gallery-prev" onclick="changeImage(-1)">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <button class="gallery-nav gallery-next" onclick="changeImage(1)">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        @endif
                         
                         <!-- Dots Indicator -->
-                        <div class="gallery-dots">
-                            @foreach($images as $index => $image)
-                                <span class="dot {{ $index === 0 ? 'active' : '' }}" onclick="currentImage({{ $index }})"></span>
-                            @endforeach
-                        </div>
+                        @if($announcementImages->count() > 1)
+                            <div class="gallery-dots">
+                                @foreach($announcementImages as $index => $announcement)
+                                    <span class="dot {{ $index === 0 ? 'active' : '' }}" onclick="currentImage({{ $index }})"></span>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>

@@ -1221,7 +1221,7 @@
     <script>
         // Gallery Navigation JavaScript
         let currentImageIndex = 0;
-        const totalImages = 7;
+        let totalImages = 0;
         
         function showImage(index) {
             // Hide all images
@@ -1241,6 +1241,11 @@
         }
         
         function changeImage(direction) {
+            // Update total images count dynamically
+            totalImages = document.querySelectorAll('.main-gallery-image').length;
+            
+            if (totalImages === 0) return;
+            
             currentImageIndex += direction;
             
             // Loop around
@@ -1258,6 +1263,11 @@
             showImage(currentImageIndex);
         }
         
+        // Function to redirect to announcement page
+        function redirectToAnnouncement(announcementId) {
+            window.location.href = '/announcements/' + announcementId;
+        }
+        
         // Auto-play functionality (optional)
         let autoPlayInterval;
         
@@ -1273,8 +1283,13 @@
         
         // Initialize gallery
         document.addEventListener('DOMContentLoaded', function() {
-            showImage(0);
-            startAutoPlay();
+            // Update total images count
+            totalImages = document.querySelectorAll('.main-gallery-image').length;
+            
+            if (totalImages > 0) {
+                showImage(0);
+                startAutoPlay();
+            }
             
             // Pause auto-play on hover
             const gallery = document.querySelector('.single-gallery');
