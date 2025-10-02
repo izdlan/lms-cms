@@ -120,149 +120,402 @@
 
 @push('styles')
 <style>
+/* Professional Course Cards */
 .course-card {
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     height: 100%;
     display: flex;
     flex-direction: column;
 }
 
 .course-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    border-color: #cbd5e0;
 }
 
 .course-header {
-    background: linear-gradient(135deg, #0056d2, #0041a3);
-    padding: 1.5rem;
+    background: #ffffff;
+    padding: 1.25rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .course-icon {
-    color: white;
-    font-size: 1.5rem;
+    color: #718096;
+    font-size: 1.25rem;
 }
 
 .course-status .badge-enrolled {
-    background: rgba(255, 255, 255, 0.2);
-    color: white;
+    background: #edf2f7;
+    color: #4a5568;
     padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
 }
 
 .course-body {
-    padding: 1.5rem;
+    padding: 1.25rem;
     flex-grow: 1;
 }
 
 .course-title {
     color: #2d3748;
-    font-weight: bold;
-    margin-bottom: 0.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
     font-size: 1.1rem;
+    line-height: 1.4;
 }
 
 .course-code {
-    color: #0056d2;
-    font-size: 0.9rem;
+    color: #718096;
+    font-size: 0.875rem;
     font-weight: 500;
     margin-bottom: 0.75rem;
+    background: #f7fafc;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+    border: 1px solid #e2e8f0;
 }
 
 .course-description {
     color: #718096;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     margin-bottom: 1rem;
     line-height: 1.5;
 }
 
 .course-meta {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: #f7fafc;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
 }
 
 .course-duration, .course-level {
     display: flex;
     align-items: center;
     color: #718096;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .course-duration i, .course-level i {
-    margin-right: 0.25rem;
+    margin-right: 0.5rem;
+    color: #a0aec0;
 }
 
 .course-footer {
-    padding: 1rem 1.5rem;
-    background: #f8f9fa;
-    border-top: 1px solid #e9ecef;
+    padding: 1rem 1.25rem;
+    background: #f7fafc;
+    border-top: 1px solid #e2e8f0;
 }
 
 .course-actions {
     text-align: center;
 }
 
-/* Student List Section Styles */
+.course-actions .btn {
+    background: #4a5568;
+    border: 1px solid #4a5568;
+    color: white;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.course-actions .btn:hover {
+    background: #2d3748;
+    border-color: #2d3748;
+    color: white;
+}
+
+/* Professional Course Selection */
+.course-selection {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid #e2e8f0;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.course-selection h5 {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.1rem;
+}
+
+.course-selection h5 i {
+    color: #718096;
+    font-size: 1.25rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.form-select {
+    border: 1px solid #cbd5e0;
+    border-radius: 6px;
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+    transition: border-color 0.2s ease;
+    background: white;
+}
+
+.form-select:focus {
+    border-color: #718096;
+    box-shadow: 0 0 0 3px rgba(113, 128, 150, 0.1);
+    outline: none;
+}
+
+.course-info {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    padding: 1.25rem;
+    margin-top: 1.5rem;
+}
+
+.course-info h4 {
+    color: #2d3748;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.course-info p {
+    color: #718096;
+    margin: 0;
+    font-size: 0.875rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.action-btn:hover {
+    transform: translateY(-1px);
+    text-decoration: none;
+}
+
+.action-btn.primary {
+    background: #4a5568;
+    color: white;
+    border-color: #4a5568;
+}
+
+.action-btn.primary:hover {
+    background: #2d3748;
+    border-color: #2d3748;
+    color: white;
+}
+
+.action-btn.success {
+    background: #68d391;
+    color: #2d3748;
+    border-color: #68d391;
+}
+
+.action-btn.success:hover {
+    background: #48bb78;
+    border-color: #48bb78;
+    color: #2d3748;
+}
+
+.action-btn.warning {
+    background: #f6e05e;
+    color: #2d3748;
+    border-color: #f6e05e;
+}
+
+.action-btn.warning:hover {
+    background: #ed8936;
+    border-color: #ed8936;
+    color: white;
+}
+
+.action-btn.info {
+    background: #90cdf4;
+    color: #2d3748;
+    border-color: #90cdf4;
+}
+
+.action-btn.info:hover {
+    background: #63b3ed;
+    border-color: #63b3ed;
+    color: #2d3748;
+}
+
+.action-btn.danger {
+    background: #feb2b2;
+    color: #2d3748;
+    border-color: #feb2b2;
+}
+
+.action-btn.danger:hover {
+    background: #fc8181;
+    border-color: #fc8181;
+    color: #2d3748;
+}
+
+/* Professional Student List Section */
 .student-list-section {
     margin-top: 2rem;
+}
+
+.student-list-section .card {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 .student-list-section .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border: none;
+    background: #f7fafc;
+    color: #4a5568;
+    border-bottom: 1px solid #e2e8f0;
+    padding: 1.25rem;
 }
 
 .student-list-section .card-header h5 {
     margin: 0;
     font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.student-list-section .card-header h5 i {
+    color: #718096;
 }
 
 .student-list-section .badge {
-    font-size: 0.9rem;
-    padding: 0.5rem 1rem;
-    border-radius: 20px;
+    font-size: 0.8rem;
+    padding: 0.375rem 0.75rem;
+    border-radius: 4px;
+    background: #edf2f7;
+    color: #4a5568;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
 }
 
 .student-list-section .table th {
-    background-color: #f8f9fa;
+    background-color: #f7fafc;
     border-top: none;
     font-weight: 600;
-    color: #495057;
+    color: #4a5568;
+    font-size: 0.875rem;
+    padding: 1rem 0.75rem;
+    border-bottom: 1px solid #e2e8f0;
 }
 
 .student-list-section .table td {
     vertical-align: middle;
+    padding: 0.75rem;
+    font-size: 0.875rem;
+    color: #718096;
+    border-bottom: 1px solid #f1f5f9;
 }
 
 .student-list-section .badge-success {
-    background-color: #28a745;
+    background-color: #c6f6d5;
+    color: #2f855a;
+    border: 1px solid #9ae6b4;
 }
 
 .student-list-section .badge-warning {
-    background-color: #ffc107;
-    color: #212529;
+    background-color: #faf089;
+    color: #744210;
+    border: 1px solid #f6e05e;
+}
+
+/* Professional Header */
+.courses-header {
+    background: #f7fafc;
+    color: #4a5568;
+    padding: 2rem 0;
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.courses-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #2d3748;
+}
+
+.courses-header p {
+    font-size: 1rem;
+    color: #718096;
+    margin: 0;
 }
 
 @media (max-width: 768px) {
     .course-meta {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        justify-content: center;
     }
     
     .student-list-section .table-responsive {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
+    }
+    
+    .courses-header h1 {
+        font-size: 1.5rem;
     }
 }
 </style>

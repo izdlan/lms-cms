@@ -331,6 +331,28 @@
             color: white;
         }
         
+        /* Main Layout Structure */
+        .main-content {
+            margin-left: 250px;
+            padding-top: 80px;
+            padding-left: 2rem;
+            padding-right: 2rem;
+            min-height: 100vh;
+            background: #f8f9fa;
+        }
+        
+        .sidebar {
+            position: fixed;
+            top: 60px;
+            left: 0;
+            width: 250px;
+            height: calc(100vh - 60px);
+            background: #2c3e50;
+            z-index: 999;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
+        }
+        
         /* Content Cards */
         .content-card {
             background: white;
@@ -359,11 +381,26 @@
         }
         
         @media (max-width: 768px) {
-            .main-content { margin-left: 0; }
-            .sidebar { transform: translateX(-100%); }
-            .sidebar.open { transform: translateX(0); }
+            .main-content { 
+                margin-left: 0; 
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            .sidebar { 
+                transform: translateX(-100%); 
+                width: 280px;
+            }
+            .sidebar.open { 
+                transform: translateX(0); 
+            }
             .action-buttons {
                 flex-direction: column;
+            }
+            .courses-header h1 {
+                font-size: 1.8rem;
+            }
+            .courses-header p {
+                font-size: 1rem;
             }
         }
     </style>

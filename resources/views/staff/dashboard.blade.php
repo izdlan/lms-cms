@@ -9,8 +9,8 @@
 </div>
 
 <!-- Welcome Section -->
-<div class="content-card">
-    <div class="dashboard-header">
+<div class="welcome-section">
+    <div class="welcome-content">
         <h1>Welcome, {{ $user->name }}!</h1>
         <p>Lecturer Dashboard - Manage your courses, classes, and students</p>
     </div>
@@ -174,6 +174,7 @@
     padding: 2rem 0;
     margin-bottom: 2rem;
     border-radius: 0.5rem;
+    text-align: center;
 }
 
 .courses-header h1 {
@@ -186,6 +187,29 @@
     font-size: 1.1rem;
     opacity: 0.9;
     margin: 0;
+}
+
+/* Welcome Section */
+.welcome-section {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
+}
+
+.welcome-content h1 {
+    color: #2c3e50;
+    font-size: 1.8rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.welcome-content p {
+    color: #6c757d;
+    margin: 0;
+    font-size: 1rem;
 }
 
 .content-card {
@@ -336,79 +360,105 @@
 }
 
 .stats-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 50%;
+    width: 70px;
+    height: 70px;
+    border-radius: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 1rem;
-    font-size: 24px;
+    margin-right: 1.5rem;
+    font-size: 28px;
     color: white;
     background: linear-gradient(135deg, #0056d2, #0041a3);
+    box-shadow: 0 4px 15px rgba(0, 86, 210, 0.3);
 }
 
 .stats-content h3 {
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 2.5rem;
+    font-weight: 800;
     color: #2c3e50;
     margin: 0 0 0.5rem 0;
+    line-height: 1;
 }
 
 .stats-content p {
-    color: #7f8c8d;
-    font-size: 0.9rem;
+    color: #6c757d;
+    font-size: 1rem;
     margin: 0;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 /* My Subjects Section */
 .my-subjects-section {
     background: white;
-    border-radius: 0.5rem;
-    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid #dee2e6;
+    border-radius: 1rem;
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e9ecef;
 }
 
 .my-subjects-section h5 {
     color: #2c3e50;
-    font-weight: 600;
-    margin-bottom: 1.5rem;
+    font-weight: 700;
+    font-size: 1.3rem;
+    margin-bottom: 2rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.75rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f8f9fa;
 }
 
 .my-subjects-section h5 i {
     color: #0056d2;
+    font-size: 1.5rem;
+    background: #f0f2ff;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
 }
 
 /* Course Cards */
 .course-card {
     background: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 0.125rem 0.5rem rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 0.25rem 1rem rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     border: 1px solid #e9ecef;
     height: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 }
 
 .course-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-6px);
+    box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.15);
+    border-color: #0056d2;
 }
 
 .course-header {
     background: linear-gradient(135deg, #0056d2, #0041a3);
     color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 0.75rem 0.75rem 0 0;
+    padding: 1.25rem 1.5rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.course-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    pointer-events: none;
 }
 
 .course-icon {
@@ -425,7 +475,7 @@
 }
 
 .course-content {
-    padding: 1.5rem;
+    padding: 1.75rem;
     flex-grow: 1;
     display: flex;
     flex-direction: column;
@@ -433,42 +483,54 @@
 
 .course-title {
     color: #2c3e50;
-    font-weight: 600;
-    font-size: 1.1rem;
-    margin-bottom: 0.25rem;
+    font-weight: 700;
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.3;
 }
 
 .course-code {
-    color: #6c757d;
+    color: #0056d2;
     font-size: 0.9rem;
-    margin-bottom: 0.75rem;
-    font-weight: 500;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    background: #f0f2ff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    display: inline-block;
+    width: fit-content;
 }
 
 .course-description {
     color: #6c757d;
-    font-size: 0.9rem;
-    line-height: 1.4;
-    margin-bottom: 1rem;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
     flex-grow: 1;
 }
 
 .course-stats {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 0.75rem;
+    border: 1px solid #e9ecef;
 }
 
 .stat-item {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    color: #6c757d;
-    font-size: 0.85rem;
+    color: #495057;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
 
 .stat-item i {
     color: #0056d2;
+    font-size: 1rem;
 }
 
 .course-actions {
@@ -480,17 +542,20 @@
     background: linear-gradient(135deg, #0056d2, #0041a3);
     border: none;
     color: white;
-    padding: 0.75rem 1rem;
-    border-radius: 0.5rem;
-    font-weight: 500;
+    padding: 0.875rem 1.25rem;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    font-size: 0.95rem;
     transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .select-course-btn:hover {
     background: linear-gradient(135deg, #0041a3, #003d99);
     color: white;
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 86, 210, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 86, 210, 0.4);
 }
 
 /* Modal Styling */
