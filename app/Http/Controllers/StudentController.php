@@ -627,7 +627,8 @@ class StudentController extends Controller
         $path = $request->file('profile_picture')->store('profile-pictures', 'public');
         
         // Update user profile picture
-        $user->update(['profile_picture' => $path]);
+        $user->profile_picture = $path;
+        $user->save();
 
         return redirect()->route('student.profile')->with('success', 'Profile picture uploaded successfully!');
     }
