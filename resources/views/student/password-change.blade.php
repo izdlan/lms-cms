@@ -77,7 +77,36 @@
                                             </div>
                                         @enderror
                                         <div class="form-text">
-                                            Password must be at least 6 characters long.
+                                            <strong>Password Requirements:</strong>
+                                        </div>
+                                        <div class="password-requirements">
+                                            <div class="requirement" id="req-length">
+                                                <i class="fas fa-times text-danger"></i>
+                                                <span>At least 8 characters long</span>
+                                            </div>
+                                            <div class="requirement" id="req-uppercase">
+                                                <i class="fas fa-times text-danger"></i>
+                                                <span>One uppercase letter (A-Z)</span>
+                                            </div>
+                                            <div class="requirement" id="req-lowercase">
+                                                <i class="fas fa-times text-danger"></i>
+                                                <span>One lowercase letter (a-z)</span>
+                                            </div>
+                                            <div class="requirement" id="req-number">
+                                                <i class="fas fa-times text-danger"></i>
+                                                <span>One number (0-9)</span>
+                                            </div>
+                                            <div class="requirement" id="req-special">
+                                                <i class="fas fa-times text-danger"></i>
+                                                <span>One special character (!@#$%^&*)</span>
+                                            </div>
+                                        </div>
+                                        <div class="password-strength mt-3">
+                                            <div class="strength-label">Password Strength:</div>
+                                            <div class="strength-bar">
+                                                <div class="strength-fill" id="strength-fill"></div>
+                                            </div>
+                                            <div class="strength-text" id="strength-text">Very Weak</div>
                                         </div>
                                     </div>
 
@@ -290,6 +319,117 @@
     font-size: 0.9rem;
 }
 
+/* Password Requirements Styles */
+.password-requirements {
+    margin-top: 0.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+.requirement {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.requirement i {
+    margin-right: 0.5rem;
+    width: 16px;
+    text-align: center;
+}
+
+.requirement.valid i {
+    color: #28a745;
+}
+
+.requirement.valid span {
+    color: #28a745;
+    font-weight: 500;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+    margin-top: 1rem;
+}
+
+.strength-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+
+.strength-bar {
+    width: 100%;
+    height: 8px;
+    background: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.strength-fill.very-weak {
+    background: #dc3545;
+    width: 20%;
+}
+
+.strength-fill.weak {
+    background: #fd7e14;
+    width: 40%;
+}
+
+.strength-fill.fair {
+    background: #ffc107;
+    width: 60%;
+}
+
+.strength-fill.good {
+    background: #20c997;
+    width: 80%;
+}
+
+.strength-fill.strong {
+    background: #28a745;
+    width: 100%;
+}
+
+.strength-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.strength-text.very-weak {
+    color: #dc3545;
+}
+
+.strength-text.weak {
+    color: #fd7e14;
+}
+
+.strength-text.fair {
+    color: #ffc107;
+}
+
+.strength-text.good {
+    color: #20c997;
+}
+
+.strength-text.strong {
+    color: #28a745;
+}
+
 .alert {
     border-radius: 8px;
     border: none;
@@ -342,6 +482,111 @@ function togglePassword(fieldId) {
 
 document.addEventListener('DOMContentLoaded', function() {
     feather.replace();
+    
+    // Password validation
+    const passwordInput = document.getElementById('password');
+    const confirmInput = document.getElementById('password_confirmation');
+    
+    passwordInput.addEventListener('input', function() {
+        validatePassword(this.value);
+    });
+    
+    confirmInput.addEventListener('input', function() {
+        validatePasswordConfirmation();
+    });
 });
+
+function validatePassword(password) {
+    const requirements = {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /[0-9]/.test(password),
+        special: /[^A-Za-z0-9]/.test(password)
+    };
+    
+    // Update requirement indicators
+    Object.keys(requirements).forEach(req => {
+        const element = document.getElementById(`req-${req}`);
+        const icon = element.querySelector('i');
+        
+        if (requirements[req]) {
+            element.classList.add('valid');
+            icon.className = 'fas fa-check text-success';
+        } else {
+            element.classList.remove('valid');
+            icon.className = 'fas fa-times text-danger';
+        }
+    });
+    
+    // Calculate password strength
+    let score = 0;
+    Object.values(requirements).forEach(valid => {
+        if (valid) score++;
+    });
+    
+    // Additional scoring based on length
+    if (password.length >= 12) score += 0.5;
+    if (password.length >= 16) score += 0.5;
+    
+    // Check for common patterns (penalize)
+    if (/(.)\1{2,}/.test(password)) score -= 1; // Repeated characters
+    if (/123|abc|qwe|asd|zxc/i.test(password)) score -= 1; // Sequential patterns
+    
+    updatePasswordStrength(score, password.length);
+}
+
+function updatePasswordStrength(score, length) {
+    const strengthFill = document.getElementById('strength-fill');
+    const strengthText = document.getElementById('strength-text');
+    
+    // Remove all strength classes
+    strengthFill.className = 'strength-fill';
+    strengthText.className = 'strength-text';
+    
+    if (score < 2 || length < 8) {
+        strengthFill.classList.add('very-weak');
+        strengthText.classList.add('very-weak');
+        strengthText.textContent = 'Very Weak';
+    } else if (score < 3) {
+        strengthFill.classList.add('weak');
+        strengthText.classList.add('weak');
+        strengthText.textContent = 'Weak';
+    } else if (score < 4) {
+        strengthFill.classList.add('fair');
+        strengthText.classList.add('fair');
+        strengthText.textContent = 'Fair';
+    } else if (score < 5) {
+        strengthFill.classList.add('good');
+        strengthText.classList.add('good');
+        strengthText.textContent = 'Good';
+    } else {
+        strengthFill.classList.add('strong');
+        strengthText.classList.add('strong');
+        strengthText.textContent = 'Strong';
+    }
+}
+
+function validatePasswordConfirmation() {
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('password_confirmation').value;
+    const confirmInput = document.getElementById('password_confirmation');
+    
+    if (confirm && password !== confirm) {
+        confirmInput.classList.add('is-invalid');
+        if (!confirmInput.nextElementSibling || !confirmInput.nextElementSibling.classList.contains('invalid-feedback')) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            errorDiv.textContent = 'Passwords do not match.';
+            confirmInput.parentNode.appendChild(errorDiv);
+        }
+    } else {
+        confirmInput.classList.remove('is-invalid');
+        const errorDiv = confirmInput.parentNode.querySelector('.invalid-feedback');
+        if (errorDiv) {
+            errorDiv.remove();
+        }
+    }
+}
 </script>
 @endpush

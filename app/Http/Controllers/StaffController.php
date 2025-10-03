@@ -705,19 +705,32 @@ class StaffController extends Controller
 
         $request->validate([
             'current_password' => 'required',
-            'password' => 'required|min:8|confirmed',
+            'password' => ['required', 'confirmed', new \App\Rules\StrongPassword],
         ]);
 
         if (!Hash::check($request->current_password, $user->password)) {
             return back()->withErrors(['current_password' => 'Current password is incorrect.']);
         }
 
+        // Check if new password is the same as current password
+        if (Hash::check($request->password, $user->password)) {
+            return back()->withErrors(['password' => 'New password must be different from your current password.']);
+        }
+
+        // Check password history (prevent reusing last 5 passwords)
+        if (\App\Models\PasswordHistory::hasUsedPassword($user->id, $request->password, 5)) {
+            return back()->withErrors(['password' => 'You cannot reuse any of your last 5 passwords.']);
+        }
+
+        // Store current password in history before updating
+        \App\Models\PasswordHistory::storePassword($user->id, $request->current_password);
+
         $user->update([
             'password' => Hash::make($request->password),
             'must_reset_password' => false,
         ]);
 
-        return redirect()->route('staff.dashboard')->with('success', 'Password updated successfully!');
+        return redirect()->route('staff.dashboard')->with('success', 'Password updated successfully! Your password is now more secure.');
     }
 
     /**
