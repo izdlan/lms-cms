@@ -193,9 +193,9 @@ class StudentsImport implements ToCollection
             } elseif (strpos($headerName, 'previous university') !== false) {
                 $mappedHeader[$index] = 'previous university';
                 Log::info("Mapped to 'previous university'");
-            } elseif (strpos($headerName, 'programme name') !== false || strpos($headerName, 'program name') !== false) {
+            } elseif (strpos($headerName, 'programme name') !== false || strpos($headerName, 'program name') !== false || strpos($headerName, 'programe name') !== false) {
                 $mappedHeader[$index] = 'programme name';
-                Log::info("Mapped to 'programme name'");
+                Log::info("Mapped to 'programme name' (handling typo 'programe')");
             } elseif (strpos($headerName, 'category') !== false) {
                 $mappedHeader[$index] = 'category';
                 Log::info("Mapped to 'category'");
@@ -458,7 +458,7 @@ class StudentsImport implements ToCollection
                     $studentId = $value;
                 } elseif (strpos($keyLower, 'category') !== false && empty($category)) {
                     $category = $value;
-                } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false) && strpos($keyLower, 'name') !== false && empty($programmeName)) {
+                } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false || strpos($keyLower, 'programe') !== false) && strpos($keyLower, 'name') !== false && empty($programmeName)) {
                     $programmeName = $value;
                 } elseif (strpos($keyLower, 'faculty') !== false && empty($faculty)) {
                     $faculty = $value;

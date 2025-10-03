@@ -231,6 +231,8 @@ class SheetSpecificImportService
             'IUC LMS' => 1,  // Headers are on row 1
             'LUC LMS' => 1,  // Headers are on row 1
             'UPM LMS' => 1,  // Headers are on row 1
+            'EXECUTIVE LMS' => 1,  // Headers are on row 1
+            'TVET LMS' => 1,  // Headers are on row 1
         ];
         
         $rowsToCheck = [];
@@ -712,6 +714,20 @@ class SheetSpecificImportService
                 'email_column' => 'J', // Column J
                 'phone_column' => 'I', // Column I
                 'address_column' => 'B', // Column B
+            ],
+            'EXECUTIVE LMS' => [
+                'ic_column' => 'C', // Column C
+                'name_column' => 'A', // Column A
+                'email_column' => 'K', // Column K
+                'phone_column' => 'J', // Column J
+                'address_column' => 'B', // Column B
+            ],
+            'TVET LMS' => [
+                'ic_column' => 'C', // Column C
+                'name_column' => 'A', // Column A
+                'email_column' => 'J', // Column J
+                'phone_column' => 'I', // Column I
+                'address_column' => 'B', // Column B
             ]
         ];
         
@@ -942,8 +958,9 @@ class SheetSpecificImportService
                     $studentData['address'] = trim($rowData[$col]);
                 } elseif (strpos($cleanHeader, 'student') !== false && strpos($cleanHeader, 'id') !== false) {
                     $studentData['student_id'] = trim($rowData[$col]);
-                } elseif (strpos($cleanHeader, 'programme') !== false && strpos($cleanHeader, 'name') !== false) {
+                } elseif ((strpos($cleanHeader, 'programme') !== false || strpos($cleanHeader, 'programe') !== false) && strpos($cleanHeader, 'name') !== false) {
                     // Store programme name separately, don't use as student name
+                    // Handle both 'programme' and 'programe' (typo in some files)
                     $studentData['programme_name'] = trim($rowData[$col]);
                 } else {
                     $studentData[$cleanHeader] = trim($rowData[$col]);

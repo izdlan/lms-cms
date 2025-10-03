@@ -79,35 +79,27 @@
         </div>
 
         <!-- Related Announcements -->
+        @if($relatedAnnouncements && $relatedAnnouncements->count() > 0)
         <div class="related-announcements mt-5">
             <h3 class="section-title">Related Announcements</h3>
             <div class="row">
-                <div class="col-md-6">
+                @foreach($relatedAnnouncements as $relatedAnnouncement)
+                <div class="col-md-6 mb-3">
                     <div class="related-card">
                         <div class="related-header">
-                            <span class="related-category">Academic</span>
-                            <span class="related-date">Dec 8, 2024</span>
+                            <span class="related-category">{{ $relatedAnnouncement->category }}</span>
+                            <span class="related-date">{{ $relatedAnnouncement->published_at ? $relatedAnnouncement->published_at->format('M j, Y') : 'No date' }}</span>
                         </div>
                         <h4 class="related-title">
-                            <a href="/maintenance">Final Exam Schedule Released</a>
+                            <a href="{{ route('announcements.show', $relatedAnnouncement->id) }}">{{ $relatedAnnouncement->title }}</a>
                         </h4>
-                        <p class="related-content">The final exam schedule for the current semester has been released. Please check your student portal for details.</p>
+                        <p class="related-content">{{ Str::limit($relatedAnnouncement->content, 120) }}</p>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="related-card">
-                        <div class="related-header">
-                            <span class="related-category">Library</span>
-                            <span class="related-date">Dec 6, 2024</span>
-                        </div>
-                        <h4 class="related-title">
-                            <a href="/maintenance">New Digital Resources Available</a>
-                        </h4>
-                        <p class="related-content">Access to new digital resources and online databases is now available through the library portal.</p>
-                    </div>
-                </div>
+                @endforeach
             </div>
         </div>
+        @endif
     </div>
 </div>
 

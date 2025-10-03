@@ -25,7 +25,7 @@ class HomePageContent extends Model
 
     public function admin(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'admin_id');
+        return $this->belongsTo(\App\Models\Admin::class, 'admin_id');
     }
 
     public function scopeActive($query)

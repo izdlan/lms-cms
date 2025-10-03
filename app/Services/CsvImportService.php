@@ -190,7 +190,7 @@ class CsvImportService
                 $extracted['studentId'] = $value;
             } elseif (strpos($keyLower, 'category') !== false && empty($extracted['category'])) {
                 $extracted['category'] = $value;
-            } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false) && strpos($keyLower, 'name') !== false && empty($extracted['programmeName'])) {
+            } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false || strpos($keyLower, 'programe') !== false) && strpos($keyLower, 'name') !== false && empty($extracted['programmeName'])) {
                 $extracted['programmeName'] = $value;
             } elseif (strpos($keyLower, 'faculty') !== false && empty($extracted['faculty'])) {
                 $extracted['faculty'] = $value;

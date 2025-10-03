@@ -38,7 +38,30 @@ Route::get('/announcements', function() {
 })->name('announcements.index');
 Route::get('/announcements/{id}', function($id) {
     $announcement = \App\Models\PublicAnnouncement::active()->published()->findOrFail($id);
-    return view('announcements.show', compact('announcement'));
+    
+    // Get related announcements (same category, excluding current announcement)
+    $relatedAnnouncements = \App\Models\PublicAnnouncement::active()
+        ->published()
+        ->where('category', $announcement->category)
+        ->where('id', '!=', $announcement->id)
+        ->latest()
+        ->take(2)
+        ->get();
+    
+    // If not enough related announcements in same category, get recent ones
+    if ($relatedAnnouncements->count() < 2) {
+        $additionalAnnouncements = \App\Models\PublicAnnouncement::active()
+            ->published()
+            ->where('id', '!=', $announcement->id)
+            ->whereNotIn('id', $relatedAnnouncements->pluck('id'))
+            ->latest()
+            ->take(2 - $relatedAnnouncements->count())
+            ->get();
+        
+        $relatedAnnouncements = $relatedAnnouncements->merge($additionalAnnouncements);
+    }
+    
+    return view('announcements.show', compact('announcement', 'relatedAnnouncements'));
 })->name('announcements.show');
 
 // Bootstrap test route
@@ -364,7 +387,7 @@ Route::prefix('admin')->group(function () {
                     'metadata' => json_encode(['images' => $request->images]),
                     'sort_order' => 2,
                     'is_active' => true,
-                    'admin_id' => auth()->id()
+                    'admin_id' => \App\Models\Admin::where('email', auth()->user()->email)->first()->id ?? 1
                 ]);
             } else {
                 $gallerySection->update([
@@ -415,7 +438,7 @@ Route::prefix('admin')->group(function () {
                     'image_url' => $request->image_url,
                     'sort_order' => 1,
                     'is_active' => true,
-                    'admin_id' => auth()->id()
+                    'admin_id' => \App\Models\Admin::where('email', auth()->user()->email)->first()->id ?? 1
                 ]);
             } else {
                 $heroSection->update([

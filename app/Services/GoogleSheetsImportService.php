@@ -470,7 +470,8 @@ class GoogleSheetsImportService
             'address' => '',
             'colRefNo' => '',
             'studentId' => '',
-            'previousUniversity' => ''
+            'previousUniversity' => '',
+            'programmeName' => ''
         ];
 
         // For new format, try direct column mapping first
@@ -539,6 +540,8 @@ class GoogleSheetsImportService
                 $extracted['studentId'] = $value;
             } elseif (strpos($keyLower, 'previous') !== false && strpos($keyLower, 'university') !== false && empty($extracted['previousUniversity'])) {
                 $extracted['previousUniversity'] = $value;
+            } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false || strpos($keyLower, 'programe') !== false) && strpos($keyLower, 'name') !== false && empty($extracted['programmeName'])) {
+                $extracted['programmeName'] = $value;
             }
         }
         }
@@ -599,6 +602,7 @@ class GoogleSheetsImportService
                     'role' => 'student',
                     'must_reset_password' => false,
                     'courses' => $courses,
+                    'programme_name' => $data['programmeName'] ?: null,
                     'source_sheet' => $data['source_sheet'] ?? 'Google Sheets',
                     'previous_university' => $data['previousUniversity'] ?: null,
                 ]);
@@ -615,6 +619,7 @@ class GoogleSheetsImportService
                     'student_id' => $data['studentId'] ?: $user->student_id,
                     'password' => Hash::make($data['ic']),
                     'courses' => $courses,
+                    'programme_name' => $data['programmeName'] ?: $user->programme_name,
                     'must_reset_password' => false,
                     'source_sheet' => $data['source_sheet'] ?? 'Google Sheets',
                     'previous_university' => $data['previousUniversity'] ?: $user->previous_university,

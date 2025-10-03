@@ -331,7 +331,7 @@ class XlsxImportService
                 $extracted['studentId'] = $value;
             } elseif (strpos($keyLower, 'category') !== false && empty($extracted['category'])) {
                 $extracted['category'] = $value;
-            } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false) && strpos($keyLower, 'name') !== false && empty($extracted['programmeName'])) {
+            } elseif ((strpos($keyLower, 'programme') !== false || strpos($keyLower, 'program') !== false || strpos($keyLower, 'programe') !== false) && strpos($keyLower, 'name') !== false && empty($extracted['programmeName'])) {
                 $extracted['programmeName'] = $value;
             } elseif (strpos($keyLower, 'faculty') !== false && empty($extracted['faculty'])) {
                 $extracted['faculty'] = $value;
@@ -414,6 +414,7 @@ class XlsxImportService
                     'role' => 'student',
                     'must_reset_password' => false,
                     'courses' => $courses,
+                    'programme_name' => $data['programmeName'] ?: null,
                 ]);
 
                 Log::info('Student created from XLSX', ['name' => $data['name'], 'ic' => $data['ic']]);
@@ -428,6 +429,7 @@ class XlsxImportService
                     'student_id' => $data['studentId'] ?: $user->student_id,
                     'password' => Hash::make($data['ic']),
                     'courses' => $courses,
+                    'programme_name' => $data['programmeName'] ?: $user->programme_name,
                     'must_reset_password' => false,
                 ]);
 
