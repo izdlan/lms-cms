@@ -39,7 +39,7 @@
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">IC Number:</div>
-                                        <div class="info-value">{{ auth('student')->user()->ic_number ?? '-' }}</div>
+                                        <div class="info-value">{{ auth('student')->user()->ic ?? '-' }}</div>
                                     </div>
                                     <div class="info-row">
                                         <div class="info-label">Student ID:</div>

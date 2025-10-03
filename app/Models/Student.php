@@ -24,6 +24,7 @@ class Student extends Authenticatable
         'student_id',
         'previous_university',
         'source_sheet',
+        'profile_picture',
     ];
 
     protected $hidden = [
