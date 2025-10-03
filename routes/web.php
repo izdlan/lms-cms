@@ -17,7 +17,8 @@ Route::get('/maintenance', function () {
 Route::get('/', function () {
     $homePageContents = \App\Models\HomePageContent::active()->ordered()->get();
     $announcements = \App\Models\PublicAnnouncement::active()->published()->featured()->latest()->take(3)->get();
-    return view('home', compact('homePageContents', 'announcements'));
+    $galleryAnnouncements = \App\Models\PublicAnnouncement::active()->published()->whereNotNull('image_url')->latest()->get();
+    return view('home', compact('homePageContents', 'announcements', 'galleryAnnouncements'));
 });
 
 Route::get('/classes', function () {
