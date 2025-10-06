@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('ex_students')) {
         Schema::create('ex_students', function (Blueprint $table) {
             $table->id();
             $table->string('student_id')->unique(); // e.g., 670219-08-6113
@@ -32,6 +33,7 @@ return new class extends Migration
             $table->index(['student_id', 'is_verified']);
             $table->index('certificate_number');
         });
+        }
     }
 
     /**

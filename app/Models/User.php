@@ -176,9 +176,9 @@ class User extends Authenticatable
     /**
      * Get invoices for the user (if student)
      */
-    public function invoices()
+    public function studentBills()
     {
-        return $this->hasMany(Invoice::class, 'student_id');
+        return $this->hasMany(\App\Models\StudentBill::class, 'user_id');
     }
 
     /**

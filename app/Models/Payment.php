@@ -16,6 +16,7 @@ class Payment extends Model
         // Invoice system fields
         'payment_number',
         'invoice_id',
+        'student_bill_id',
         'student_id',
         
         // Billplz system fields
@@ -64,9 +65,15 @@ class Payment extends Model
     /**
      * Get the invoice that owns the payment (for invoice system)
      */
+    public function studentBill(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\StudentBill::class, 'student_bill_id');
+    }
+
+    // Backward-compatible accessor
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class);
+        return $this->belongsTo(\App\Models\StudentBill::class, 'student_bill_id');
     }
 
     /**
@@ -266,6 +273,6 @@ class Payment extends Model
      */
     public function scopeInvoicePayments($query)
     {
-        return $query->whereNotNull('invoice_id');
+        return $query->whereNotNull('student_bill_id');
     }
 }

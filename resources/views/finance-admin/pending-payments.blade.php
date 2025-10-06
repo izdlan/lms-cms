@@ -146,7 +146,7 @@
                                                     </td>
                                                     <td>
                                                         <small class="text-muted">
-                                                            {{ $lastPayment->format('M d, Y') }}
+                                                            {{ optional($lastPayment)->format('M d, Y') ?? '—' }}
                                                         </small>
                                                     </td>
                                                     <td>

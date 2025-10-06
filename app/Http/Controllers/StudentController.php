@@ -41,6 +41,8 @@ class StudentController extends Controller
         if ($user->role !== 'student') {
             return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
+        
+        // If student is blocked, continue showing dashboard but UI will be blurred by layout
 
         $programs = Program::active()->where('code', 'EMBA')->get();
         

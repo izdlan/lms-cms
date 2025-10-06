@@ -32,6 +32,22 @@ class StudentBill extends Model
         'metadata' => 'array',
     ];
 
+    /* === Compatibility accessors for legacy Invoice usage === */
+    public function getInvoiceNumberAttribute(): string
+    {
+        return $this->bill_number;
+    }
+
+    public function getInvoiceDateAttribute()
+    {
+        return $this->bill_date;
+    }
+
+    public function getStudentIdAttribute(): int
+    {
+        return (int) $this->user_id;
+    }
+
     // Status constants
     const STATUS_PENDING = 'pending';
     const STATUS_PAID = 'paid';

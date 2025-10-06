@@ -84,12 +84,12 @@
                                 <tr>
                                     <td>
                                         <div class="fw-bold">{{ $invoice->invoice_number }}</div>
-                                        <small class="text-muted">{{ $invoice->invoice_date->format('M d, Y') }}</small>
+                                        <small class="text-muted">{{ optional($invoice->invoice_date)->format('M d, Y') ?? '—' }}</small>
                                     </td>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            @if($invoice->student->profile_picture)
-                                                <img src="{{ asset('storage/' . $invoice->student->profile_picture) }}" 
+                                            @if(optional($invoice->user)->profile_picture)
+                                                <img src="{{ asset('storage/' . $invoice->user->profile_picture) }}" 
                                                      alt="Profile" class="rounded-circle me-2" width="32" height="32">
                                             @else
                                                 <div class="bg-secondary rounded-circle me-2 d-flex align-items-center justify-content-center" 
@@ -98,8 +98,8 @@
                                                 </div>
                                             @endif
                                             <div>
-                                                <div class="fw-bold">{{ $invoice->student->name }}</div>
-                                                <small class="text-muted">{{ $invoice->student->email }}</small>
+                                                <div class="fw-bold">{{ optional($invoice->user)->name ?? 'Unknown' }}</div>
+                                                <small class="text-muted">{{ optional($invoice->user)->email ?? '—' }}</small>
                                             </div>
                                         </div>
                                     </td>

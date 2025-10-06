@@ -200,7 +200,7 @@
                         </div>
                         <div class="info-row">
                             <span class="info-label">Due Date:</span>
-                            <span class="info-value">{{ $invoice->due_date->format('d F Y') }}</span>
+                            <span class="info-value">{{ optional($invoice->due_date)->format('d F Y') ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Status:</span>
@@ -218,23 +218,23 @@
                         <h3>Bill To</h3>
                         <div class="info-row">
                             <span class="info-label">Name:</span>
-                            <span class="info-value">{{ $invoice->student->name }}</span>
+                            <span class="info-value">{{ optional($invoice->user)->name ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Email:</span>
-                            <span class="info-value">{{ $invoice->student->email }}</span>
+                            <span class="info-value">{{ optional($invoice->user)->email ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Phone:</span>
-                            <span class="info-value">{{ $invoice->student->phone ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($invoice->user)->phone ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">IC Number:</span>
-                            <span class="info-value">{{ $invoice->student->ic ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($invoice->user)->ic ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Student ID:</span>
-                            <span class="info-value">{{ $invoice->student->student_id ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($invoice->user)->student_id ?? 'N/A' }}</span>
                         </div>
                     </div>
                 </div>

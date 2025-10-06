@@ -1111,6 +1111,38 @@
             originalConsoleWarn.apply(console, args);
         };
     </script>
+    <style>
+        /* Blocked student blur/lock styles */
+        .blocked-overlay {
+            position: fixed !important;
+            inset: 0 !important;
+            background: rgba(255, 255, 255, 0.6) !important;
+            backdrop-filter: blur(3px) !important;
+            -webkit-backdrop-filter: blur(3px) !important;
+            z-index: 2000 !important;
+            pointer-events: none !important;
+        }
+        .blocked-toast {
+            position: fixed !important;
+            top: 70px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 2050 !important;
+            background: #fff3cd !important;
+            color: #856404 !important;
+            border: 1px solid #ffe69c !important;
+            border-radius: 8px !important;
+            padding: 10px 14px !important;
+            box-shadow: 0 6px 16px rgba(0,0,0,0.12) !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        .blocked-disabled {
+            pointer-events: none !important;
+            filter: grayscale(0.2) opacity(0.6);
+        }
+    </style>
 </head>
 
 <body class="">
@@ -1134,6 +1166,36 @@
             @include('partials.footer')
         @endif
     </div>
+
+    @if(isset($isBlockedStudent) && $isBlockedStudent)
+        @php
+            $route = isset($blockedCurrentRoute) ? $blockedCurrentRoute : (request()->route() ? request()->route()->getName() : null);
+            $allowed = isset($blockedAllowedRoutes) ? $blockedAllowedRoutes : [];
+            $isAllowedPage = in_array($route, $allowed);
+        @endphp
+        @if(!$isAllowedPage)
+            <div class="blocked-overlay"></div>
+            <div class="blocked-toast">
+                <i class="fas fa-exclamation-triangle"></i>
+                Your account is blocked. You can only access Student Bills to make payments.
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const selectors = 'a, button, input, select, textarea';
+                    document.querySelectorAll(selectors).forEach(function(el){
+                        const isLogout = (el.closest('form') && el.closest('form').action && el.closest('form').action.includes('/student/logout')) ||
+                                         (el.tagName === 'A' && el.href && el.href.includes('/student/logout'));
+                        const isBillsLink = (el.tagName === 'A' && el.href && el.href.includes('/student/bills'));
+                        if (!isLogout && !isBillsLink) {
+                            el.classList.add('blocked-disabled');
+                            el.setAttribute('tabindex','-1');
+                            el.setAttribute('aria-disabled','true');
+                        }
+                    });
+                });
+            </script>
+        @endif
+    @endif
     
     <!-- Template JS File -->
     <script src="/assets/default/js/app.js"></script>

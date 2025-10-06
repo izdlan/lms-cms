@@ -18,6 +18,14 @@
                         <h1 class="page-title">Student Bills</h1>
                     </div>
 
+                    @if(session('warning'))
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            {{ session('warning') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    @endif
+
                 <!-- Student Information Section -->
                 <div class="student-info-section mb-4">
                     <div class="row">
