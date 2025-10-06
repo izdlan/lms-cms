@@ -73,16 +73,16 @@ class QrCodeService
         // Generate QR code that directly links to the student's certificate
         $qrData = route('ex-student.certificate', ['student_id' => $exStudent->student_id]);
 
-        // Generate high-quality QR code for printing (using SVG format first)
+        // Generate high-quality QR code for printing (using SVG format)
         $qrCodeSvg = QrCode::format('svg')
             ->size(400)
             ->margin(3)
             ->errorCorrection('H')
             ->generate($qrData);
 
-        // Convert SVG to PNG using Intervention Image
-        $filename = "certificates/{$exStudent->student_id}_cert_qr.png";
-        $this->convertSvgToPng($qrCodeSvg, $filename);
+        // Save as SVG file
+        $filename = "certificates/{$exStudent->student_id}_cert_qr.svg";
+        Storage::disk('public')->put($filename, $qrCodeSvg);
 
         return $filename;
     }
@@ -98,8 +98,8 @@ class QrCodeService
             ->errorCorrection('M')
             ->generate($studentId);
 
-        $filename = "simple_qr/{$studentId}_simple.png";
-        $this->convertSvgToPng($qrCodeSvg, $filename);
+        $filename = "simple_qr/{$studentId}_simple.svg";
+        Storage::disk('public')->put($filename, $qrCodeSvg);
 
         return $filename;
     }

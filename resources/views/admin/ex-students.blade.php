@@ -191,7 +191,7 @@ function generateQR(exStudentId) {
             document.getElementById('qrCodeContainer').innerHTML = `
                 <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;" 
                      onerror="console.error('QR Code image failed to load:', this.src); this.style.display='none';">
-                <p class="mt-2 small text-muted">Right-click to save as PNG for printing</p>
+                <p class="mt-2 small text-muted">Right-click to save as SVG for printing</p>
                 <p class="mt-1 small text-info">URL: ${data.qr_code_url}</p>
             `;
             

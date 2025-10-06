@@ -272,7 +272,7 @@ function generateQR(exStudentId) {
             // Display QR code
             document.getElementById('qrCodeContainer').innerHTML = `
                 <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
-                <p class="mt-2 small text-muted">Right-click to save as PNG for printing</p>
+                <p class="mt-2 small text-muted">Right-click to save as SVG for printing</p>
             `;
             
             // Show info

@@ -1868,7 +1868,7 @@ if ($returnCode === 0) {
                 ], 404);
             }
 
-            return response()->download($filePath, "{$exStudent->student_id}_certificate_qr.png");
+            return response()->download($filePath, "{$exStudent->student_id}_certificate_qr.svg");
         } catch (\Exception $e) {
             Log::error('QR code download failed', [
                 'error' => $e->getMessage(),
