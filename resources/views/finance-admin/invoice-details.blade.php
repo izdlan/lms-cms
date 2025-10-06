@@ -110,29 +110,29 @@
                         <div class="col-md-6">
                             <div class="info-group">
                                 <label class="info-label">Name:</label>
-                                <span class="info-value">{{ $invoice->student->name }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->name ?? '—' }}</span>
                             </div>
                             <div class="info-group">
                                 <label class="info-label">Email:</label>
-                                <span class="info-value">{{ $invoice->student->email }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->email ?? '—' }}</span>
                             </div>
                             <div class="info-group">
                                 <label class="info-label">Phone:</label>
-                                <span class="info-value">{{ $invoice->student->phone ?? 'N/A' }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->phone ?? 'N/A' }}</span>
                             </div>
                         </div>
                         <div class="col-md-6">
                             <div class="info-group">
                                 <label class="info-label">IC Number:</label>
-                                <span class="info-value">{{ $invoice->student->ic ?? 'N/A' }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->ic ?? 'N/A' }}</span>
                             </div>
                             <div class="info-group">
                                 <label class="info-label">Student ID:</label>
-                                <span class="info-value">{{ $invoice->student->student_id ?? 'N/A' }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->student_id ?? 'N/A' }}</span>
                             </div>
                             <div class="info-group">
                                 <label class="info-label">Address:</label>
-                                <span class="info-value">{{ $invoice->student->address ?? 'N/A' }}</span>
+                                <span class="info-value">{{ optional($invoice->user)->address ?? 'N/A' }}</span>
                             </div>
                         </div>
                     </div>

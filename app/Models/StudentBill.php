@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
 
 class StudentBill extends Model
@@ -76,6 +77,33 @@ class StudentBill extends Model
     public function payment(): BelongsTo
     {
         return $this->belongsTo(Payment::class);
+    }
+
+    /**
+     * Payments associated with this bill
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class, 'student_bill_id');
+    }
+
+    /**
+     * Compatibility: compute total paid amount from related payments
+     */
+    public function getTotalPaidAttribute(): float
+    {
+        if (method_exists($this, 'payments')) {
+            return (float) ($this->payments()->paid()->sum('amount'));
+        }
+        return 0.0;
+    }
+
+    /**
+     * Compatibility: determine if bill is fully paid
+     */
+    public function isFullyPaid(): bool
+    {
+        return $this->total_paid >= (float) $this->amount;
     }
 
     /**

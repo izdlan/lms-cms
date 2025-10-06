@@ -345,8 +345,8 @@ class FinanceAdminController extends Controller
             // Create payment record
             $payment = Payment::create([
                 'payment_number' => Payment::generatePaymentNumber(),
-                'invoice_id' => $invoice->id,
-                'student_id' => $invoice->student_id,
+                'student_bill_id' => $invoice->id,
+                'student_id' => $invoice->student_id ?? $invoice->user_id,
                 'amount' => $invoice->amount,
                 'payment_method' => $request->payment_method,
                 'transaction_id' => $request->transaction_id,
@@ -362,8 +362,8 @@ class FinanceAdminController extends Controller
             Receipt::create([
                 'receipt_number' => Receipt::generateReceiptNumber(),
                 'payment_id' => $payment->id,
-                'invoice_id' => $invoice->id,
-                'student_id' => $invoice->student_id,
+                'student_bill_id' => $invoice->id,
+                'student_id' => $invoice->student_id ?? $invoice->user_id,
                 'amount' => $payment->amount,
                 'payment_method' => $payment->payment_method,
                 'payment_date' => $payment->paid_at,
