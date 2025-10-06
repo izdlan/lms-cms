@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -199,6 +189,10 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="d-grid gap-2">
+                                        <a href="{{ route('finance-admin.create-invoice', $student->id) }}" class="btn btn-primary">
+                                            <i class="fas fa-plus me-2"></i>Create Invoice
+                                        </a>
+                                        
                                         <a href="{{ route('finance-admin.payment-history', $student->id) }}" class="btn btn-info">
                                             <i class="fas fa-receipt me-2"></i>View Payment History
                                         </a>
@@ -290,9 +284,6 @@
                     <button type="submit" class="btn btn-success">Unblock Student</button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')

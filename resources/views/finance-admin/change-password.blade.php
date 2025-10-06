@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -104,10 +94,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection
 

@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <h1 class="page-title">Pending Payments</h1>
                         <p class="page-subtitle">Students with outstanding payments</p>
@@ -237,10 +227,6 @@
                         </div>
                     </div>
                     @endif
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Block Student Modal -->
@@ -308,6 +294,38 @@ function generatePaymentReport() {
 .finance-admin-dashboard {
     background-color: #f8f9fa;
     min-height: 100vh;
+}
+
+/* Fix table column widths for pending payments */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 30% !important; /* Student column */
+    min-width: 200px !important;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 15% !important; /* IC Number column */
+    min-width: 120px !important;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 25% !important; /* Email column */
+    min-width: 200px !important;
+    word-break: break-all !important;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 15% !important; /* Amount column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+    width: 15% !important; /* Actions column */
+    min-width: 120px !important;
 }
 
 .stat-card {

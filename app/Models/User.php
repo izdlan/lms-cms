@@ -172,4 +172,28 @@ class User extends Authenticatable
     {
         return static::where('ic', $ic)->first();
     }
+
+    /**
+     * Get invoices for the user (if student)
+     */
+    public function invoices()
+    {
+        return $this->hasMany(Invoice::class, 'student_id');
+    }
+
+    /**
+     * Get payments made by the user (if student)
+     */
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'student_id');
+    }
+
+    /**
+     * Get receipts for the user (if student)
+     */
+    public function receipts()
+    {
+        return $this->hasMany(Receipt::class, 'student_id');
+    }
 }

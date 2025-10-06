@@ -122,6 +122,15 @@ Route::prefix('student')->group(function () {
         Route::get('/payment/success', [App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('student.payment.success');
         Route::get('/payment/failed', [App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('student.payment.failed');
         Route::get('/payment/pending', [App\Http\Controllers\PaymentController::class, 'paymentPending'])->name('student.payment.pending');
+        
+        // Invoice PDF routes
+        Route::get('/invoices/{id}/pdf', [App\Http\Controllers\StudentController::class, 'generateInvoicePdf'])->name('student.invoice.pdf');
+        Route::get('/invoices/{id}/view-pdf', [App\Http\Controllers\StudentController::class, 'viewInvoicePdf'])->name('student.invoice.view-pdf');
+        
+        // Receipt routes
+        Route::get('/receipts/{id}', [App\Http\Controllers\StudentController::class, 'showReceipt'])->name('student.receipt.show');
+        Route::get('/receipts/{id}/pdf', [App\Http\Controllers\StudentController::class, 'generateReceiptPdf'])->name('student.receipt.pdf');
+        Route::get('/receipts/{id}/view-pdf', [App\Http\Controllers\StudentController::class, 'viewReceiptPdf'])->name('student.receipt.view-pdf');
     });
 });
 
@@ -203,6 +212,16 @@ Route::prefix('finance-admin')->middleware(['auth'])->group(function () {
     Route::get('/reports', function() { return view('finance-admin.reports'); })->name('finance-admin.reports');
     Route::get('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'changePassword'])->name('finance-admin.password.change');
     Route::post('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'updatePassword'])->name('finance-admin.password.update');
+    
+    // Invoice Management Routes
+    Route::get('/invoices', [App\Http\Controllers\FinanceAdminController::class, 'invoices'])->name('finance-admin.invoices');
+    Route::get('/students/{id}/create-invoice', [App\Http\Controllers\FinanceAdminController::class, 'createInvoice'])->name('finance-admin.create-invoice');
+    Route::post('/students/{id}/create-invoice', [App\Http\Controllers\FinanceAdminController::class, 'storeInvoice'])->name('finance-admin.store-invoice');
+            Route::get('/invoices/{id}', [App\Http\Controllers\FinanceAdminController::class, 'showInvoice'])->name('finance-admin.invoice.show');
+            Route::post('/payments/{id}/complete', [App\Http\Controllers\FinanceAdminController::class, 'markPaymentCompleted'])->name('finance-admin.payment.complete');
+            Route::post('/invoices/{id}/mark-paid', [App\Http\Controllers\FinanceAdminController::class, 'markInvoiceAsPaid'])->name('finance-admin.invoice.mark-paid');
+            Route::get('/invoices/{id}/pdf', [App\Http\Controllers\FinanceAdminController::class, 'generateInvoicePdf'])->name('finance-admin.invoice.pdf');
+            Route::get('/invoices/{id}/view-pdf', [App\Http\Controllers\FinanceAdminController::class, 'viewInvoicePdf'])->name('finance-admin.invoice.view-pdf');
 });
 
 // Admin authentication routes (now using unified login)

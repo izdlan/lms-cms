@@ -177,6 +177,32 @@
     min-height: 100vh;
 }
 
+/* Fix table column widths for dashboard */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 15% !important; /* Student ID column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 35% !important; /* Name column */
+    min-width: 200px !important;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 30% !important; /* Email column */
+    min-width: 200px !important;
+    word-break: break-all !important;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 20% !important; /* Actions column */
+    min-width: 150px !important;
+}
+
 .stat-card {
     background: white;
     border-radius: 10px;

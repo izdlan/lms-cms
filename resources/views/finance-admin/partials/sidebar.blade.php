@@ -44,6 +44,11 @@
             Pending Payments
         </a>
         
+        <a href="{{ route('finance-admin.invoices') }}" class="nav-link {{ request()->routeIs('finance-admin.invoices') ? 'active' : '' }}">
+            <i class="fas fa-file-invoice"></i>
+            Invoices
+        </a>
+        
         <a href="{{ route('finance-admin.reports') }}" class="nav-link {{ request()->routeIs('finance-admin.reports') ? 'active' : '' }}">
             <i class="fas fa-chart-bar"></i>
             Reports

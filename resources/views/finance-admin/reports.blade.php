@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <h1 class="page-title">Reports</h1>
                         <p class="page-subtitle">Generate financial and student reports</p>
@@ -125,10 +115,6 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection
 
@@ -158,6 +144,31 @@ function generateReport(reportType) {
 .finance-admin-dashboard {
     background-color: #f8f9fa;
     min-height: 100vh;
+}
+
+/* Fix table column widths for reports */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 40% !important; /* Report Name column */
+    min-width: 200px !important;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 25% !important; /* Generated Date column */
+    min-width: 150px !important;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 20% !important; /* Type column */
+    min-width: 120px !important;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 15% !important; /* Actions column */
+    min-width: 100px !important;
 }
 
 .card {

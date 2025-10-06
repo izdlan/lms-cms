@@ -2,40 +2,56 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Carbon\Carbon;
 
 class Payment extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
+        // Invoice system fields
+        'payment_number',
+        'invoice_id',
+        'student_id',
+        
+        // Billplz system fields
         'billplz_id',
         'billplz_collection_id',
         'user_id',
         'type',
         'reference_id',
         'reference_type',
+        
+        // Common fields
         'amount',
         'currency',
         'status',
         'payment_method',
         'transaction_id',
         'description',
+        'payment_notes',
+        'payment_details',
         'billplz_response',
         'paid_at',
         'expires_at',
     ];
 
     protected $casts = [
-        'billplz_response' => 'array',
+        'amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'expires_at' => 'datetime',
-        'amount' => 'decimal:2',
+        'payment_details' => 'array',
+        'billplz_response' => 'array',
     ];
 
     // Status constants
     const STATUS_PENDING = 'pending';
     const STATUS_PAID = 'paid';
+    const STATUS_COMPLETED = 'completed';
     const STATUS_FAILED = 'failed';
     const STATUS_CANCELLED = 'cancelled';
 
@@ -43,13 +59,38 @@ class Payment extends Model
     const TYPE_COURSE_FEE = 'course_fee';
     const TYPE_GENERAL_FEE = 'general_fee';
     const TYPE_ASSIGNMENT_FEE = 'assignment_fee';
+    const TYPE_INVOICE_PAYMENT = 'invoice_payment';
 
     /**
-     * Get the user that owns the payment
+     * Get the invoice that owns the payment (for invoice system)
+     */
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
+    /**
+     * Get the student that made the payment (for invoice system)
+     */
+    public function student(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'student_id');
+    }
+
+    /**
+     * Get the user that owns the payment (for Billplz system)
      */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the receipt for the payment
+     */
+    public function receipt(): HasOne
+    {
+        return $this->hasOne(Receipt::class);
     }
 
     /**
@@ -61,6 +102,23 @@ class Payment extends Model
             return $this->belongsTo('App\Models\Course', 'reference_id');
         }
         return null;
+    }
+
+    /**
+     * Generate unique payment number (for invoice system)
+     */
+    public static function generatePaymentNumber(): string
+    {
+        $year = now()->year;
+        $month = now()->format('m');
+        $lastPayment = self::whereYear('created_at', $year)
+            ->whereMonth('created_at', $month)
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        $sequence = $lastPayment ? (int)substr($lastPayment->payment_number, -4) + 1 : 1;
+        
+        return sprintf('PAY%s%s%04d', $year, $month, $sequence);
     }
 
     /**
@@ -76,7 +134,7 @@ class Payment extends Model
      */
     public function isPaid(): bool
     {
-        return $this->status === self::STATUS_PAID;
+        return $this->status === self::STATUS_PAID || $this->status === self::STATUS_COMPLETED;
     }
 
     /**
@@ -104,7 +162,18 @@ class Payment extends Model
     }
 
     /**
-     * Mark payment as paid
+     * Mark payment as completed (for invoice system)
+     */
+    public function markAsCompleted(): void
+    {
+        $this->update([
+            'status' => self::STATUS_COMPLETED,
+            'paid_at' => now()
+        ]);
+    }
+
+    /**
+     * Mark payment as paid (for Billplz system)
      */
     public function markAsPaid(string $paymentMethod = null, string $transactionId = null): void
     {
@@ -165,7 +234,7 @@ class Payment extends Model
      */
     public function scopePaid($query)
     {
-        return $query->where('status', self::STATUS_PAID);
+        return $query->whereIn('status', [self::STATUS_PAID, self::STATUS_COMPLETED]);
     }
 
     /**
@@ -190,5 +259,13 @@ class Payment extends Model
     public function scopeGeneralPayments($query)
     {
         return $query->where('type', self::TYPE_GENERAL_FEE);
+    }
+
+    /**
+     * Scope for invoice payments
+     */
+    public function scopeInvoicePayments($query)
+    {
+        return $query->whereNotNull('invoice_id');
     }
 }
