@@ -185,11 +185,14 @@ function generateQR(exStudentId) {
     })
     .then(response => response.json())
     .then(data => {
+        console.log('QR Code Response:', data); // Debug log
         if (data.success) {
             // Display QR code
             document.getElementById('qrCodeContainer').innerHTML = `
-                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
+                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;" 
+                     onerror="console.error('QR Code image failed to load:', this.src); this.style.display='none';">
                 <p class="mt-2 small text-muted">Right-click to save as PNG for printing</p>
+                <p class="mt-1 small text-info">URL: ${data.qr_code_url}</p>
             `;
             
             // Show info
@@ -198,6 +201,7 @@ function generateQR(exStudentId) {
             document.getElementById('qrInfo').style.display = 'block';
             document.getElementById('downloadQrBtn').style.display = 'inline-block';
         } else {
+            console.error('QR Code generation failed:', data.message);
             document.getElementById('qrCodeContainer').innerHTML = `
                 <div class="alert alert-danger">
                     <i data-feather="alert-circle" width="20" height="20"></i>
@@ -207,11 +211,12 @@ function generateQR(exStudentId) {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
+        console.error('QR Code fetch error:', error);
         document.getElementById('qrCodeContainer').innerHTML = `
             <div class="alert alert-danger">
                 <i data-feather="alert-circle" width="20" height="20"></i>
                 Failed to generate QR code. Please try again.
+                <br><small>Error: ${error.message}</small>
             </div>
         `;
     });

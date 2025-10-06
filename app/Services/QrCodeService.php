@@ -55,7 +55,14 @@ class QrCodeService
      */
     public function getQrCodeUrl(string $filepath): string
     {
-        return asset('storage/' . $filepath);
+        // Use the current request URL to ensure correct domain and port
+        if (request()->has('HTTP_HOST')) {
+            $baseUrl = request()->getSchemeAndHttpHost();
+        } else {
+            // Fallback for CLI or when request context is not available
+            $baseUrl = config('app.url');
+        }
+        return $baseUrl . '/storage/' . $filepath;
     }
 
     /**
