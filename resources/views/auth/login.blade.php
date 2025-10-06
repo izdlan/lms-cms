@@ -50,6 +50,13 @@
                                             <span>Admin</span>
                                         </label>
                                     </div>
+                                    <div class="login-type-option">
+                                        <input type="radio" id="finance-admin-type" name="login_type" value="finance_admin" {{ old('login_type') == 'finance_admin' ? 'checked' : '' }}>
+                                        <label for="finance-admin-type" class="login-type-label">
+                                            <i data-feather="dollar-sign" width="20" height="20"></i>
+                                            <span>Finance Admin</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -367,6 +374,7 @@ function toggleLoginType() {
     const studentType = document.getElementById('student-type');
     const lecturerType = document.getElementById('lecturer-type');
     const adminType = document.getElementById('admin-type');
+    const financeAdminType = document.getElementById('finance-admin-type');
     const studentFields = document.getElementById('student-fields');
     const staffFields = document.getElementById('staff-fields');
     const loginButton = document.getElementById('loginButton');
@@ -404,6 +412,16 @@ function toggleLoginType() {
         // Disable hidden fields
         icField.disabled = true;
         staffEmailField.disabled = false;
+    } else if (financeAdminType.checked) {
+        studentFields.style.display = 'none';
+        staffFields.style.display = 'block';
+        loginButton.textContent = 'Login as Finance Admin';
+        forgotPasswordLink.href = '#';
+        icField.required = false;
+        staffEmailField.required = true;
+        // Disable hidden fields
+        icField.disabled = true;
+        staffEmailField.disabled = false;
     }
 }
 
@@ -414,6 +432,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('student-type').addEventListener('change', toggleLoginType);
     document.getElementById('lecturer-type').addEventListener('change', toggleLoginType);
     document.getElementById('admin-type').addEventListener('change', toggleLoginType);
+    document.getElementById('finance-admin-type').addEventListener('change', toggleLoginType);
     
     // Initialize the form
     toggleLoginType();

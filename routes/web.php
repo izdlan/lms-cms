@@ -181,6 +181,20 @@ Route::get('/login-selection', function () {
 })->name('login.selection');
 
 
+// Finance Admin routes
+Route::prefix('finance-admin')->middleware(['auth'])->group(function () {
+    Route::get('/dashboard', [App\Http\Controllers\FinanceAdminController::class, 'dashboard'])->name('finance-admin.dashboard');
+    Route::get('/students', [App\Http\Controllers\FinanceAdminController::class, 'students'])->name('finance-admin.students');
+    Route::get('/students/{id}', [App\Http\Controllers\FinanceAdminController::class, 'showStudent'])->name('finance-admin.student.show');
+    Route::post('/students/{id}/block', [App\Http\Controllers\FinanceAdminController::class, 'blockStudent'])->name('finance-admin.student.block');
+    Route::post('/students/{id}/unblock', [App\Http\Controllers\FinanceAdminController::class, 'unblockStudent'])->name('finance-admin.student.unblock');
+    Route::get('/students/{id}/payments', [App\Http\Controllers\FinanceAdminController::class, 'paymentHistory'])->name('finance-admin.payment-history');
+    Route::get('/pending-payments', [App\Http\Controllers\FinanceAdminController::class, 'pendingPayments'])->name('finance-admin.pending-payments');
+    Route::get('/reports', function() { return view('finance-admin.reports'); })->name('finance-admin.reports');
+    Route::get('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'changePassword'])->name('finance-admin.password.change');
+    Route::post('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'updatePassword'])->name('finance-admin.password.update');
+});
+
 // Admin authentication routes (now using unified login)
 Route::prefix('admin')->group(function () {
     Route::get('/login', function() {

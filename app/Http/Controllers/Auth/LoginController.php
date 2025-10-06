@@ -18,7 +18,7 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $request->validate([
-            'login_type' => 'required|in:student,lecturer,admin',
+            'login_type' => 'required|in:student,lecturer,admin,finance_admin',
             'password' => 'required|string',
         ]);
 
@@ -30,6 +30,8 @@ class LoginController extends Controller
             return $this->handleLecturerLogin($request);
         } elseif ($loginType === 'admin') {
             return $this->handleAdminLogin($request);
+        } elseif ($loginType === 'finance_admin') {
+            return $this->handleFinanceAdminLogin($request);
         }
     }
 
@@ -125,6 +127,51 @@ class LoginController extends Controller
         ])->withInput($request->only('email', 'login_type'));
     }
 
+    private function handleFinanceAdminLogin(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+        ]);
+
+        $credentials = [
+            'email' => $request->input('email'),
+            'password' => $request->input('password'),
+        ];
+
+        if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            $user = Auth::user();
+            
+            // Check if user is finance admin
+            if (!$user->isFinanceAdmin() && !$user->isAdmin()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'You do not have permission to access the finance admin panel.',
+                ])->withInput($request->only('email', 'login_type'));
+            }
+            
+            // Check if user is blocked
+            if ($user->isBlocked()) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'Your account has been blocked. Please contact the administrator.',
+                ])->withInput($request->only('email', 'login_type'));
+            }
+            
+            $request->session()->regenerate();
+            
+            // Check if password reset is required
+            if ($user->must_reset_password) {
+                return redirect()->route('finance-admin.password.change');
+            }
+            
+            return redirect()->intended(route('finance-admin.dashboard'));
+        }
+
+        return back()->withErrors([
+            'email' => 'The provided credentials do not match our records.',
+        ])->withInput($request->only('email', 'login_type'));
+    }
+
     public function logout(Request $request)
     {
         // Determine which guard is currently authenticated
@@ -132,6 +179,8 @@ class LoginController extends Controller
             Auth::guard('student')->logout();
         } elseif (Auth::guard('staff')->check()) {
             Auth::guard('staff')->logout();
+        } elseif (Auth::guard('finance_admin')->check()) {
+            Auth::guard('finance_admin')->logout();
         } else {
             Auth::logout();
         }

@@ -32,6 +32,9 @@ class User extends Authenticatable
         'col_ref_no',
         'student_id',
         'source_sheet',
+        'is_blocked',
+        'blocked_at',
+        'block_reason',
         // Academic Information
         'category',
         'programme_name',
@@ -74,6 +77,8 @@ class User extends Authenticatable
             'password' => 'hashed',
             'must_reset_password' => 'boolean',
             'courses' => 'array',
+            'is_blocked' => 'boolean',
+            'blocked_at' => 'datetime',
         ];
     }
 
@@ -107,6 +112,22 @@ class User extends Authenticatable
     public function isLecturer(): bool
     {
         return $this->role === 'lecturer';
+    }
+
+    /**
+     * Check if user is finance admin
+     */
+    public function isFinanceAdmin(): bool
+    {
+        return $this->role === 'finance_admin';
+    }
+
+    /**
+     * Check if user is blocked
+     */
+    public function isBlocked(): bool
+    {
+        return $this->is_blocked === true;
     }
 
     /**
