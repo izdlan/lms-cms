@@ -14,6 +14,7 @@ class Receipt extends Model
         'receipt_number',
         'payment_id',
         'invoice_id',
+        'student_bill_id',
         'student_id',
         'amount',
         'payment_method',
@@ -38,9 +39,15 @@ class Receipt extends Model
     /**
      * Get the invoice that owns the receipt
      */
+    public function studentBill(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\StudentBill::class, 'student_bill_id');
+    }
+
+    // Backward-compatible accessor
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(Invoice::class);
+        return $this->belongsTo(\App\Models\StudentBill::class, 'student_bill_id');
     }
 
     /**

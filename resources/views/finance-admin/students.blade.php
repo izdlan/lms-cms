@@ -102,7 +102,7 @@
                                                                 @if($student->is_blocked)
                                                                     <small class="text-danger">
                                                                         <i class="fas fa-ban me-1"></i>
-                                                                        Blocked on {{ $student->blocked_at->format('M d, Y') }}
+                                                                        Blocked on {{ optional($student->blocked_at)->format('M d, Y') ?? '—' }}
                                                                     </small>
                                                                 @endif
                                                             </div>

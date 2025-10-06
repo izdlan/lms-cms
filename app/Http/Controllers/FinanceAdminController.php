@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\StudentEnrollment;
-use App\Models\Invoice;
+use App\Models\StudentBill as Invoice;
 use App\Models\Payment;
 use App\Models\Receipt;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -161,22 +161,22 @@ class FinanceAdminController extends Controller
      */
     public function pendingPayments()
     {
-        // Get students with pending invoices
+        // Get students with pending bills (formerly invoices)
         $studentsWithPendingPayments = User::where('role', 'student')
             ->where('is_blocked', false)
-            ->whereHas('invoices', function($query) {
+            ->whereHas('studentBills', function($query) {
                 $query->where('status', 'pending');
             })
-            ->with(['invoices' => function($query) {
+            ->with(['studentBills' => function($query) {
                 $query->where('status', 'pending');
             }])
             ->get()
             ->map(function($student) {
-                $pendingInvoices = $student->invoices->where('status', 'pending');
-                $totalPendingAmount = $pendingInvoices->sum('amount');
-                $overdueInvoices = $pendingInvoices->where('due_date', '<', now()->toDateString());
-                $overdueDays = $overdueInvoices->isNotEmpty() ? $overdueInvoices->max(function($invoice) {
-                    return now()->diffInDays($invoice->due_date);
+                $pendingBills = $student->studentBills->where('status', 'pending');
+                $totalPendingAmount = $pendingBills->sum('amount');
+                $overdueBills = $pendingBills->where('due_date', '<', now()->toDateString());
+                $overdueDays = $overdueBills->isNotEmpty() ? $overdueBills->max(function($bill) {
+                    return now()->diffInDays($bill->due_date);
                 }) : 0;
                 
                 $lastPayment = Payment::where('student_id', $student->id)
@@ -189,7 +189,7 @@ class FinanceAdminController extends Controller
                     'pending_amount' => $totalPendingAmount,
                     'overdue_days' => $overdueDays,
                     'last_payment' => $lastPayment ? $lastPayment->paid_at : null,
-                    'pending_invoices_count' => $pendingInvoices->count()
+                    'pending_invoices_count' => $pendingBills->count()
                 ];
             });
 
@@ -256,16 +256,15 @@ class FinanceAdminController extends Controller
         $student = User::where('id', $studentId)->where('role', 'student')->firstOrFail();
 
         $invoice = Invoice::create([
-            'invoice_number' => Invoice::generateInvoiceNumber(),
-            'student_id' => $studentId,
-            'created_by' => Auth::id(),
+            'bill_number' => \App\Models\StudentBill::generateBillNumber(),
+            'user_id' => $studentId,
             'bill_type' => $request->bill_type,
             'session' => $request->session,
             'amount' => $request->amount,
-            'invoice_date' => now()->toDateString(),
+            'bill_date' => now()->toDateString(),
             'due_date' => $request->due_date,
             'description' => $request->description,
-            'notes' => $request->notes,
+            'metadata' => ['created_by' => Auth::id(), 'notes' => $request->notes],
             'status' => 'pending'
         ]);
 
@@ -278,7 +277,7 @@ class FinanceAdminController extends Controller
      */
     public function showInvoice($invoiceId)
     {
-        $invoice = Invoice::with(['student', 'createdBy', 'payments.receipt'])
+        $invoice = Invoice::with(['user', 'payment'])
             ->findOrFail($invoiceId);
         
         return view('finance-admin.invoice-details', compact('invoice'));
@@ -380,7 +379,7 @@ class FinanceAdminController extends Controller
      */
     public function invoices(Request $request)
     {
-        $query = Invoice::with(['student', 'createdBy']);
+        $query = Invoice::query();
 
         // Search functionality
         if ($request->has('search') && $request->search) {
@@ -414,7 +413,7 @@ class FinanceAdminController extends Controller
      */
     public function generateInvoicePdf($invoiceId)
     {
-        $invoice = Invoice::with(['student', 'createdBy'])
+        $invoice = Invoice::with(['user'])
             ->findOrFail($invoiceId);
         
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
@@ -427,7 +426,7 @@ class FinanceAdminController extends Controller
      */
     public function viewInvoicePdf($invoiceId)
     {
-        $invoice = Invoice::with(['student', 'createdBy'])
+        $invoice = Invoice::with(['user'])
             ->findOrFail($invoiceId);
         
         $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));

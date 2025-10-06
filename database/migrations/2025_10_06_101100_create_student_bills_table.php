@@ -11,6 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('student_bills')) {
         Schema::create('student_bills', function (Blueprint $table) {
             $table->id();
             $table->string('bill_number')->unique();
@@ -32,6 +33,7 @@ return new class extends Migration
             $table->index(['bill_type', 'status']);
             $table->index('due_date');
         });
+        }
     }
 
     /**
