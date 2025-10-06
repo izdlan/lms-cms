@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Lecturer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -1579,6 +1580,136 @@ if ($returnCode === 0) {
                 'success' => false,
                 'message' => 'Error: ' . $e->getMessage()
             ]);
+        }
+    }
+
+    // Lecturer Management Methods
+    public function lecturers()
+    {
+        $this->checkAdminAccess();
+        
+        $lecturers = Lecturer::paginate(20);
+        return view('admin.lecturers', compact('lecturers'));
+    }
+
+    public function createLecturer()
+    {
+        $this->checkAdminAccess();
+        return view('admin.create-lecturer');
+    }
+
+    public function storeLecturer(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $request->validate([
+            'staff_id' => 'required|string|unique:lecturers,staff_id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:lecturers,email',
+            'phone' => 'nullable|string',
+            'department' => 'nullable|string',
+            'specialization' => 'nullable|string',
+            'bio' => 'nullable|string',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        $data = $request->only([
+            'staff_id', 'name', 'email', 'phone', 'department', 
+            'specialization', 'bio'
+        ]);
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $file = $request->file('profile_picture');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('public/lecturer-profiles', $filename);
+            $data['profile_picture'] = 'storage/lecturer-profiles/' . $filename;
+        }
+
+        Lecturer::create($data);
+
+        return redirect()->route('admin.lecturers')->with('success', 'Lecturer created successfully!');
+    }
+
+    public function editLecturer(Lecturer $lecturer)
+    {
+        $this->checkAdminAccess();
+        return view('admin.edit-lecturer', compact('lecturer'));
+    }
+
+    public function updateLecturer(Request $request, Lecturer $lecturer)
+    {
+        $this->checkAdminAccess();
+
+        $request->validate([
+            'staff_id' => 'required|string|unique:lecturers,staff_id,' . $lecturer->id,
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:lecturers,email,' . $lecturer->id,
+            'phone' => 'nullable|string',
+            'department' => 'nullable|string',
+            'specialization' => 'nullable|string',
+            'bio' => 'nullable|string',
+            'profile_picture' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_active' => 'boolean',
+        ]);
+
+        $data = $request->only([
+            'staff_id', 'name', 'email', 'phone', 'department', 
+            'specialization', 'bio', 'is_active'
+        ]);
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            // Delete old profile picture if exists
+            if ($lecturer->profile_picture && Storage::exists(str_replace('storage/', 'public/', $lecturer->profile_picture))) {
+                Storage::delete(str_replace('storage/', 'public/', $lecturer->profile_picture));
+            }
+
+            $file = $request->file('profile_picture');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $path = $file->storeAs('public/lecturer-profiles', $filename);
+            $data['profile_picture'] = 'storage/lecturer-profiles/' . $filename;
+        }
+
+        $lecturer->update($data);
+
+        return redirect()->route('admin.lecturers')->with('success', 'Lecturer updated successfully!');
+    }
+
+    public function deleteLecturer(Lecturer $lecturer)
+    {
+        $this->checkAdminAccess();
+
+        try {
+            $lecturerName = $lecturer->name;
+            
+            // Delete profile picture if exists
+            if ($lecturer->profile_picture && Storage::exists(str_replace('storage/', 'public/', $lecturer->profile_picture))) {
+                Storage::delete(str_replace('storage/', 'public/', $lecturer->profile_picture));
+            }
+            
+            $lecturer->delete();
+            
+            Log::info('Lecturer deleted successfully', [
+                'lecturer_id' => $lecturer->id,
+                'lecturer_name' => $lecturerName,
+                'deleted_by' => Auth::user()->name
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Lecturer deleted successfully!'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting lecturer', [
+                'lecturer_id' => $lecturer->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting lecturer: ' . $e->getMessage()
+            ], 500);
         }
     }
 

@@ -201,6 +201,14 @@ Route::prefix('admin')->group(function () {
         Route::put('/students/{student}', [AdminController::class, 'updateStudent'])->name('admin.students.update');
         Route::delete('/students/{student}', [AdminController::class, 'deleteStudent'])->name('admin.students.delete');
         Route::post('/students/bulk-delete', [AdminController::class, 'bulkDeleteStudents'])->name('admin.students.bulk-delete');
+        
+        // Lecturer Management Routes
+        Route::get('/lecturers', [AdminController::class, 'lecturers'])->name('admin.lecturers');
+        Route::get('/lecturers/create', [AdminController::class, 'createLecturer'])->name('admin.lecturers.create');
+        Route::post('/lecturers', [AdminController::class, 'storeLecturer'])->name('admin.lecturers.store');
+        Route::get('/lecturers/{lecturer}/edit', [AdminController::class, 'editLecturer'])->name('admin.lecturers.edit');
+        Route::put('/lecturers/{lecturer}', [AdminController::class, 'updateLecturer'])->name('admin.lecturers.update');
+        Route::delete('/lecturers/{lecturer}', [AdminController::class, 'deleteLecturer'])->name('admin.lecturers.delete');
         Route::post('/students/google-sheets-import', [AdminController::class, 'googleSheetsImport'])->name('admin.students.google-sheets-import');
         Route::post('/students/onedrive-import', [AdminController::class, 'oneDriveImport'])->name('admin.students.onedrive-import');
         Route::get('/import', [AdminController::class, 'showImportForm'])->name('admin.import');
