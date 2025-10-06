@@ -112,6 +112,15 @@ Route::prefix('student')->group(function () {
         Route::get('/receipt', [App\Http\Controllers\StudentController::class, 'receipt'])->name('student.receipt');
         Route::get('/materials/download/{id}', [App\Http\Controllers\StudentController::class, 'downloadMaterial'])->name('student.materials.download');
         Route::get('/assignments/download/{assignmentId}/{fileIndex}', [App\Http\Controllers\StudentController::class, 'downloadAssignmentFile'])->name('student.assignments.download');
+        
+        // Payment routes
+        Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'index'])->name('student.payments');
+        Route::post('/payments/course', [App\Http\Controllers\PaymentController::class, 'createCoursePayment'])->name('student.payments.course');
+        Route::post('/payments/general', [App\Http\Controllers\PaymentController::class, 'createGeneralPayment'])->name('student.payments.general');
+        Route::get('/payments/{paymentId}/status', [App\Http\Controllers\PaymentController::class, 'getPaymentStatus'])->name('student.payments.status');
+        Route::get('/payment/success', [App\Http\Controllers\PaymentController::class, 'paymentSuccess'])->name('student.payment.success');
+        Route::get('/payment/failed', [App\Http\Controllers\PaymentController::class, 'paymentFailed'])->name('student.payment.failed');
+        Route::get('/payment/pending', [App\Http\Controllers\PaymentController::class, 'paymentPending'])->name('student.payment.pending');
     });
 });
 
@@ -565,6 +574,10 @@ Route::post('/api/import-excel-data', [App\Http\Controllers\ExcelDataImportContr
 Route::get('/test-cron', function() {
     return response()->json(['success' => true, 'message' => 'Cron test endpoint works']);
 });
+
+// Billplz webhook routes (no authentication required)
+Route::post('/payment/billplz/callback', [App\Http\Controllers\PaymentController::class, 'billplzCallback'])->name('billplz.callback');
+Route::get('/payment/billplz/redirect', [App\Http\Controllers\PaymentController::class, 'billplzRedirect'])->name('billplz.redirect');
 
 // Recent activities endpoint (no authentication required)
 Route::get('/recent-activities', function() {
