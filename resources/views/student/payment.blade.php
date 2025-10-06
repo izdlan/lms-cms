@@ -19,101 +19,101 @@
                         <p class="page-subtitle">Complete your bill payment securely</p>
                     </div>
 
-                    <!-- Bill Information -->
-                    <div class="bill-info-section mb-4">
-                        <div class="bill-card">
-                            <div class="bill-header">
-                                <h3>Bill Details</h3>
-                            </div>
-                            <div class="bill-content">
-                                <div class="bill-details">
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Number:</span>
-                                        <span class="detail-value">{{ request('bill_number', '2022495772013') }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Date:</span>
-                                        <span class="detail-value">{{ request('bill_date', '12/9/2025') }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Session:</span>
-                                        <span class="detail-value">{{ request('session', '20254') }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Type:</span>
-                                        <span class="detail-value">{{ request('bill_type', 'Tuition Fee') }}</span>
-                                    </div>
-                                    <div class="detail-row total-row">
-                                        <span class="detail-label">Amount Due:</span>
-                                        <span class="detail-value amount">RM {{ request('amount', '590.00') }}</span>
+                    @if($bill)
+                        <!-- Bill Information -->
+                        <div class="bill-info-section mb-4">
+                            <div class="bill-card">
+                                <div class="bill-header">
+                                    <h3>Bill Details</h3>
+                                </div>
+                                <div class="bill-content">
+                                    <div class="bill-details">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Bill Number:</span>
+                                            <span class="detail-value">{{ $bill->bill_number }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Bill Date:</span>
+                                            <span class="detail-value">{{ $bill->bill_date->format('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Due Date:</span>
+                                            <span class="detail-value">{{ $bill->due_date->format('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Session:</span>
+                                            <span class="detail-value">{{ $bill->session }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Bill Type:</span>
+                                            <span class="detail-value">{{ $bill->bill_type }}</span>
+                                        </div>
+                                        @if($bill->description)
+                                        <div class="detail-row">
+                                            <span class="detail-label">Description:</span>
+                                            <span class="detail-value">{{ $bill->description }}</span>
+                                        </div>
+                                        @endif
+                                        <div class="detail-row total-row">
+                                            <span class="detail-label">Amount Due:</span>
+                                            <span class="detail-value amount">{{ $bill->formatted_amount }}</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    @else
+                        <div class="alert alert-warning">
+                            <h5>No Bill Selected</h5>
+                            <p>Please select a bill from your bills page to make a payment.</p>
+                            <a href="{{ route('student.bills') }}" class="btn btn-primary">View My Bills</a>
+                        </div>
+                    @endif
 
-                    <!-- Payment Form -->
-                    <div class="payment-form-section">
-                        <div class="payment-card">
-                            <div class="payment-header">
-                                <h3>Payment Information</h3>
-                            </div>
-                            <div class="payment-content">
-                                <form class="payment-form">
-                                    <div class="form-group">
-                                        <label for="payment-method">Payment Method</label>
-                                        <select class="form-control" id="payment-method" required>
-                                            <option value="">Select Payment Method</option>
-                                            <option value="online-banking">Online Banking</option>
-                                            <option value="credit-card">Credit Card</option>
-                                            <option value="debit-card">Debit Card</option>
-                                            <option value="e-wallet">E-Wallet</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="card-number">Card Number / Account Number</label>
-                                        <input type="text" class="form-control" id="card-number" placeholder="Enter card or account number" required>
-                                    </div>
-
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="expiry-date">Expiry Date</label>
-                                                <input type="text" class="form-control" id="expiry-date" placeholder="MM/YY" required>
+                    @if($bill)
+                        <!-- Payment Form -->
+                        <div class="payment-form-section">
+                            <div class="payment-card">
+                                <div class="payment-header">
+                                    <h3>Payment Information</h3>
+                                </div>
+                                <div class="payment-content">
+                                    <div class="payment-methods">
+                                        <h5>Available Payment Methods</h5>
+                                        <div class="payment-options">
+                                            <div class="payment-option">
+                                                <i class="fas fa-university"></i>
+                                                <span>Online Banking (FPX)</span>
+                                            </div>
+                                            <div class="payment-option">
+                                                <i class="fas fa-credit-card"></i>
+                                                <span>Credit/Debit Card</span>
+                                            </div>
+                                            <div class="payment-option">
+                                                <i class="fas fa-mobile-alt"></i>
+                                                <span>E-Wallet</span>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="cvv">CVV</label>
-                                                <input type="text" class="form-control" id="cvv" placeholder="123" required>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="cardholder-name">Cardholder Name</label>
-                                        <input type="text" class="form-control" id="cardholder-name" placeholder="Enter cardholder name" required>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="billing-address">Billing Address</label>
-                                        <textarea class="form-control" id="billing-address" rows="3" placeholder="Enter billing address" required></textarea>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="email">Email for Receipt</label>
-                                        <input type="email" class="form-control" id="email" value="{{ auth('student')->user()->email ?? 'student@example.com' }}" required>
                                     </div>
 
                                     <div class="payment-actions">
                                         <button type="button" class="btn btn-secondary" onclick="history.back()">Cancel</button>
-                                        <button type="submit" class="btn btn-primary">Pay Now</button>
+                                        <button type="button" class="btn btn-primary" id="payNowBtn" onclick="processPayment()">
+                                            <i class="fas fa-credit-card"></i>
+                                            Pay Now with Billplz
+                                        </button>
                                     </div>
-                                </form>
+                                    
+                                    <div id="paymentStatus" class="mt-3" style="display: none;">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-spinner fa-spin"></i>
+                                            <span id="paymentStatusText">Processing payment...</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    @endif
 
                     <!-- Security Notice -->
                     <div class="security-notice mt-4">
@@ -390,5 +390,89 @@
         justify-content: center;
     }
 }
+
+.payment-options {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.payment-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    background: #f8f9fa;
+    flex: 1;
+    min-width: 150px;
+    text-align: center;
+}
+
+.payment-option i {
+    font-size: 1.5rem;
+    color: #6c757d;
+}
+
+.payment-option span {
+    font-weight: 600;
+    color: #495057;
+}
 </style>
+
+@if($bill)
+<script>
+function processPayment() {
+    const payBtn = document.getElementById('payNowBtn');
+    const statusDiv = document.getElementById('paymentStatus');
+    const statusText = document.getElementById('paymentStatusText');
+    
+    // Disable button and show status
+    payBtn.disabled = true;
+    payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    statusDiv.style.display = 'block';
+    statusText.textContent = 'Creating payment with Billplz...';
+    
+    // Make AJAX request to process payment
+    fetch('{{ route("student.payment.process") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({
+            bill_id: {{ $bill->id }}
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            statusText.textContent = 'Redirecting to payment gateway...';
+            // Redirect to Billplz payment page
+            window.location.href = data.payment_url;
+        } else {
+            statusText.textContent = 'Error: ' + data.message;
+            statusDiv.className = 'mt-3';
+            statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + data.message + '</div>';
+            
+            // Re-enable button
+            payBtn.disabled = false;
+            payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now with Billplz';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        statusText.textContent = 'An error occurred. Please try again.';
+        statusDiv.className = 'mt-3';
+        statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> An error occurred. Please try again.</div>';
+        
+        // Re-enable button
+        payBtn.disabled = false;
+        payBtn.innerHTML = '<i class="fas fa-credit-card"></i> Pay Now with Billplz';
+    });
+}
+</script>
+@endif
 @endsection

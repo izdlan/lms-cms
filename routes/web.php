@@ -109,6 +109,7 @@ Route::prefix('student')->group(function () {
         Route::get('/stats', [App\Http\Controllers\StudentController::class, 'getStats'])->name('student.stats');
         Route::get('/bills', [App\Http\Controllers\StudentController::class, 'bills'])->name('student.bills');
         Route::get('/payment', [App\Http\Controllers\StudentController::class, 'payment'])->name('student.payment');
+        Route::post('/payment/process', [App\Http\Controllers\StudentController::class, 'processPayment'])->name('student.payment.process');
         Route::get('/receipt', [App\Http\Controllers\StudentController::class, 'receipt'])->name('student.receipt');
         Route::get('/materials/download/{id}', [App\Http\Controllers\StudentController::class, 'downloadMaterial'])->name('student.materials.download');
         Route::get('/assignments/download/{assignmentId}/{fileIndex}', [App\Http\Controllers\StudentController::class, 'downloadAssignmentFile'])->name('student.assignments.download');
@@ -229,9 +230,19 @@ Route::prefix('admin')->group(function () {
         Route::get('/lecturers', [AdminController::class, 'lecturers'])->name('admin.lecturers');
         Route::get('/lecturers/create', [AdminController::class, 'createLecturer'])->name('admin.lecturers.create');
         Route::post('/lecturers', [AdminController::class, 'storeLecturer'])->name('admin.lecturers.store');
-        Route::get('/lecturers/{lecturer}/edit', [AdminController::class, 'editLecturer'])->name('admin.lecturers.edit');
-        Route::put('/lecturers/{lecturer}', [AdminController::class, 'updateLecturer'])->name('admin.lecturers.update');
-        Route::delete('/lecturers/{lecturer}', [AdminController::class, 'deleteLecturer'])->name('admin.lecturers.delete');
+                Route::get('/lecturers/{lecturer}/edit', [AdminController::class, 'editLecturer'])->name('admin.lecturers.edit');
+                Route::put('/lecturers/{lecturer}', [AdminController::class, 'updateLecturer'])->name('admin.lecturers.update');
+                Route::delete('/lecturers/{lecturer}', [AdminController::class, 'deleteLecturer'])->name('admin.lecturers.delete');
+                
+                // Ex-Student Management Routes
+                Route::get('/ex-students', [AdminController::class, 'exStudents'])->name('admin.ex-students');
+                Route::get('/ex-students/create', [AdminController::class, 'createExStudent'])->name('admin.ex-students.create');
+                Route::post('/ex-students', [AdminController::class, 'storeExStudent'])->name('admin.ex-students.store');
+                Route::get('/ex-students/{exStudent}/edit', [AdminController::class, 'editExStudent'])->name('admin.ex-students.edit');
+                Route::put('/ex-students/{exStudent}', [AdminController::class, 'updateExStudent'])->name('admin.ex-students.update');
+                Route::delete('/ex-students/{exStudent}', [AdminController::class, 'deleteExStudent'])->name('admin.ex-students.delete');
+                Route::post('/ex-students/{exStudent}/generate-qr', [AdminController::class, 'generateQrCode'])->name('admin.ex-students.generate-qr');
+                Route::get('/ex-students/{exStudent}/download-qr', [AdminController::class, 'downloadQrCode'])->name('admin.ex-students.download-qr');
         Route::post('/students/google-sheets-import', [AdminController::class, 'googleSheetsImport'])->name('admin.students.google-sheets-import');
         Route::post('/students/onedrive-import', [AdminController::class, 'oneDriveImport'])->name('admin.students.onedrive-import');
         Route::get('/import', [AdminController::class, 'showImportForm'])->name('admin.import');
@@ -571,6 +582,19 @@ Route::get('/test-cron', function() {
 // Billplz webhook routes (no authentication required)
 Route::post('/payment/billplz/callback', [App\Http\Controllers\PaymentController::class, 'billplzCallback'])->name('billplz.callback');
 Route::get('/payment/billplz/redirect', [App\Http\Controllers\PaymentController::class, 'billplzRedirect'])->name('billplz.redirect');
+
+// Ex-Student QR Verification Routes
+Route::prefix('ex-student')->group(function () {
+    Route::get('/login', [App\Http\Controllers\ExStudentController::class, 'login'])->name('ex-student.login');
+    Route::post('/verify-qr', [App\Http\Controllers\ExStudentController::class, 'verifyQr'])->name('ex-student.verify-qr');
+    Route::get('/verify', [App\Http\Controllers\ExStudentController::class, 'verify'])->name('ex-student.verify');
+    Route::get('/dashboard', [App\Http\Controllers\ExStudentController::class, 'dashboard'])->name('ex-student.dashboard');
+    Route::get('/certificate', [App\Http\Controllers\ExStudentController::class, 'certificate'])->name('ex-student.certificate');
+    Route::get('/transcript1', [App\Http\Controllers\ExStudentController::class, 'transcript1'])->name('ex-student.transcript1');
+    Route::get('/transcript2', [App\Http\Controllers\ExStudentController::class, 'transcript2'])->name('ex-student.transcript2');
+    Route::post('/generate-qr', [App\Http\Controllers\ExStudentController::class, 'generateQrCode'])->name('ex-student.generate-qr');
+    Route::post('/logout', [App\Http\Controllers\ExStudentController::class, 'logout'])->name('ex-student.logout');
+});
 
 // Recent activities endpoint (no authentication required)
 Route::get('/recent-activities', function() {

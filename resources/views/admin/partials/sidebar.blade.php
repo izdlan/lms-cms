@@ -12,10 +12,14 @@
             <i data-feather="users" width="20" height="20"></i>
             Students
         </a>
-        <a href="{{ route('admin.lecturers') }}" class="nav-link {{ request()->routeIs('admin.lecturers*') ? 'active' : '' }}">
-            <i data-feather="user-check" width="20" height="20"></i>
-            Lecturers
-        </a>
+            <a href="{{ route('admin.lecturers') }}" class="nav-link {{ request()->routeIs('admin.lecturers*') ? 'active' : '' }}">
+                <i data-feather="user-check" width="20" height="20"></i>
+                Lecturers
+            </a>
+            <a href="{{ route('admin.ex-students') }}" class="nav-link {{ request()->routeIs('admin.ex-students*') ? 'active' : '' }}">
+                <i data-feather="graduation-cap" width="20" height="20"></i>
+                Ex-Students
+            </a>
         <a href="{{ route('admin.import') }}" class="nav-link {{ request()->routeIs('admin.import*') ? 'active' : '' }}">
             <i data-feather="upload" width="20" height="20"></i>
             Import Students

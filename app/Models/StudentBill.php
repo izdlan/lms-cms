@@ -1,0 +1,234 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Carbon\Carbon;
+
+class StudentBill extends Model
+{
+    protected $fillable = [
+        'bill_number',
+        'user_id',
+        'session',
+        'bill_type',
+        'amount',
+        'currency',
+        'status',
+        'bill_date',
+        'due_date',
+        'description',
+        'metadata',
+        'payment_id',
+        'paid_at',
+    ];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'bill_date' => 'date',
+        'due_date' => 'date',
+        'paid_at' => 'datetime',
+        'metadata' => 'array',
+    ];
+
+    // Status constants
+    const STATUS_PENDING = 'pending';
+    const STATUS_PAID = 'paid';
+    const STATUS_OVERDUE = 'overdue';
+    const STATUS_CANCELLED = 'cancelled';
+
+    // Bill type constants
+    const TYPE_TUITION_FEE = 'Tuition Fee';
+    const TYPE_EET_FEE = 'EET Fee';
+    const TYPE_LIBRARY_FEE = 'Library Fee';
+    const TYPE_EXAM_FEE = 'Exam Fee';
+    const TYPE_REGISTRATION_FEE = 'Registration Fee';
+    const TYPE_LATE_FEE = 'Late Fee';
+
+    /**
+     * Get the user that owns the bill
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get the payment associated with this bill
+     */
+    public function payment(): BelongsTo
+    {
+        return $this->belongsTo(Payment::class);
+    }
+
+    /**
+     * Check if bill is pending
+     */
+    public function isPending(): bool
+    {
+        return $this->status === self::STATUS_PENDING;
+    }
+
+    /**
+     * Check if bill is paid
+     */
+    public function isPaid(): bool
+    {
+        return $this->status === self::STATUS_PAID;
+    }
+
+    /**
+     * Check if bill is overdue
+     */
+    public function isOverdue(): bool
+    {
+        return $this->status === self::STATUS_OVERDUE || 
+               ($this->status === self::STATUS_PENDING && $this->due_date->isPast());
+    }
+
+    /**
+     * Check if bill is cancelled
+     */
+    public function isCancelled(): bool
+    {
+        return $this->status === self::STATUS_CANCELLED;
+    }
+
+    /**
+     * Mark bill as paid
+     */
+    public function markAsPaid(Payment $payment = null): void
+    {
+        $this->update([
+            'status' => self::STATUS_PAID,
+            'payment_id' => $payment?->id,
+            'paid_at' => now(),
+        ]);
+    }
+
+    /**
+     * Mark bill as overdue
+     */
+    public function markAsOverdue(): void
+    {
+        if ($this->isPending()) {
+            $this->update([
+                'status' => self::STATUS_OVERDUE,
+            ]);
+        }
+    }
+
+    /**
+     * Mark bill as cancelled
+     */
+    public function markAsCancelled(): void
+    {
+        $this->update([
+            'status' => self::STATUS_CANCELLED,
+        ]);
+    }
+
+    /**
+     * Get formatted amount
+     */
+    public function getFormattedAmountAttribute(): string
+    {
+        return 'RM ' . number_format((float)$this->amount, 2);
+    }
+
+    /**
+     * Get days until due
+     */
+    public function getDaysUntilDueAttribute(): int
+    {
+        return now()->diffInDays($this->due_date, false);
+    }
+
+    /**
+     * Get status badge class for UI
+     */
+    public function getStatusBadgeClassAttribute(): string
+    {
+        return match($this->status) {
+            self::STATUS_PAID => 'bg-success',
+            self::STATUS_PENDING => 'bg-warning',
+            self::STATUS_OVERDUE => 'bg-danger',
+            self::STATUS_CANCELLED => 'bg-secondary',
+            default => 'bg-secondary'
+        };
+    }
+
+    /**
+     * Scope for pending bills
+     */
+    public function scopePending($query)
+    {
+        return $query->where('status', self::STATUS_PENDING);
+    }
+
+    /**
+     * Scope for paid bills
+     */
+    public function scopePaid($query)
+    {
+        return $query->where('status', self::STATUS_PAID);
+    }
+
+    /**
+     * Scope for overdue bills
+     */
+    public function scopeOverdue($query)
+    {
+        return $query->where('status', self::STATUS_OVERDUE)
+                    ->orWhere(function($q) {
+                        $q->where('status', self::STATUS_PENDING)
+                          ->where('due_date', '<', now());
+                    });
+    }
+
+    /**
+     * Scope for bills by type
+     */
+    public function scopeByType($query, string $type)
+    {
+        return $query->where('bill_type', $type);
+    }
+
+    /**
+     * Scope for bills by session
+     */
+    public function scopeBySession($query, string $session)
+    {
+        return $query->where('session', $session);
+    }
+
+    /**
+     * Generate unique bill number
+     */
+    public static function generateBillNumber(): string
+    {
+        $year = date('Y');
+        $month = date('m');
+        $day = date('d');
+        
+        // Get the last bill number for today
+        $lastBill = self::whereDate('created_at', today())
+            ->orderBy('id', 'desc')
+            ->first();
+        
+        $sequence = $lastBill ? (intval(substr($lastBill->bill_number, -4)) + 1) : 1;
+        
+        return $year . $month . $day . str_pad($sequence, 4, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Create a new bill for a student
+     */
+    public static function createBill(array $data): self
+    {
+        $data['bill_number'] = $data['bill_number'] ?? self::generateBillNumber();
+        
+        return self::create($data);
+    }
+}

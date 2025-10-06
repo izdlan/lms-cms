@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Lecturer;
+use App\Models\ExStudent;
+use App\Services\QrCodeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -1709,6 +1711,173 @@ if ($returnCode === 0) {
             return response()->json([
                 'success' => false,
                 'message' => 'Error deleting lecturer: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    // Ex-Student Management Methods
+    public function exStudents()
+    {
+        $this->checkAdminAccess();
+        
+        $exStudents = ExStudent::orderBy('created_at', 'desc')->paginate(20);
+        return view('admin.ex-students', compact('exStudents'));
+    }
+
+    public function createExStudent()
+    {
+        $this->checkAdminAccess();
+        return view('admin.create-ex-student');
+    }
+
+    public function storeExStudent(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $request->validate([
+            'student_id' => 'required|string|unique:ex_students,student_id',
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:ex_students,email',
+            'phone' => 'nullable|string',
+            'program' => 'nullable|string',
+            'graduation_year' => 'required|string',
+            'graduation_month' => 'nullable|string',
+            'cgpa' => 'nullable|numeric|min:0|max:4',
+            'academic_records' => 'nullable|array',
+            'certificate_data' => 'nullable|array',
+        ]);
+
+        $data = $request->only([
+            'student_id', 'name', 'email', 'phone', 'program', 
+            'graduation_year', 'graduation_month', 'cgpa', 
+            'academic_records', 'certificate_data'
+        ]);
+
+        // Create ex-student record
+        $exStudent = ExStudent::createExStudent($data);
+
+        return redirect()->route('admin.ex-students')->with('success', 'Ex-student created successfully!');
+    }
+
+    public function editExStudent(ExStudent $exStudent)
+    {
+        $this->checkAdminAccess();
+        return view('admin.edit-ex-student', compact('exStudent'));
+    }
+
+    public function updateExStudent(Request $request, ExStudent $exStudent)
+    {
+        $this->checkAdminAccess();
+
+        $request->validate([
+            'student_id' => 'required|string|unique:ex_students,student_id,' . $exStudent->id,
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|email|unique:ex_students,email,' . $exStudent->id,
+            'phone' => 'nullable|string',
+            'program' => 'nullable|string',
+            'graduation_year' => 'required|string',
+            'graduation_month' => 'nullable|string',
+            'cgpa' => 'nullable|numeric|min:0|max:4',
+            'academic_records' => 'nullable|array',
+            'certificate_data' => 'nullable|array',
+        ]);
+
+        $data = $request->only([
+            'student_id', 'name', 'email', 'phone', 'program', 
+            'graduation_year', 'graduation_month', 'cgpa', 
+            'academic_records', 'certificate_data'
+        ]);
+
+        $exStudent->update($data);
+
+        return redirect()->route('admin.ex-students')->with('success', 'Ex-student updated successfully!');
+    }
+
+    public function deleteExStudent(ExStudent $exStudent)
+    {
+        $this->checkAdminAccess();
+
+        try {
+            $studentName = $exStudent->name;
+            $exStudent->delete();
+            
+            Log::info('Ex-student deleted successfully', [
+                'ex_student_id' => $exStudent->id,
+                'student_name' => $studentName,
+                'deleted_by' => Auth::user()->name
+            ]);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Ex-student deleted successfully!'
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error deleting ex-student', [
+                'ex_student_id' => $exStudent->id,
+                'error' => $e->getMessage()
+            ]);
+            
+            return response()->json([
+                'success' => false,
+                'message' => 'Error deleting ex-student: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function generateQrCode(ExStudent $exStudent)
+    {
+        $this->checkAdminAccess();
+
+        try {
+            $qrCodeService = new QrCodeService();
+            $qrCodePath = $qrCodeService->generateCertificateQrCode($exStudent);
+            $qrCodeUrl = $qrCodeService->getQrCodeUrl($qrCodePath);
+
+            return response()->json([
+                'success' => true,
+                'qr_code_url' => $qrCodeUrl,
+                'verification_url' => $exStudent->getVerificationUrl(),
+                'student_id' => $exStudent->student_id
+            ]);
+        } catch (\Exception $e) {
+            Log::error('QR code generation failed', [
+                'error' => $e->getMessage(),
+                'ex_student_id' => $exStudent->id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to generate QR code: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function downloadQrCode(ExStudent $exStudent)
+    {
+        $this->checkAdminAccess();
+
+        try {
+            $qrCodeService = new QrCodeService();
+            $qrCodePath = $qrCodeService->generateCertificateQrCode($exStudent);
+            $filePath = storage_path('app/public/' . $qrCodePath);
+
+            if (!file_exists($filePath)) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'QR code file not found'
+                ], 404);
+            }
+
+            return response()->download($filePath, "{$exStudent->student_id}_certificate_qr.png");
+        } catch (\Exception $e) {
+            Log::error('QR code download failed', [
+                'error' => $e->getMessage(),
+                'ex_student_id' => $exStudent->id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to download QR code: ' . $e->getMessage()
             ], 500);
         }
     }

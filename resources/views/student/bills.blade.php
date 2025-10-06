@@ -95,33 +95,46 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><a href="{{ route('student.payment') }}?bill_number=2022495772013&bill_date=12/9/2025&session=20254&bill_type=Tuition Fee&amount=590.00" class="bill-link">2022495772013</a></td>
-                                    <td>12/9/2025</td>
-                                    <td>20254</td>
-                                    <td>Tuition Fee</td>
-                                    <td class="amount">590.00</td>
-                                    <td><span class="status pending">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td><a href="{{ route('student.receipt') }}?bill_number=2022495772012&bill_date=10/5/2025&session=20252&bill_type=EET Fee&amount=30.00&payment_method=Online Banking&payment_date=10/5/2025 14:30:00" class="bill-link">2022495772012</a></td>
-                                    <td>10/5/2025</td>
-                                    <td>20252</td>
-                                    <td>EET Fee</td>
-                                    <td class="amount">30.00</td>
-                                    <td><span class="status paid">Paid</span></td>
-                                </tr>
-                                <tr>
-                                    <td><a href="{{ route('student.receipt') }}?bill_number=2022495772011&bill_date=19/3/2025&session=20252&bill_type=Tuition Fee&amount=590.00&payment_method=Credit Card&payment_date=19/3/2025 09:15:00" class="bill-link">2022495772011</a></td>
-                                    <td>19/3/2025</td>
-                                    <td>20252</td>
-                                    <td>Tuition Fee</td>
-                                    <td class="amount">590.00</td>
-                                    <td><span class="status paid">Paid</span></td>
-                                </tr>
+                                @forelse($bills as $bill)
+                                    <tr>
+                                        <td>
+                                            @if($bill->isPaid())
+                                                <a href="{{ route('student.receipt') }}?payment_id={{ $bill->payment_id }}" class="bill-link">{{ $bill->bill_number }}</a>
+                                            @else
+                                                <a href="{{ route('student.payment') }}?bill_id={{ $bill->id }}" class="bill-link">{{ $bill->bill_number }}</a>
+                                            @endif
+                                        </td>
+                                        <td>{{ $bill->bill_date->format('d/m/Y') }}</td>
+                                        <td>{{ $bill->session }}</td>
+                                        <td>{{ $bill->bill_type }}</td>
+                                        <td class="amount">{{ $bill->formatted_amount }}</td>
+                                        <td>
+                                            <span class="status {{ $bill->status }}">{{ ucfirst($bill->status) }}</span>
+                                            @if($bill->isOverdue())
+                                                <small class="text-danger d-block">Overdue</small>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i data-feather="file-text" width="48" height="48" class="mb-3"></i>
+                                                <p>No bills found.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
+                    
+                    <!-- Pagination -->
+                    @if($bills->hasPages())
+                        <div class="d-flex justify-content-center mt-3">
+                            {{ $bills->links() }}
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Payment Instructions Section -->

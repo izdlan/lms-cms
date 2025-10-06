@@ -281,6 +281,14 @@ class PaymentController extends Controller
                     $data['transaction_id'] ?? null
                 );
                 
+                // Update related bill status if this is a bill payment
+                if ($payment->reference_type === 'bill') {
+                    $bill = \App\Models\StudentBill::find($payment->reference_id);
+                    if ($bill) {
+                        $bill->markAsPaid($payment);
+                    }
+                }
+                
                 Log::info('Payment marked as paid', [
                     'payment_id' => $payment->id,
                     'billplz_id' => $billId,

@@ -63,38 +63,51 @@
                                 <div class="receipt-section-item">
                                     <h4>Payment Details</h4>
                                     <div class="info-grid">
-                                        <div class="info-item">
-                                            <span class="info-label">Bill Number:</span>
-                                            <span class="info-value">{{ request('bill_number', '2022495772012') }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Bill Date:</span>
-                                            <span class="info-value">{{ request('bill_date', '10/5/2025') }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Session:</span>
-                                            <span class="info-value">{{ request('session', '20252') }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Bill Type:</span>
-                                            <span class="info-value">{{ request('bill_type', 'EET Fee') }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Payment Method:</span>
-                                            <span class="info-value">{{ request('payment_method', 'Online Banking') }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Transaction ID:</span>
-                                            <span class="info-value">{{ request('transaction_id', 'TXN-' . date('Ymd') . '-' . rand(100000, 999999)) }}</span>
-                                        </div>
-                                        <div class="info-item">
-                                            <span class="info-label">Payment Date:</span>
-                                            <span class="info-value">{{ request('payment_date', date('d/m/Y H:i:s')) }}</span>
-                                        </div>
-                                        <div class="info-item total-item">
-                                            <span class="info-label">Amount Paid:</span>
-                                            <span class="info-value amount">RM {{ request('amount', '30.00') }}</span>
-                                        </div>
+                                        @if($bill)
+                                            <div class="info-item">
+                                                <span class="info-label">Bill Number:</span>
+                                                <span class="info-value">{{ $bill->bill_number }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Bill Date:</span>
+                                                <span class="info-value">{{ $bill->bill_date->format('d/m/Y') }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Session:</span>
+                                                <span class="info-value">{{ $bill->session }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Bill Type:</span>
+                                                <span class="info-value">{{ $bill->bill_type }}</span>
+                                            </div>
+                                        @endif
+                                        @if($payment)
+                                            <div class="info-item">
+                                                <span class="info-label">Payment Method:</span>
+                                                <span class="info-value">{{ $payment->payment_method ? ucfirst($payment->payment_method) : 'Billplz' }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Transaction ID:</span>
+                                                <span class="info-value">{{ $payment->transaction_id ?? $payment->billplz_id }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Payment Date:</span>
+                                                <span class="info-value">{{ $payment->paid_at ? $payment->paid_at->format('d/m/Y H:i:s') : $payment->created_at->format('d/m/Y H:i:s') }}</span>
+                                            </div>
+                                            <div class="info-item total-item">
+                                                <span class="info-label">Amount Paid:</span>
+                                                <span class="info-value amount">{{ $payment->formatted_amount }}</span>
+                                            </div>
+                                        @else
+                                            <div class="info-item">
+                                                <span class="info-label">Bill Number:</span>
+                                                <span class="info-value">{{ request('bill_number', 'N/A') }}</span>
+                                            </div>
+                                            <div class="info-item">
+                                                <span class="info-label">Amount Paid:</span>
+                                                <span class="info-value amount">RM {{ request('amount', '0.00') }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
 
@@ -102,7 +115,7 @@
                                 <div class="payment-summary">
                                     <div class="summary-row">
                                         <span>Subtotal:</span>
-                                        <span>RM {{ request('amount', '30.00') }}</span>
+                                        <span>{{ $payment ? $payment->formatted_amount : 'RM ' . request('amount', '0.00') }}</span>
                                     </div>
                                     <div class="summary-row">
                                         <span>Processing Fee:</span>
@@ -110,7 +123,7 @@
                                     </div>
                                     <div class="summary-row total-row">
                                         <span>Total Paid:</span>
-                                        <span>RM {{ request('amount', '30.00') }}</span>
+                                        <span>{{ $payment ? $payment->formatted_amount : 'RM ' . request('amount', '0.00') }}</span>
                                     </div>
                                 </div>
                             </div>

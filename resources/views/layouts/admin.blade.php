@@ -87,7 +87,7 @@
     
     <!-- Template JS Files -->
     <script src="/assets/default/js/app.js"></script>
-    <script src="/assets/default/vendors/feather-icons/dist/feather.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.0/dist/feather.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/default/vendors/moment.min.js"></script>
     <script src="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.js"></script>

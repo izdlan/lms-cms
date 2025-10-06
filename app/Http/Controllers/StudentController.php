@@ -9,6 +9,9 @@ use App\Models\Announcement;
 use App\Models\CourseContent;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\StudentBill;
+use App\Models\Payment;
+use App\Services\BillplzService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -663,12 +666,17 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        // Get student's bills
+        $bills = StudentBill::where('user_id', $user->id)
+            ->orderBy('bill_date', 'desc')
+            ->paginate(10);
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.bills', compact('user', 'enrolledSubjects'));
+        return view('student.bills', compact('user', 'enrolledSubjects', 'bills'));
     }
 
     /**
@@ -682,12 +690,115 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        $billId = $request->get('bill_id');
+        $bill = null;
+        
+        if ($billId) {
+            $bill = StudentBill::where('id', $billId)
+                ->where('user_id', $user->id)
+                ->where('status', StudentBill::STATUS_PENDING)
+                ->firstOrFail();
+        }
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.payment', compact('user', 'enrolledSubjects'));
+        return view('student.payment', compact('user', 'enrolledSubjects', 'bill'));
+    }
+
+    /**
+     * Process bill payment with Billplz
+     */
+    public function processPayment(Request $request)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return response()->json(['success' => false, 'message' => 'Please login to access this page.'], 401);
+        }
+
+        $request->validate([
+            'bill_id' => 'required|exists:student_bills,id',
+        ]);
+
+        try {
+            $bill = StudentBill::where('id', $request->bill_id)
+                ->where('user_id', $user->id)
+                ->where('status', StudentBill::STATUS_PENDING)
+                ->firstOrFail();
+
+            // Check if there's already a pending payment for this bill
+            $existingPayment = Payment::where('reference_id', $bill->id)
+                ->where('reference_type', 'bill')
+                ->where('user_id', $user->id)
+                ->where('status', Payment::STATUS_PENDING)
+                ->first();
+
+            if ($existingPayment && !$existingPayment->isExpired()) {
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => $existingPayment->payment_url,
+                    'message' => 'Existing payment found'
+                ]);
+            }
+
+            // Create Billplz payment
+            $billplzService = new BillplzService();
+            $result = $billplzService->createBill([
+                'email' => $user->email,
+                'mobile' => $user->phone,
+                'name' => $user->name,
+                'amount' => $bill->amount,
+                'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
+                'reference_1' => $user->student_id ?? $user->id,
+                'reference_2' => $bill->bill_number,
+                'callback_url' => route('billplz.callback'),
+                'redirect_url' => route('billplz.redirect'),
+            ]);
+
+            if ($result['success']) {
+                $billplzData = $result['data'];
+                
+                // Create payment record
+                $payment = Payment::create([
+                    'billplz_id' => $billplzData['id'],
+                    'billplz_collection_id' => $billplzData['collection_id'],
+                    'user_id' => $user->id,
+                    'type' => Payment::TYPE_GENERAL_FEE,
+                    'reference_id' => $bill->id,
+                    'reference_type' => 'bill',
+                    'amount' => $bill->amount,
+                    'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
+                    'billplz_response' => $billplzData,
+                    'expires_at' => now()->addMinutes(config('billplz.timeout', 30)),
+                ]);
+
+                return response()->json([
+                    'success' => true,
+                    'payment_url' => $billplzData['url'],
+                    'payment_id' => $payment->id,
+                    'message' => 'Payment created successfully'
+                ]);
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => $result['error']
+                ], 400);
+            }
+        } catch (\Exception $e) {
+            Log::error('Bill payment processing failed', [
+                'error' => $e->getMessage(),
+                'user_id' => $user->id,
+                'bill_id' => $request->bill_id
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to process payment. Please try again.'
+            ], 500);
+        }
     }
 
     /**
@@ -701,12 +812,27 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        $paymentId = $request->get('payment_id');
+        $payment = null;
+        $bill = null;
+        
+        if ($paymentId) {
+            $payment = Payment::where('id', $paymentId)
+                ->where('user_id', $user->id)
+                ->where('status', Payment::STATUS_PAID)
+                ->first();
+                
+            if ($payment && $payment->reference_type === 'bill') {
+                $bill = StudentBill::find($payment->reference_id);
+            }
+        }
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.receipt', compact('user', 'enrolledSubjects'));
+        return view('student.receipt', compact('user', 'enrolledSubjects', 'payment', 'bill'));
     }
 
     public function getSubmission($assignmentId)

@@ -142,6 +142,17 @@
                                     Forgot your password?
                                 </a>
                             </div>
+                            
+                            <div class="login-divider">
+                                <span>or</span>
+                            </div>
+                            
+                            <div class="text-center">
+                                <a href="{{ route('ex-student.login') }}" class="btn btn-outline-primary">
+                                    <i class="fas fa-graduation-cap"></i> Login as Ex-Student
+                                </a>
+                                <p class="mt-2 text-muted small">Verify your certificate with QR code</p>
+                            </div>
                         </form>
                     </div>
                 </div>
