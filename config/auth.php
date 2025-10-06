@@ -52,6 +52,10 @@ return [
             'driver' => 'session',
             'provider' => 'admins',
         ],
+        'finance_admin' => [
+            'driver' => 'session',
+            'provider' => 'users',
+        ],
     ],
 
     /*
