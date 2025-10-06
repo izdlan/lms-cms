@@ -91,7 +91,7 @@ Route::prefix('student')->group(function () {
     });
     
     // Protected student routes
-    Route::middleware('auth:student')->group(function () {
+    Route::middleware(['auth:student', 'check.blocked.student'])->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\StudentController::class, 'dashboard'])->name('student.dashboard');
         Route::get('/courses', [App\Http\Controllers\StudentController::class, 'courses'])->name('student.courses');
         Route::get('/course/{program}', [App\Http\Controllers\StudentController::class, 'courseSummary'])->name('student.course.summary');
