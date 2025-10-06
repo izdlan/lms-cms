@@ -281,24 +281,111 @@
         .main-content {
             margin-left: 250px !important;
             margin-top: 80px !important;
-            padding: 2rem !important;
+            padding: 1rem !important; /* Reduced from 2rem */
             min-height: calc(100vh - 80px) !important;
             background: #f8f9fa !important;
         }
         
         .page-header {
-            margin-bottom: 2rem !important;
+            margin-bottom: 1rem !important; /* Reduced from 2rem */
         }
         
         .page-title {
             color: #333 !important;
             font-weight: bold !important;
-            margin-bottom: 0.5rem !important;
+            margin-bottom: 0.25rem !important; /* Reduced from 0.5rem */
         }
         
         .page-subtitle {
             color: #666 !important;
             margin: 0 !important;
+        }
+
+        /* Global Spacing Fixes for All Finance Admin Pages */
+        .finance-admin-dashboard {
+            padding: 0 !important; /* Remove default padding */
+        }
+        
+        .finance-admin-dashboard .container-fluid {
+            padding: 0 !important; /* Remove container padding */
+        }
+        
+        .finance-admin-dashboard .row {
+            margin: 0 !important; /* Remove row margins */
+        }
+        
+        .finance-admin-dashboard .col-md-3,
+        .finance-admin-dashboard .col-lg-2 {
+            padding: 0 !important; /* Remove column padding */
+        }
+        
+        .finance-admin-dashboard .col-md-9,
+        .finance-admin-dashboard .col-lg-10 {
+            padding: 0 !important; /* Remove column padding */
+        }
+        
+        /* Fix double sidebar issue */
+        .finance-admin-dashboard .col-md-3 .finance-admin-sidebar,
+        .finance-admin-dashboard .col-lg-2 .finance-admin-sidebar {
+            display: none !important; /* Hide duplicate sidebar */
+        }
+        
+        /* Ensure main content takes full width */
+        .finance-admin-dashboard .col-md-9,
+        .finance-admin-dashboard .col-lg-10 {
+            width: 100% !important;
+            max-width: 100% !important;
+            flex: 0 0 100% !important;
+        }
+        
+        /* Global pagination fixes for all finance admin pages */
+        .finance-admin-dashboard .pagination .page-link {
+            min-width: 32px !important;
+            height: 32px !important;
+            padding: 0.25rem 0.5rem !important;
+            font-size: 0.875rem !important;
+        }
+        
+        .finance-admin-dashboard .pagination .page-item:first-child .page-link,
+        .finance-admin-dashboard .pagination .page-item:last-child .page-link {
+            min-width: 32px !important;
+            height: 32px !important;
+            padding: 0.25rem !important;
+            font-size: 1rem !important;
+        }
+        
+        /* Global table fixes for all finance admin pages */
+        .finance-admin-dashboard .table th,
+        .finance-admin-dashboard .table td {
+            padding: 0.5rem 0.75rem !important;
+            vertical-align: middle !important;
+        }
+        
+        /* Fix table responsiveness */
+        .finance-admin-dashboard .table-responsive {
+            border-radius: 0.5rem !important;
+        }
+        
+        /* Reduce card spacing globally */
+        .finance-admin-dashboard .card {
+            margin-bottom: 1rem !important;
+        }
+        
+        .finance-admin-dashboard .card-header {
+            padding: 1rem !important;
+        }
+        
+        .finance-admin-dashboard .card-body {
+            padding: 1rem !important;
+        }
+        
+        /* Reduce row spacing */
+        .finance-admin-dashboard .row {
+            margin-bottom: 0.5rem !important;
+        }
+        
+        .finance-admin-dashboard .row.mb-4 {
+            margin-bottom: 1rem !important;
         }
 
         /* Responsive Design */

@@ -193,6 +193,13 @@ Route::prefix('finance-admin')->middleware(['auth'])->group(function () {
     Route::get('/reports', function() { return view('finance-admin.reports'); })->name('finance-admin.reports');
     Route::get('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'changePassword'])->name('finance-admin.password.change');
     Route::post('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'updatePassword'])->name('finance-admin.password.update');
+    
+    // Invoice Management Routes
+    Route::get('/invoices', [App\Http\Controllers\FinanceAdminController::class, 'invoices'])->name('finance-admin.invoices');
+    Route::get('/students/{id}/create-invoice', [App\Http\Controllers\FinanceAdminController::class, 'createInvoice'])->name('finance-admin.create-invoice');
+    Route::post('/students/{id}/create-invoice', [App\Http\Controllers\FinanceAdminController::class, 'storeInvoice'])->name('finance-admin.store-invoice');
+    Route::get('/invoices/{id}', [App\Http\Controllers\FinanceAdminController::class, 'showInvoice'])->name('finance-admin.invoice.show');
+    Route::post('/payments/{id}/complete', [App\Http\Controllers\FinanceAdminController::class, 'markPaymentCompleted'])->name('finance-admin.payment.complete');
 });
 
 // Admin authentication routes (now using unified login)

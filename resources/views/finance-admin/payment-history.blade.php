@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
@@ -259,9 +249,6 @@
                     <button type="submit" class="btn btn-danger">Block Student</button>
                 </div>
             </form>
-        </div>
-    </div>
-</div>
 @endsection
 
 @push('scripts')
@@ -278,6 +265,43 @@ function blockStudent(studentId) {
 .finance-admin-dashboard {
     background-color: #f8f9fa;
     min-height: 100vh;
+}
+
+/* Fix table column widths for payment history */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 15% !important; /* Bill Number column */
+    min-width: 120px !important;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 15% !important; /* Bill Date column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 20% !important; /* Session column */
+    min-width: 150px !important;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 15% !important; /* Amount column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+    width: 15% !important; /* Status column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(6),
+.table td:nth-child(6) {
+    width: 20% !important; /* Actions column */
+    min-width: 150px !important;
 }
 
 .card {

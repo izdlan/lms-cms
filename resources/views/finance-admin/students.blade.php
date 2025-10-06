@@ -4,16 +4,6 @@
 
 @section('content')
 <div class="finance-admin-dashboard">
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2">
-                @include('finance-admin.partials.sidebar')
-            </div>
-            
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10">
-                <div class="main-content">
                     <div class="page-header">
                         <h1 class="page-title">Students Management</h1>
                         <p class="page-subtitle">View and manage all student accounts</p>
@@ -36,7 +26,7 @@
                     @endif
 
                     <!-- Filters and Search -->
-                    <div class="card mb-4">
+                    <div class="card mb-2">
                         <div class="card-body">
                             <form method="GET" action="{{ route('finance-admin.students') }}" class="row g-3">
                                 <div class="col-md-4">
@@ -74,22 +64,23 @@
 
                     <!-- Students Table -->
                     <div class="card">
-                        <div class="card-header">
-                            <h5><i class="fas fa-users me-2"></i>Students List ({{ $students->total() }} total)</h5>
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5><i class="fas fa-users me-2"></i>Students List</h5>
+                            <span class="badge bg-primary fs-6">{{ $students->total() }} Total Students</span>
                         </div>
                         <div class="card-body">
                             @if($students->count() > 0)
                                 <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
+                                    <table class="table table-hover table-striped">
+                                        <thead class="table-dark">
                                             <tr>
-                                                <th>Name</th>
-                                                <th>IC Number</th>
-                                                <th>Email</th>
-                                                <th>Student ID</th>
-                                                <th>Program</th>
-                                                <th>Status</th>
-                                                <th>Actions</th>
+                                                <th><i class="fas fa-user me-1"></i> Name</th>
+                                                <th><i class="fas fa-id-card me-1"></i> IC Number</th>
+                                                <th><i class="fas fa-envelope me-1"></i> Email</th>
+                                                <th><i class="fas fa-graduation-cap me-1"></i> Student ID</th>
+                                                <th><i class="fas fa-book me-1"></i> Program</th>
+                                                <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                                                <th><i class="fas fa-cogs me-1"></i> Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -180,10 +171,6 @@
                             @endif
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 <!-- Block Student Modal -->
@@ -257,15 +244,186 @@ function unblockStudent(studentId) {
     min-height: 100vh;
 }
 
+/* Fix excessive spacing issues */
+.main-content {
+    padding: 1rem !important; /* Reduced from 2rem */
+}
+
+.page-header {
+    margin-bottom: 1rem !important; /* Reduced from 2rem */
+}
+
+.page-title {
+    margin-bottom: 0.25rem !important; /* Reduced spacing */
+}
+
+.page-subtitle {
+    margin-bottom: 0 !important; /* Remove bottom margin */
+}
+
+/* Reduce card spacing */
+.card {
+    margin-bottom: 1rem !important; /* Reduced from default */
+}
+
+.card-header {
+    padding: 1rem !important; /* Reduced from 1.5rem */
+}
+
+.card-body {
+    padding: 1rem !important; /* Ensure consistent padding */
+}
+
+/* Reduce form spacing */
+.row.g-3 {
+    --bs-gutter-y: 0.75rem; /* Reduced from 1rem */
+    --bs-gutter-x: 0.75rem; /* Reduced from 1rem */
+}
+
+/* Reduce table spacing */
+.table th,
+.table td {
+    padding: 0.5rem 0.75rem !important; /* Reduced from default */
+}
+
+/* Reduce button group spacing */
+.btn-group .btn {
+    margin-right: 1px !important; /* Reduced from 2px */
+}
+
+/* Reduce pagination spacing */
+.d-flex.justify-content-center.mt-4 {
+    margin-top: 1rem !important; /* Reduced from 1.5rem */
+}
+
+/* Fix large pagination arrows */
+.pagination .page-link {
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.875rem !important;
+}
+
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+    min-width: 32px !important;
+    height: 32px !important;
+    padding: 0.25rem !important;
+    font-size: 1rem !important;
+}
+
+/* Fix table column widths to prevent truncation */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+    width: 25% !important; /* Name column */
+    min-width: 200px !important;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+    width: 15% !important; /* IC Number column */
+    min-width: 120px !important;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+    width: 25% !important; /* Email column */
+    min-width: 200px !important;
+    word-break: break-all !important;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+    width: 12% !important; /* Student ID column */
+    min-width: 100px !important;
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+    width: 15% !important; /* Program column */
+    min-width: 120px !important;
+}
+
+.table th:nth-child(6),
+.table td:nth-child(6) {
+    width: 8% !important; /* Status column */
+    min-width: 80px !important;
+}
+
+.table th:nth-child(7),
+.table td:nth-child(7) {
+    width: 10% !important; /* Actions column */
+    min-width: 100px !important;
+}
+
+/* Enhanced table styling */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: all 0.3s ease;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: #495057;
+    background-color: #343a40;
+    border-color: #495057;
+}
+
+.table td {
+    vertical-align: middle;
+    border-color: #e9ecef;
+}
+
+/* Enhanced button styling */
+.btn-group .btn {
+    margin-right: 2px;
+    transition: all 0.3s ease;
+}
+
+.btn-group .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+/* Profile picture styling */
+.profile-picture, .bg-secondary {
+    border: 2px solid #e9ecef;
+    transition: border-color 0.3s ease;
+}
+
+.profile-picture:hover, .bg-secondary:hover {
+    border-color: #007bff;
+}
+
+/* Status badge enhancements */
+.badge {
+    font-size: 0.75rem;
+    padding: 0.5em 0.75em;
+    border-radius: 0.5rem;
+}
+
+/* Card enhancements */
 .card {
     border: none;
     border-radius: 10px;
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
 }
 
 .card-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-bottom: 1px solid #dee2e6;
     padding: 1.5rem;
 }
 
@@ -275,34 +433,38 @@ function unblockStudent(studentId) {
     font-weight: 600;
 }
 
-.page-header {
-    margin-bottom: 2rem;
+/* Search form enhancements */
+.form-control:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
-.page-title {
-    color: #333;
-    font-weight: bold;
-    margin-bottom: 0.5rem;
+.btn-primary {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    border: none;
+    transition: all 0.3s ease;
 }
 
-.page-subtitle {
-    color: #666;
-    margin: 0;
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,123,255,0.3);
 }
 
-.table th {
-    background: #f8f9fa;
-    border-top: none;
-    font-weight: 600;
-    color: #495057;
-}
-
-.btn-group .btn {
-    margin-right: 2px;
-}
-
-.btn-group .btn:last-child {
-    margin-right: 0;
+/* Responsive improvements */
+@media (max-width: 768px) {
+    .table-responsive {
+        border-radius: 0.5rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+    }
+    
+    .btn-group .btn {
+        margin-bottom: 2px;
+        margin-right: 0;
+    }
 }
 </style>
 @endpush

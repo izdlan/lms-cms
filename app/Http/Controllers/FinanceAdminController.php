@@ -7,6 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\StudentEnrollment;
+use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\Receipt;
 use Illuminate\Support\Facades\DB;
 
 class FinanceAdminController extends Controller
@@ -143,36 +146,11 @@ class FinanceAdminController extends Controller
     {
         $student = User::where('id', $id)->where('role', 'student')->firstOrFail();
         
-        // Mock payment data - in real implementation, this would come from a payments table
-        $payments = [
-            [
-                'bill_number' => '2022495772013',
-                'bill_date' => '2025-09-12',
-                'session' => '20254',
-                'bill_type' => 'Tuition Fee',
-                'amount' => 590.00,
-                'status' => 'Pending',
-                'due_date' => '2025-10-12'
-            ],
-            [
-                'bill_number' => '2022495772012',
-                'bill_date' => '2025-05-10',
-                'session' => '20252',
-                'bill_type' => 'EET Fee',
-                'amount' => 30.00,
-                'status' => 'Paid',
-                'paid_date' => '2025-05-10'
-            ],
-            [
-                'bill_number' => '2022495772011',
-                'bill_date' => '2025-03-19',
-                'session' => '20252',
-                'bill_type' => 'Tuition Fee',
-                'amount' => 590.00,
-                'status' => 'Paid',
-                'paid_date' => '2025-03-19'
-            ]
-        ];
+        // Get real payment data from database
+        $payments = Payment::where('student_id', $id)
+            ->with(['invoice', 'receipt'])
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         return view('finance-admin.payment-history', compact('student', 'payments'));
     }
@@ -182,16 +160,35 @@ class FinanceAdminController extends Controller
      */
     public function pendingPayments()
     {
-        // Mock data - in real implementation, this would query actual payment records
+        // Get students with pending invoices
         $studentsWithPendingPayments = User::where('role', 'student')
             ->where('is_blocked', false)
+            ->whereHas('invoices', function($query) {
+                $query->where('status', 'pending');
+            })
+            ->with(['invoices' => function($query) {
+                $query->where('status', 'pending');
+            }])
             ->get()
             ->map(function($student) {
+                $pendingInvoices = $student->invoices->where('status', 'pending');
+                $totalPendingAmount = $pendingInvoices->sum('amount');
+                $overdueInvoices = $pendingInvoices->where('due_date', '<', now()->toDateString());
+                $overdueDays = $overdueInvoices->isNotEmpty() ? $overdueInvoices->max(function($invoice) {
+                    return now()->diffInDays($invoice->due_date);
+                }) : 0;
+                
+                $lastPayment = Payment::where('student_id', $student->id)
+                    ->where('status', 'completed')
+                    ->latest('paid_at')
+                    ->first();
+                
                 return [
                     'student' => $student,
-                    'pending_amount' => rand(100, 2000), // Mock pending amount
-                    'overdue_days' => rand(1, 30), // Mock overdue days
-                    'last_payment' => now()->subDays(rand(10, 60)) // Mock last payment date
+                    'pending_amount' => $totalPendingAmount,
+                    'overdue_days' => $overdueDays,
+                    'last_payment' => $lastPayment ? $lastPayment->paid_at : null,
+                    'pending_invoices_count' => $pendingInvoices->count()
                 ];
             });
 
@@ -230,5 +227,135 @@ class FinanceAdminController extends Controller
         ]);
 
         return redirect()->route('finance-admin.dashboard')->with('success', 'Password updated successfully!');
+    }
+
+    /**
+     * Show create invoice form
+     */
+    public function createInvoice($studentId)
+    {
+        $student = User::where('id', $studentId)->where('role', 'student')->firstOrFail();
+        return view('finance-admin.create-invoice', compact('student'));
+    }
+
+    /**
+     * Store new invoice
+     */
+    public function storeInvoice(Request $request, $studentId)
+    {
+        $request->validate([
+            'bill_type' => 'required|string|max:255',
+            'session' => 'required|string|max:255',
+            'amount' => 'required|numeric|min:0.01',
+            'due_date' => 'required|date|after:today',
+            'description' => 'nullable|string|max:1000',
+            'notes' => 'nullable|string|max:1000'
+        ]);
+
+        $student = User::where('id', $studentId)->where('role', 'student')->firstOrFail();
+
+        $invoice = Invoice::create([
+            'invoice_number' => Invoice::generateInvoiceNumber(),
+            'student_id' => $studentId,
+            'created_by' => Auth::id(),
+            'bill_type' => $request->bill_type,
+            'session' => $request->session,
+            'amount' => $request->amount,
+            'invoice_date' => now()->toDateString(),
+            'due_date' => $request->due_date,
+            'description' => $request->description,
+            'notes' => $request->notes,
+            'status' => 'pending'
+        ]);
+
+        return redirect()->route('finance-admin.student.show', $studentId)
+            ->with('success', 'Invoice created successfully!');
+    }
+
+    /**
+     * Show invoice details
+     */
+    public function showInvoice($invoiceId)
+    {
+        $invoice = Invoice::with(['student', 'createdBy', 'payments.receipt'])
+            ->findOrFail($invoiceId);
+        
+        return view('finance-admin.invoice-details', compact('invoice'));
+    }
+
+    /**
+     * Mark payment as completed
+     */
+    public function markPaymentCompleted(Request $request, $paymentId)
+    {
+        $request->validate([
+            'payment_method' => 'required|string|in:online_banking,credit_card,debit_card,bank_transfer,cash,other',
+            'transaction_id' => 'nullable|string|max:255',
+            'payment_notes' => 'nullable|string|max:1000'
+        ]);
+
+        $payment = Payment::findOrFail($paymentId);
+        
+        DB::transaction(function() use ($payment, $request) {
+            // Mark payment as completed
+            $payment->update([
+                'status' => 'completed',
+                'paid_at' => now(),
+                'payment_method' => $request->payment_method,
+                'transaction_id' => $request->transaction_id,
+                'payment_notes' => $request->payment_notes
+            ]);
+
+            // Update invoice status if fully paid
+            $invoice = $payment->invoice;
+            if ($invoice->isFullyPaid()) {
+                $invoice->update(['status' => 'paid']);
+            }
+
+            // Create receipt
+            Receipt::create([
+                'receipt_number' => Receipt::generateReceiptNumber(),
+                'payment_id' => $payment->id,
+                'invoice_id' => $invoice->id,
+                'student_id' => $payment->student_id,
+                'amount' => $payment->amount,
+                'payment_method' => $payment->payment_method,
+                'payment_date' => $payment->paid_at,
+                'receipt_notes' => $payment->payment_notes
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Payment marked as completed and receipt generated!');
+    }
+
+    /**
+     * Show all invoices
+     */
+    public function invoices(Request $request)
+    {
+        $query = Invoice::with(['student', 'createdBy']);
+
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('invoice_number', 'like', "%{$search}%")
+                  ->orWhere('bill_type', 'like', "%{$search}%")
+                  ->orWhereHas('student', function($studentQuery) use ($search) {
+                      $studentQuery->where('name', 'like', "%{$search}%")
+                                  ->orWhere('email', 'like', "%{$search}%")
+                                  ->orWhere('ic', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->where('status', $request->status);
+        }
+
+        $invoices = $query->orderBy('created_at', 'desc')->paginate(20);
+
+        return view('finance-admin.invoices', compact('invoices'));
     }
 }
