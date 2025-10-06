@@ -26,28 +26,50 @@
                                 <h3>Bill Details</h3>
                             </div>
                             <div class="bill-content">
-                                <div class="bill-details">
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Number:</span>
-                                        <span class="detail-value">{{ request('bill_number', '2022495772013') }}</span>
+                                @if($invoice)
+                                    <div class="bill-details">
+                                        <div class="detail-row">
+                                            <span class="detail-label">Invoice Number:</span>
+                                            <span class="detail-value">{{ $invoice->invoice_number }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Invoice Date:</span>
+                                            <span class="detail-value">{{ $invoice->invoice_date->format('d/m/Y') }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Due Date:</span>
+                                            <span class="detail-value {{ $invoice->isOverdue() ? 'text-danger' : '' }}">
+                                                {{ $invoice->due_date->format('d/m/Y') }}
+                                                @if($invoice->isOverdue())
+                                                    <small class="text-danger">(Overdue)</small>
+                                                @endif
+                                            </span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Session:</span>
+                                            <span class="detail-value">{{ $invoice->session }}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="detail-label">Bill Type:</span>
+                                            <span class="detail-value">{{ $invoice->bill_type }}</span>
+                                        </div>
+                                        @if($invoice->description)
+                                        <div class="detail-row">
+                                            <span class="detail-label">Description:</span>
+                                            <span class="detail-value">{{ $invoice->description }}</span>
+                                        </div>
+                                        @endif
+                                        <div class="detail-row total-row">
+                                            <span class="detail-label">Amount Due:</span>
+                                            <span class="detail-value amount">RM {{ number_format($invoice->amount, 2) }}</span>
+                                        </div>
                                     </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Date:</span>
-                                        <span class="detail-value">{{ request('bill_date', '12/9/2025') }}</span>
+                                @else
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        No invoice found. Please go back to the bills page and select a valid invoice.
                                     </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Session:</span>
-                                        <span class="detail-value">{{ request('session', '20254') }}</span>
-                                    </div>
-                                    <div class="detail-row">
-                                        <span class="detail-label">Bill Type:</span>
-                                        <span class="detail-value">{{ request('bill_type', 'Tuition Fee') }}</span>
-                                    </div>
-                                    <div class="detail-row total-row">
-                                        <span class="detail-label">Amount Due:</span>
-                                        <span class="detail-value amount">RM {{ request('amount', '590.00') }}</span>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>

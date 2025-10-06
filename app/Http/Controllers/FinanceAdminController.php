@@ -10,6 +10,7 @@ use App\Models\StudentEnrollment;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Receipt;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class FinanceAdminController extends Controller
@@ -284,7 +285,7 @@ class FinanceAdminController extends Controller
     }
 
     /**
-     * Mark payment as completed
+     * Mark payment as completed (for existing payments)
      */
     public function markPaymentCompleted(Request $request, $paymentId)
     {
@@ -329,6 +330,52 @@ class FinanceAdminController extends Controller
     }
 
     /**
+     * Mark invoice as paid (create payment and receipt)
+     */
+    public function markInvoiceAsPaid(Request $request, $invoiceId)
+    {
+        $request->validate([
+            'payment_method' => 'required|string|in:online_banking,credit_card,debit_card,bank_transfer,cash,other',
+            'transaction_id' => 'nullable|string|max:255',
+            'payment_notes' => 'nullable|string|max:1000'
+        ]);
+
+        $invoice = Invoice::findOrFail($invoiceId);
+        
+        DB::transaction(function() use ($invoice, $request) {
+            // Create payment record
+            $payment = Payment::create([
+                'payment_number' => Payment::generatePaymentNumber(),
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $invoice->amount,
+                'payment_method' => $request->payment_method,
+                'transaction_id' => $request->transaction_id,
+                'status' => 'completed',
+                'paid_at' => now(),
+                'payment_notes' => $request->payment_notes
+            ]);
+
+            // Update invoice status
+            $invoice->update(['status' => 'paid']);
+
+            // Create receipt
+            Receipt::create([
+                'receipt_number' => Receipt::generateReceiptNumber(),
+                'payment_id' => $payment->id,
+                'invoice_id' => $invoice->id,
+                'student_id' => $invoice->student_id,
+                'amount' => $payment->amount,
+                'payment_method' => $payment->payment_method,
+                'payment_date' => $payment->paid_at,
+                'receipt_notes' => $payment->payment_notes
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Invoice marked as paid and receipt generated!');
+    }
+
+    /**
      * Show all invoices
      */
     public function invoices(Request $request)
@@ -355,7 +402,36 @@ class FinanceAdminController extends Controller
         }
 
         $invoices = $query->orderBy('created_at', 'desc')->paginate(20);
+        
+        $search = $request->get('search', '');
+        $statusFilter = $request->get('status', '');
 
-        return view('finance-admin.invoices', compact('invoices'));
+        return view('finance-admin.invoices', compact('invoices', 'search', 'statusFilter'));
+    }
+
+    /**
+     * Generate PDF for invoice
+     */
+    public function generateInvoicePdf($invoiceId)
+    {
+        $invoice = Invoice::with(['student', 'createdBy'])
+            ->findOrFail($invoiceId);
+        
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        
+        return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * View PDF for invoice (in browser)
+     */
+    public function viewInvoicePdf($invoiceId)
+    {
+        $invoice = Invoice::with(['student', 'createdBy'])
+            ->findOrFail($invoiceId);
+        
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        
+        return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
     }
 }

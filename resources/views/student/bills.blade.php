@@ -95,30 +95,83 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr>
-                                    <td><a href="{{ route('student.payment') }}?bill_number=2022495772013&bill_date=12/9/2025&session=20254&bill_type=Tuition Fee&amount=590.00" class="bill-link">2022495772013</a></td>
-                                    <td>12/9/2025</td>
-                                    <td>20254</td>
-                                    <td>Tuition Fee</td>
-                                    <td class="amount">590.00</td>
-                                    <td><span class="status pending">Pending</span></td>
-                                </tr>
-                                <tr>
-                                    <td><a href="{{ route('student.receipt') }}?bill_number=2022495772012&bill_date=10/5/2025&session=20252&bill_type=EET Fee&amount=30.00&payment_method=Online Banking&payment_date=10/5/2025 14:30:00" class="bill-link">2022495772012</a></td>
-                                    <td>10/5/2025</td>
-                                    <td>20252</td>
-                                    <td>EET Fee</td>
-                                    <td class="amount">30.00</td>
-                                    <td><span class="status paid">Paid</span></td>
-                                </tr>
-                                <tr>
-                                    <td><a href="{{ route('student.receipt') }}?bill_number=2022495772011&bill_date=19/3/2025&session=20252&bill_type=Tuition Fee&amount=590.00&payment_method=Credit Card&payment_date=19/3/2025 09:15:00" class="bill-link">2022495772011</a></td>
-                                    <td>19/3/2025</td>
-                                    <td>20252</td>
-                                    <td>Tuition Fee</td>
-                                    <td class="amount">590.00</td>
-                                    <td><span class="status paid">Paid</span></td>
-                                </tr>
+                                @if($invoices->count() > 0)
+                                    @foreach($invoices as $invoice)
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-2">
+                                                        @if($invoice->status === 'paid')
+                                                            @php
+                                                                $receipt = $invoice->receipts->first();
+                                                            @endphp
+                                                            @if($receipt)
+                                                                <a href="{{ route('student.receipt.show', $receipt->id) }}" class="bill-link">
+                                                                    {{ $invoice->invoice_number }}
+                                                                </a>
+                                                            @else
+                                                                <span class="bill-link">{{ $invoice->invoice_number }}</span>
+                                                            @endif
+                                                        @else
+                                                            <a href="{{ route('student.payment') }}?invoice_id={{ $invoice->id }}" class="bill-link">
+                                                                {{ $invoice->invoice_number }}
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                    <div class="d-flex gap-1">
+                                                        @if($invoice->status === 'paid')
+                                                            @php
+                                                                $receipt = $invoice->receipts->first();
+                                                            @endphp
+                                                            @if($receipt)
+                                                                <a href="{{ route('student.receipt.pdf', $receipt->id) }}" 
+                                                                   class="btn btn-outline-success btn-sm" title="Download Receipt PDF">
+                                                                    <i class="fas fa-download"></i>
+                                                                </a>
+                                                                <a href="{{ route('student.receipt.view-pdf', $receipt->id) }}" 
+                                                                   class="btn btn-outline-warning btn-sm" title="View Receipt PDF" target="_blank">
+                                                                    <i class="fas fa-file-pdf"></i>
+                                                                </a>
+                                                            @endif
+                                                        @else
+                                                            <a href="{{ route('student.invoice.pdf', $invoice->id) }}" 
+                                                               class="btn btn-outline-success btn-sm" title="Download Invoice PDF">
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                            <a href="{{ route('student.invoice.view-pdf', $invoice->id) }}" 
+                                                               class="btn btn-outline-warning btn-sm" title="View Invoice PDF" target="_blank">
+                                                                <i class="fas fa-file-pdf"></i>
+                                                            </a>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ $invoice->invoice_date->format('d/m/Y') }}</td>
+                                            <td>{{ $invoice->session }}</td>
+                                            <td>{{ $invoice->bill_type }}</td>
+                                            <td class="amount">{{ number_format($invoice->amount, 2) }}</td>
+                                            <td>
+                                                @if($invoice->status === 'paid')
+                                                    <span class="status paid">Paid</span>
+                                                @elseif($invoice->status === 'overdue')
+                                                    <span class="status overdue">Overdue</span>
+                                                @else
+                                                    <span class="status pending">Pending</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="6" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-file-invoice fa-2x mb-2"></i>
+                                                <p>No invoices found</p>
+                                                <small>Your invoices will appear here once they are created by the finance admin.</small>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endif
                             </tbody>
                         </table>
                     </div>

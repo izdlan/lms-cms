@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class StudentController extends Controller
 {
@@ -663,12 +664,18 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        // Get student's invoices from the database
+        $invoices = \App\Models\Invoice::where('student_id', $user->id)
+            ->with(['payments.receipt', 'receipts'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.bills', compact('user', 'enrolledSubjects'));
+        return view('student.bills', compact('user', 'enrolledSubjects', 'invoices'));
     }
 
     /**
@@ -682,12 +689,21 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        $invoice = null;
+        
+        // If invoice_id is provided, get the specific invoice
+        if ($request->has('invoice_id')) {
+            $invoice = \App\Models\Invoice::where('id', $request->invoice_id)
+                ->where('student_id', $user->id)
+                ->firstOrFail();
+        }
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.payment', compact('user', 'enrolledSubjects'));
+        return view('student.payment', compact('user', 'enrolledSubjects', 'invoice'));
     }
 
     /**
@@ -701,12 +717,26 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
         
+        $invoice = null;
+        $receipt = null;
+        
+        // If invoice_id is provided, get the specific invoice and its receipt
+        if ($request->has('invoice_id')) {
+            $invoice = \App\Models\Invoice::where('id', $request->invoice_id)
+                ->where('student_id', $user->id)
+                ->where('status', 'paid')
+                ->with(['receipts.payment'])
+                ->firstOrFail();
+            
+            $receipt = $invoice->receipts->first();
+        }
+        
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
             ->where('status', 'enrolled')
             ->get();
         
-        return view('student.receipt', compact('user', 'enrolledSubjects'));
+        return view('student.receipt', compact('user', 'enrolledSubjects', 'invoice', 'receipt'));
     }
 
     public function getSubmission($assignmentId)
@@ -817,5 +847,108 @@ class StudentController extends Controller
             Log::error('Error downloading submission file: ' . $e->getMessage());
             return response()->json(['error' => 'Error downloading file'], 500);
         }
+    }
+
+    /**
+     * Generate PDF for student's invoice
+     */
+    public function generateInvoicePdf($invoiceId)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        $invoice = \App\Models\Invoice::where('id', $invoiceId)
+            ->where('student_id', $user->id)
+            ->with(['student', 'createdBy'])
+            ->firstOrFail();
+        
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        
+        return $pdf->download('invoice-' . $invoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * View PDF for student's invoice (in browser)
+     */
+    public function viewInvoicePdf($invoiceId)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        $invoice = \App\Models\Invoice::where('id', $invoiceId)
+            ->where('student_id', $user->id)
+            ->with(['student', 'createdBy'])
+            ->firstOrFail();
+        
+        $pdf = Pdf::loadView('invoices.pdf', compact('invoice'));
+        
+        return $pdf->stream('invoice-' . $invoice->invoice_number . '.pdf');
+    }
+
+    /**
+     * Show receipt for student
+     */
+    public function showReceipt($receiptId)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        $receipt = \App\Models\Receipt::where('id', $receiptId)
+            ->where('student_id', $user->id)
+            ->with(['invoice', 'payment'])
+            ->firstOrFail();
+        
+        return view('student.receipt', compact('receipt'));
+    }
+
+    /**
+     * Generate PDF for student's receipt
+     */
+    public function generateReceiptPdf($receiptId)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        $receipt = \App\Models\Receipt::where('id', $receiptId)
+            ->where('student_id', $user->id)
+            ->with(['invoice', 'payment'])
+            ->firstOrFail();
+        
+        $pdf = Pdf::loadView('receipts.pdf', compact('receipt'));
+        
+        return $pdf->download('receipt-' . $receipt->receipt_number . '.pdf');
+    }
+
+    /**
+     * View PDF for student's receipt (in browser)
+     */
+    public function viewReceiptPdf($receiptId)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+        
+        $receipt = \App\Models\Receipt::where('id', $receiptId)
+            ->where('student_id', $user->id)
+            ->with(['invoice', 'payment'])
+            ->firstOrFail();
+        
+        $pdf = Pdf::loadView('receipts.pdf', compact('receipt'));
+        
+        return $pdf->stream('receipt-' . $receipt->receipt_number . '.pdf');
     }
 }

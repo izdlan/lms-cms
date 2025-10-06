@@ -138,15 +138,29 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <div class="btn-group" role="group">
+                                        <div class="d-flex gap-1">
                                             <a href="{{ route('finance-admin.invoice.show', $invoice->id) }}" 
-                                               class="btn btn-sm btn-primary" title="View Details">
+                                               class="btn btn-sm btn-outline-primary" title="View Details">
                                                 <i class="fas fa-eye"></i>
                                             </a>
-                                            <a href="{{ route('finance-admin.student.show', $invoice->student_id) }}" 
-                                               class="btn btn-sm btn-info" title="View Student">
-                                                <i class="fas fa-user"></i>
+                                            <a href="{{ route('finance-admin.invoice.pdf', $invoice->id) }}" 
+                                               class="btn btn-sm btn-outline-success" title="Download PDF">
+                                                <i class="fas fa-download"></i>
                                             </a>
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                                        data-bs-toggle="dropdown" title="More Actions">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item" href="{{ route('finance-admin.student.show', $invoice->student_id) }}">
+                                                        <i class="fas fa-user me-2"></i>View Student
+                                                    </a></li>
+                                                    <li><a class="dropdown-item" href="{{ route('finance-admin.invoice.view-pdf', $invoice->id) }}" target="_blank">
+                                                        <i class="fas fa-file-pdf me-2"></i>View PDF
+                                                    </a></li>
+                                                </ul>
+                                            </div>
                                         </div>
                                     </td>
                                 </tr>
@@ -156,9 +170,13 @@
                 </div>
 
                 <!-- Pagination -->
-                <div class="d-flex justify-content-center mt-4">
-                    {{ $invoices->appends(request()->query())->links() }}
+                @if($invoices->hasPages())
+                <div class="d-flex justify-content-center mt-3">
+                    <nav aria-label="Invoice pagination">
+                        {{ $invoices->appends(request()->query())->links('pagination::bootstrap-4') }}
+                    </nav>
                 </div>
+                @endif
             @else
                 <div class="text-center py-5">
                     <i class="fas fa-file-invoice fa-3x text-muted mb-3"></i>
