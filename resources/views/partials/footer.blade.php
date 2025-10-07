@@ -16,6 +16,11 @@
                         </a>
                     </p>
                     <p>
+                        <a href="/admin-login">
+                            <font color="#ffffff">- Admin</font>
+                        </a>
+                    </p>
+                    <p>
                         <a href="/blog">
                             <font color="#ffffff">- Blog</font>
                         </a>

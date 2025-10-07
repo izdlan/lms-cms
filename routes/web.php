@@ -69,9 +69,19 @@ Route::get('/test-bootstrap', function () {
     return view('test-bootstrap');
 })->name('test.bootstrap');
 
-// Unified login system
-Route::get('/login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('login');
-Route::post('/login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
+// Student & Lecturer login system (main login route)
+Route::get('/login', [App\Http\Controllers\Auth\StudentLecturerAuthController::class, 'showLoginForm'])->name('login');
+Route::post('/login', [App\Http\Controllers\Auth\StudentLecturerAuthController::class, 'login']);
+Route::post('/student-lecturer-logout', [App\Http\Controllers\Auth\StudentLecturerAuthController::class, 'logout'])->name('student-lecturer.logout');
+
+// Admin & Finance Admin login system
+Route::get('/admin-login', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'showLoginForm'])->name('admin-finance.login');
+Route::post('/admin-login', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'login']);
+Route::post('/admin-finance-logout', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'logout'])->name('admin-finance.logout');
+
+// Legacy unified login system (redirects to student-lecturer login)
+Route::get('/unified-login', [App\Http\Controllers\Auth\LoginController::class, 'showLoginForm'])->name('unified.login');
+Route::post('/unified-login', [App\Http\Controllers\Auth\LoginController::class, 'login']);
 Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('logout');
 
 // Student authentication routes
@@ -224,15 +234,15 @@ Route::prefix('finance-admin')->middleware(['auth'])->group(function () {
             Route::get('/invoices/{id}/view-pdf', [App\Http\Controllers\FinanceAdminController::class, 'viewInvoicePdf'])->name('finance-admin.invoice.view-pdf');
 });
 
-// Admin authentication routes (now using unified login)
+// Admin authentication routes (now using separate admin login)
 Route::prefix('admin')->group(function () {
     Route::get('/login', function() {
-        return redirect()->route('login')->with('message', 'Please use the main login page and select "Admin" as your role.');
+        return redirect()->route('admin-finance.login')->with('message', 'Please use the admin login page.');
     })->name('admin.login');
     Route::post('/login', function() {
-        return redirect()->route('login')->with('message', 'Please use the main login page and select "Admin" as your role.');
+        return redirect()->route('admin-finance.login')->with('message', 'Please use the admin login page.');
     });
-    Route::post('/logout', [App\Http\Controllers\Auth\LoginController::class, 'logout'])->name('admin.logout');
+    Route::post('/logout', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'logout'])->name('admin.logout');
     
     // Protected admin routes (accessible by both admin and staff users)
     Route::middleware(['auth', 'admin'])->group(function () {
