@@ -1029,4 +1029,46 @@ class StudentController extends Controller
 
         return $totalCredits > 0 ? round($totalGpa / $totalCredits, 2) : 0.00;
     }
+
+    /**
+     * Generate invoice PDF for student bill
+     */
+    public function generateInvoicePdf($id)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $bill = StudentBill::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $invoice = null; // Set invoice to null since we're using StudentBill
+        $pdf = \PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
+        
+        return $pdf->download('invoice-' . $bill->bill_number . '.pdf');
+    }
+
+    /**
+     * View invoice PDF for student bill
+     */
+    public function viewInvoicePdf($id)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $bill = StudentBill::where('id', $id)
+            ->where('user_id', $user->id)
+            ->firstOrFail();
+
+        $invoice = null; // Set invoice to null since we're using StudentBill
+        $pdf = \PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
+        
+        return $pdf->stream('invoice-' . $bill->bill_number . '.pdf');
+    }
 }

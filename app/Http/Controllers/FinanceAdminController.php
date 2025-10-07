@@ -36,17 +36,43 @@ class FinanceAdminController extends Controller
             $blockedStudents = User::where('role', 'student')->where('is_blocked', true)->count();
             $activeStudents = $totalStudents - $blockedStudents;
             
-            // Get students with pending payments (mock data for now)
+            // Get students with pending payments (real data)
             $studentsWithPendingPayments = User::where('role', 'student')
                 ->where('is_blocked', false)
-                ->take(10)
-                ->get();
+                ->whereHas('studentBills', function($query) {
+                    $query->where('status', 'pending');
+                })
+                ->with(['studentBills' => function($query) {
+                    $query->where('status', 'pending');
+                }])
+                ->get()
+                ->map(function($student) {
+                    $pendingBills = $student->studentBills->where('status', 'pending');
+                    $totalPendingAmount = $pendingBills->sum('amount');
+                    $overdueBills = $pendingBills->where('due_date', '<', now()->toDateString());
+                    $overdueDays = $overdueBills->isNotEmpty() ? $overdueBills->max(function($bill) {
+                        return now()->diffInDays($bill->due_date);
+                    }) : 0;
+                    
+                    $lastPayment = Payment::where('user_id', $student->id)
+                        ->where('status', 'completed')
+                        ->latest('paid_at')
+                        ->first();
+                    
+                    return [
+                        'student' => $student,
+                        'pending_amount' => $totalPendingAmount,
+                        'overdue_days' => $overdueDays,
+                        'last_payment' => $lastPayment ? $lastPayment->paid_at : null,
+                        'pending_invoices_count' => $pendingBills->count()
+                    ];
+                });
 
             $stats = [
                 'total_students' => $totalStudents,
                 'active_students' => $activeStudents,
                 'blocked_students' => $blockedStudents,
-                'students_with_pending_payments' => $studentsWithPendingPayments->count(),
+                'pending_payments' => $studentsWithPendingPayments->count(),
             ];
 
             return view('finance-admin.dashboard', compact('stats', 'studentsWithPendingPayments'));
@@ -70,7 +96,7 @@ class FinanceAdminController extends Controller
                 $q->where('name', 'like', "%{$search}%")
                   ->orWhere('email', 'like', "%{$search}%")
                   ->orWhere('ic', 'like', "%{$search}%")
-                  ->orWhere('student_id', 'like', "%{$search}%");
+                  ->orWhere('user_id', 'like', "%{$search}%");
             });
         }
 
@@ -148,7 +174,7 @@ class FinanceAdminController extends Controller
         $student = User::where('id', $id)->where('role', 'student')->firstOrFail();
         
         // Get real payment data from database
-        $payments = Payment::where('student_id', $id)
+        $payments = Payment::where('user_id', $id)
             ->with(['invoice', 'receipt'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -179,7 +205,7 @@ class FinanceAdminController extends Controller
                     return now()->diffInDays($bill->due_date);
                 }) : 0;
                 
-                $lastPayment = Payment::where('student_id', $student->id)
+                $lastPayment = Payment::where('user_id', $student->id)
                     ->where('status', 'completed')
                     ->latest('paid_at')
                     ->first();
@@ -317,7 +343,7 @@ class FinanceAdminController extends Controller
                 'receipt_number' => Receipt::generateReceiptNumber(),
                 'payment_id' => $payment->id,
                 'invoice_id' => $invoice->id,
-                'student_id' => $payment->student_id,
+                'user_id' => $payment->user_id,
                 'amount' => $payment->amount,
                 'payment_method' => $payment->payment_method,
                 'payment_date' => $payment->paid_at,
@@ -346,7 +372,7 @@ class FinanceAdminController extends Controller
             $payment = Payment::create([
                 'payment_number' => Payment::generatePaymentNumber(),
                 'student_bill_id' => $invoice->id,
-                'student_id' => $invoice->student_id ?? $invoice->user_id,
+                'user_id' => $invoice->user_id,
                 'amount' => $invoice->amount,
                 'payment_method' => $request->payment_method,
                 'transaction_id' => $request->transaction_id,
@@ -363,7 +389,7 @@ class FinanceAdminController extends Controller
                 'receipt_number' => Receipt::generateReceiptNumber(),
                 'payment_id' => $payment->id,
                 'student_bill_id' => $invoice->id,
-                'student_id' => $invoice->student_id ?? $invoice->user_id,
+                'user_id' => $invoice->user_id,
                 'amount' => $payment->amount,
                 'payment_method' => $payment->payment_method,
                 'payment_date' => $payment->paid_at,
