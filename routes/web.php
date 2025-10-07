@@ -615,6 +615,32 @@ Route::get('/test-cron', function() {
     return response()->json(['success' => true, 'message' => 'Cron test endpoint works']);
 });
 
+// Test route for checking payment status (for local development)
+Route::get('/test-payment-status/{paymentId}', function($paymentId) {
+    try {
+        $payment = \App\Models\Payment::findOrFail($paymentId);
+        
+        return response()->json([
+            'success' => true,
+            'payment' => [
+                'id' => $payment->id,
+                'billplz_id' => $payment->billplz_id,
+                'status' => $payment->status,
+                'amount' => $payment->formatted_amount,
+                'description' => $payment->description,
+                'created_at' => $payment->created_at->format('Y-m-d H:i:s'),
+                'paid_at' => $payment->paid_at?->format('Y-m-d H:i:s'),
+                'is_expired' => $payment->isExpired(),
+            ]
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Payment not found: ' . $e->getMessage()
+        ]);
+    }
+});
+
 // Billplz webhook routes (no authentication required)
 Route::post('/payment/billplz/callback', [App\Http\Controllers\PaymentController::class, 'billplzCallback'])->name('billplz.callback');
 Route::get('/payment/billplz/redirect', [App\Http\Controllers\PaymentController::class, 'billplzRedirect'])->name('billplz.redirect');

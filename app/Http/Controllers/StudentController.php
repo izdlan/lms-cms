@@ -17,9 +17,9 @@ use App\Services\BillplzService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Log;
 
 class StudentController extends Controller
 {
@@ -441,14 +441,14 @@ class StudentController extends Controller
         $filePath = storage_path('app/public/' . $file['file_path']);
 
         if (!file_exists($filePath)) {
-            \Log::error("Assignment file not found: {$filePath}");
+            Log::error("Assignment file not found: {$filePath}");
             return redirect()->back()->with('error', 'File not found on server: ' . $filePath);
         }
 
         try {
             return response()->download($filePath, $file['original_name']);
         } catch (\Exception $e) {
-            \Log::error("Assignment download error: " . $e->getMessage());
+            Log::error("Assignment download error: " . $e->getMessage());
             return redirect()->back()->with('error', 'Download failed: ' . $e->getMessage());
         }
     }
@@ -748,19 +748,9 @@ class StudentController extends Controller
                 ]);
             }
 
-            // Create Billplz payment
+            // Create Billplz payment using the new service method
             $billplzService = new BillplzService();
-            $result = $billplzService->createBill([
-                'email' => $user->email,
-                'mobile' => $user->phone,
-                'name' => $user->name,
-                'amount' => $bill->amount,
-                'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
-                'reference_1' => $user->student_id ?? $user->id,
-                'reference_2' => $bill->bill_number,
-                'callback_url' => route('billplz.callback'),
-                'redirect_url' => route('billplz.redirect'),
-            ]);
+            $result = $billplzService->createBillPayment($user, $bill);
 
             if ($result['success']) {
                 $billplzData = $result['data'];

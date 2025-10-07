@@ -221,4 +221,26 @@ class BillplzService
             'redirect_url' => route('student.payment.success'),
         ]);
     }
+
+    /**
+     * Create payment link for student bills
+     */
+    public function createBillPayment($student, $bill, $amount = null)
+    {
+        $amount = $amount ?? $bill->amount;
+        
+        return $this->createBill([
+            'email' => $student->email,
+            'mobile' => $student->phone ?? $student->mobile,
+            'name' => $student->name,
+            'amount' => $amount,
+            'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
+            'reference_1' => $student->student_id ?? $student->id,
+            'reference_2' => $bill->bill_number,
+            'reference_1_label' => 'Student ID',
+            'reference_2_label' => 'Bill Number',
+            'callback_url' => route('billplz.callback'),
+            'redirect_url' => route('student.payment.success'),
+        ]);
+    }
 }

@@ -40,6 +40,24 @@ This will create the `payments` table to track payment transactions.
 
 ## Step 4: Set Up Webhooks
 
+### For Local Development (Before Deployment)
+
+#### Option A: Using ngrok (Recommended)
+1. Install ngrok: [https://ngrok.com/](https://ngrok.com/)
+2. Start your Laravel server: `php artisan serve`
+3. In another terminal: `ngrok http 8000`
+4. Copy the ngrok URL (e.g., `https://abc123.ngrok.io`)
+5. In Billplz dashboard, set webhook URL to: `https://abc123.ngrok.io/payment/billplz/callback`
+
+#### Option B: Using localhost (Basic Testing)
+1. In Billplz dashboard, set webhook URL to: `http://127.0.0.1:8000/payment/billplz/callback`
+2. Update your `.env` file:
+   ```env
+   BILLPLZ_CALLBACK_URL=http://127.0.0.1:8000/payment/billplz/callback
+   BILLPLZ_REDIRECT_URL=http://127.0.0.1:8000/payment/billplz/redirect
+   ```
+
+### For Production (After Deployment)
 1. In your Billplz dashboard, go to **Settings** > **Webhooks**
 2. Set the webhook URL to: `https://yourdomain.com/payment/billplz/callback`
 3. Copy the webhook verification key and add it to your `.env` file as `BILLPLZ_WEBHOOK_KEY`
@@ -54,6 +72,24 @@ This will create the `payments` table to track payment transactions.
    - Create a payment
    - Complete payment in Billplz
    - Check payment status in your system
+
+### Testing Without Webhooks (Local Development)
+
+If you can't set up webhooks locally, you can still test the payment flow:
+
+1. **Test Payment Creation:**
+   - Student clicks "Pay Now" on a bill
+   - Should redirect to Billplz payment page
+   - Payment page should load correctly
+
+2. **Test Payment Completion:**
+   - Complete payment in Billplz sandbox
+   - You'll be redirected back to your success page
+   - Check your database to see if payment was recorded
+
+3. **Manual Status Check:**
+   - Use the admin panel to check payment status
+   - Or create a simple test route to check payment status
 
 ### Test Cards (Sandbox)
 
