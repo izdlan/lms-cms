@@ -10,18 +10,18 @@
             @include('admin.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <div class="main-content">
                 <div class="dashboard-header">
                     <h1>Dashboard</h1>
                     <p>Welcome back, {{ auth()->user()->name }}!</p>
                 </div>
 
-                <!-- Stats Cards -->
-                <div class="row mb-4">
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                <!-- Modern Stats Cards -->
+                <div class="row mb-8">
+                    <div class="col-md-4 mb-4">
+                        <div class="stats-card fade-in">
                             <div class="stats-icon">
-                                <i data-feather="users" width="24" height="24"></i>
+                                <i data-feather="users"></i>
                             </div>
                             <div class="stats-content">
                                 <h3>{{ $totalStudents }}</h3>
@@ -29,10 +29,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                    <div class="col-md-4 mb-4">
+                        <div class="stats-card fade-in">
                             <div class="stats-icon">
-                                <i data-feather="book-open" width="24" height="24"></i>
+                                <i data-feather="book-open"></i>
                             </div>
                             <div class="stats-content">
                                 <h3>0</h3>
@@ -40,10 +40,10 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4">
-                        <div class="stats-card">
+                    <div class="col-md-4 mb-4">
+                        <div class="stats-card fade-in">
                             <div class="stats-icon">
-                                <i data-feather="activity" width="24" height="24"></i>
+                                <i data-feather="activity"></i>
                             </div>
                             <div class="stats-content">
                                 <h3>0</h3>
@@ -54,15 +54,20 @@
                 </div>
 
                 <!-- Recent Students -->
-                <div class="card">
+                <div class="card fade-in">
                     <div class="card-header">
-                        <h5>Recent Students</h5>
-                        <a href="{{ route('admin.students') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">Recent Students</h5>
+                            <a href="{{ route('admin.students') }}" class="btn-modern btn-modern-secondary btn-modern-sm">
+                                <i data-feather="arrow-right"></i>
+                                View All
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body">
                         @if($students->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-hover">
+                                <table class="table-modern">
                                     <thead>
                                         <tr>
                                             <th>Name</th>
@@ -76,21 +81,45 @@
                                     <tbody>
                                         @foreach($students as $student)
                                             <tr>
-                                                <td>{{ $student->name }}</td>
-                                                <td>{{ $student->ic }}</td>
-                                                <td>{{ $student->email }}</td>
-                                                <td>{{ $student->phone ?? 'N/A' }}</td>
                                                 <td>
-                                                    @if($student->courses)
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-3">
+                                                            <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                <i data-feather="user" width="16" height="16" class="text-primary"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold">{{ $student->name }}</div>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->ic }}</span>
+                                                </td>
+                                                <td>
+                                                    <a href="mailto:{{ $student->email }}" class="text-decoration-none">{{ $student->email }}</a>
+                                                </td>
+                                                <td>
+                                                    @if($student->phone)
+                                                        <a href="tel:{{ $student->phone }}" class="text-decoration-none">{{ $student->phone }}</a>
+                                                    @else
+                                                        <span class="text-muted">N/A</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if($student->courses && count($student->courses) > 0)
                                                         @foreach($student->courses as $course)
-                                                            <span class="badge bg-primary me-1">{{ $course }}</span>
+                                                            <span class="badge-modern badge-modern-primary me-1">{{ $course }}</span>
                                                         @endforeach
                                                     @else
                                                         <span class="text-muted">No courses</span>
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    <a href="{{ route('admin.students.edit', $student) }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                                                    <a href="{{ route('admin.students.edit', $student) }}" class="btn-modern btn-modern-secondary btn-modern-sm">
+                                                        <i data-feather="edit-2"></i>
+                                                        Edit
+                                                    </a>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -113,8 +142,18 @@
                                 </div>
                             @endif
                         @else
-                            <div class="text-center py-4">
-                                <p class="text-muted">No students found. <a href="{{ route('admin.import') }}">Import students</a> to get started.</p>
+                            <div class="text-center py-8">
+                                <div class="mb-4">
+                                    <div class="bg-gray-100 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                        <i data-feather="users" width="32" height="32" class="text-muted"></i>
+                                    </div>
+                                </div>
+                                <h5 class="text-muted mb-2">No students found</h5>
+                                <p class="text-muted mb-4">Get started by importing students to your system.</p>
+                                <a href="{{ route('admin.import') }}" class="btn-modern btn-modern-primary">
+                                    <i data-feather="upload"></i>
+                                    Import Students
+                                </a>
                             </div>
                         @endif
                     </div>

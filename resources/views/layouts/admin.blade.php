@@ -35,6 +35,7 @@
     
     <!-- Admin CSS -->
     <link rel="stylesheet" href="/assets/default/css/admin.css?v={{ time() }}">
+    <link rel="stylesheet" href="/assets/default/css/admin-modern.css?v={{ time() }}">
     
     <!-- Custom Optima Font Override -->
     <style>
@@ -65,6 +66,17 @@
         
         .admin-dashboard {
             flex: 1;
+            display: flex;
+        }
+        
+        .admin-dashboard .container-fluid {
+            display: flex;
+            padding: 0;
+        }
+        
+        .admin-dashboard .row {
+            margin: 0;
+            width: 100%;
         }
     </style>
 

@@ -3,68 +3,72 @@
 @section('title', 'Import Students')
 
 @section('content')
-<div class="admin-dashboard">
+<div class="admin-dashboard import-page">
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
             @include('admin.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <div class="main-content">
                 <div class="dashboard-header">
-                    <h1>Import Students</h1>
-                    <a href="{{ route('admin.students') }}" class="btn btn-outline-secondary">
-                        <i data-feather="arrow-left" width="16" height="16"></i>
-                        Back to Students
-                    </a>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1>Import Students</h1>
+                            <p class="text-muted mb-0">Import students from Excel/CSV files or online sources</p>
+                        </div>
+                        <a href="{{ route('admin.students') }}" class="btn-modern btn-modern-secondary">
+                            <i data-feather="arrow-left"></i>
+                            Back to Students
+                        </a>
+                    </div>
                 </div>
 
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert-modern alert-modern-success">
+                        <i data-feather="check-circle"></i>
                         {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
                 @if(session('errors'))
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <ul class="mb-0">
-                            @foreach(session('errors')->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    <div class="alert-modern alert-modern-danger">
+                        <i data-feather="alert-circle"></i>
+                        <div>
+                            <strong>Please fix the following errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                @foreach(session('errors')->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
                     </div>
                 @endif
 
-                <div class="row">
+                <div class="row mb-4">
                     <!-- Online Import Options -->
-                    <div class="col-12 mb-4">
-                        <div class="card">
+                    <div class="col-12">
+                        <div class="card fade-in">
                             <div class="card-header">
-                                <h5>Online Import Options</h5>
+                                <h5 class="mb-0">Online Import Options</h5>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="d-grid">
-                                            <button type="button" class="btn btn-warning btn-lg" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
-                                                <i data-feather="download" width="20" height="20"></i>
-                                                Import from Google Sheets
-                                            </button>
-                                        </div>
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button" class="btn-modern btn-modern-warning w-100" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
+                                            <i data-feather="download"></i>
+                                            Import from Google Sheets
+                                        </button>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="d-grid">
-                                            <button type="button" class="btn btn-info btn-lg" onclick="runOneDriveImport()" id="oneDriveBtn">
-                                                <i data-feather="cloud" width="20" height="20"></i>
-                                                Import from OneDrive
-                                            </button>
-                                        </div>
+                                    <div class="col-md-6 mb-3">
+                                        <button type="button" class="btn-modern btn-modern-info w-100" onclick="runOneDriveImport()" id="oneDriveBtn">
+                                            <i data-feather="cloud"></i>
+                                            Import from OneDrive
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="mt-3">
-                                    <small class="text-muted">
+                                <div class="text-muted">
+                                    <small>
                                         <strong>Google Sheets:</strong> Import directly from your Google Sheets document<br>
                                         <strong>OneDrive:</strong> Import from your OneDrive Excel file
                                     </small>
@@ -72,38 +76,40 @@
                             </div>
                         </div>
                     </div>
+                </div>
 
+                <div class="row">
                     <!-- Import Form -->
                     <div class="col-lg-8">
-                        <div class="card">
+                        <div class="card fade-in">
                             <div class="card-header">
-                                <h5>Upload Excel/CSV File</h5>
+                                <h5 class="mb-0">Upload Excel/CSV File</h5>
                             </div>
                             <div class="card-body">
-                        <form action="{{ route('admin.import') }}" method="POST" enctype="multipart/form-data" id="importForm">
-                            @csrf
-                            
-                            <div class="mb-4">
-                                <label for="excel_file" class="form-label">Select Excel/CSV File</label>
-                                <input type="file" 
-                                       class="form-control @error('excel_file') is-invalid @enderror" 
-                                       id="excel_file" 
-                                       name="excel_file" 
-                                       accept=".xlsx,.xls,.csv,.txt"
-                                       required>
-                                @error('excel_file')
-                                    <div class="invalid-feedback">
-                                        {{ $message }}
+                                <form action="{{ route('admin.import') }}" method="POST" enctype="multipart/form-data" id="importForm" class="form-modern">
+                                    @csrf
+                                    
+                                    <div class="form-group-modern">
+                                        <label for="excel_file" class="form-label-modern">Select Excel/CSV File</label>
+                                        <input type="file" 
+                                               class="form-control-modern @error('excel_file') is-invalid @enderror" 
+                                               id="excel_file" 
+                                               name="excel_file" 
+                                               accept=".xlsx,.xls,.csv,.txt"
+                                               required>
+                                        @error('excel_file')
+                                            <div class="invalid-feedback">
+                                                {{ $message }}
+                                            </div>
+                                        @enderror
+                                        <div class="form-text text-muted">
+                                            Supported formats: .xlsx, .xls, .csv, .txt
+                                        </div>
                                     </div>
-                                @enderror
-                                <div class="form-text">
-                                    Supported formats: .xlsx, .xls, .csv, .txt
-                                </div>
-                            </div>
 
                                     <div class="d-grid">
-                                        <button type="submit" class="btn btn-primary btn-lg">
-                                            <i data-feather="upload" width="20" height="20"></i>
+                                        <button type="submit" class="btn-modern btn-modern-primary btn-modern-lg">
+                                            <i data-feather="upload"></i>
                                             Import Students
                                         </button>
                                     </div>
@@ -114,9 +120,9 @@
 
                     <!-- Instructions -->
                     <div class="col-lg-4">
-                        <div class="card">
+                        <div class="card fade-in">
                             <div class="card-header">
-                                <h5>File Format Requirements</h5>
+                                <h5 class="mb-0">File Format Requirements</h5>
                             </div>
                             <div class="card-body">
                                 <p class="text-muted mb-3">Your Excel/CSV file should have the following columns:</p>
@@ -247,127 +253,73 @@
 
 @push('styles')
 <style>
-.admin-dashboard {
-    min-height: 100vh;
-    background-color: #f8f9fa;
-}
-
-.sidebar {
-    background: #2d3748;
-    min-height: 100vh;
-    padding: 0;
-}
-
-.sidebar-header {
-    background: #1a202c;
-    padding: 1.5rem;
-    color: white;
-    border-bottom: 1px solid #4a5568;
-}
-
-.sidebar-header h4 {
-    margin: 0;
-    font-weight: bold;
-}
-
-.sidebar-nav {
-    padding: 1rem 0;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    padding: 0.75rem 1.5rem;
-    color: #a0aec0;
-    text-decoration: none;
-    transition: all 0.3s ease;
-    border-left: 3px solid transparent;
-}
-
-.nav-link:hover {
-    background: #4a5568;
-    color: white;
-}
-
-.nav-link.active {
-    background: #667eea;
-    color: white;
-    border-left-color: #5a67d8;
-}
-
-.nav-link i {
-    margin-right: 0.75rem;
-}
-
-.main-content {
-    padding: 2rem;
-}
-
-.dashboard-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.dashboard-header h1 {
-    color: #2d3748;
-    font-weight: bold;
-    margin: 0;
-}
-
-.card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: none;
-}
-
-.card-header {
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
-    padding: 1.5rem;
-}
-
-.card-header h5 {
-    margin: 0;
-    color: #2d3748;
-    font-weight: bold;
-}
-
-.card-body {
-    padding: 1.5rem;
-}
-
+/* Modern Import Students Page Styles */
 .requirements-list {
     margin-bottom: 1rem;
 }
 
 .requirement-item {
     display: flex;
-    align-items: center;
-    margin-bottom: 0.75rem;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+    padding: 0.25rem 0;
 }
 
 .requirement-item i {
     margin-right: 0.5rem;
     flex-shrink: 0;
+    margin-top: 0.125rem;
 }
 
-@media (max-width: 768px) {
-    .sidebar {
-        min-height: auto;
-    }
-    
-    .main-content {
-        padding: 1rem;
-    }
-    
-    .dashboard-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1rem;
-    }
+.requirement-item span {
+    font-size: 0.875rem;
+    line-height: 1.4;
+}
+
+/* Button variants for import page */
+.btn-modern-warning {
+    background: var(--warning-color);
+    color: #ffffff;
+    border-color: var(--warning-color);
+}
+
+.btn-modern-warning:hover {
+    background: #d97706;
+    border-color: #d97706;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-modern-info {
+    background: var(--info-color);
+    color: #ffffff;
+    border-color: var(--info-color);
+}
+
+.btn-modern-info:hover {
+    background: #0891b2;
+    border-color: #0891b2;
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Compact spacing for import page */
+.import-page .main-content {
+    padding: var(--space-4);
+}
+
+.import-page .dashboard-header {
+    margin-bottom: var(--space-4);
+}
+
+.import-page .card-body {
+    padding: var(--space-4);
+}
+
+.import-page .card-header {
+    padding: var(--space-4);
 }
 </style>
 @endpush

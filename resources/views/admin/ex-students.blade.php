@@ -3,37 +3,42 @@
 @section('title', 'Ex-Students Management')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-12">
-            <div class="page-title-box">
-                <h4 class="page-title">Ex-Students Management</h4>
-                <div class="page-title-right">
-                    <a href="{{ route('admin.ex-students.create') }}" class="btn btn-primary">
-                        <i data-feather="plus" width="16" height="16"></i>
-                        Add Ex-Student
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="admin-dashboard">
+    <div class="container-fluid">
+        <div class="row g-0">
+            <!-- Sidebar -->
+            @include('admin.partials.sidebar')
 
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header">
-                    <h5>Ex-Students List</h5>
-                </div>
-                <div class="card-body">
-                    @if(session('success'))
-                        <div class="alert alert-success">
-                            {{ session('success') }}
+            <!-- Main Content -->
+            <div class="main-content">
+                <div class="dashboard-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1>Ex-Students Management</h1>
+                            <p class="text-muted mb-0">Manage graduated students and their certificates</p>
                         </div>
-                    @endif
+                        <a href="{{ route('admin.ex-students.create') }}" class="btn-modern btn-modern-primary">
+                            <i data-feather="plus"></i>
+                            Add Ex-Student
+                        </a>
+                    </div>
+                </div>
 
-                    @if($exStudents->count() > 0)
-                        <div class="table-responsive">
-                            <table class="table table-hover">
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <h5 class="mb-0">Ex-Students List</h5>
+                    </div>
+                    <div class="card-body">
+                        @if(session('success'))
+                            <div class="alert-modern alert-modern-success">
+                                <i data-feather="check-circle"></i>
+                                {{ session('success') }}
+                            </div>
+                        @endif
+
+                        @if($exStudents->count() > 0)
+                            <div class="table-responsive">
+                                <table class="table-modern">
                                 <thead>
                                     <tr>
                                         <th>Student ID</th>
@@ -51,50 +56,65 @@
                                     @foreach($exStudents as $exStudent)
                                         <tr>
                                             <td>
-                                                <strong>{{ $exStudent->student_id }}</strong>
+                                                <div class="d-flex align-items-center">
+                                                    <div class="me-3">
+                                                        <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                            <i data-feather="graduation-cap" width="16" height="16" class="text-primary"></i>
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">{{ $exStudent->student_id }}</div>
+                                                    </div>
+                                                </div>
                                             </td>
-                                            <td>{{ $exStudent->name }}</td>
-                                            <td>{{ $exStudent->program ?? 'N/A' }}</td>
-                                            <td>{{ $exStudent->graduation_date }}</td>
                                             <td>
-                                                <span class="badge bg-{{ $exStudent->cgpa >= 3.5 ? 'success' : ($exStudent->cgpa >= 3.0 ? 'warning' : 'secondary') }}">
+                                                <div class="fw-semibold">{{ $exStudent->name }}</div>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ $exStudent->program ?? 'N/A' }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-muted">{{ $exStudent->graduation_date }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="badge-modern badge-modern-{{ $exStudent->cgpa >= 3.5 ? 'success' : ($exStudent->cgpa >= 3.0 ? 'warning' : 'secondary') }}">
                                                     {{ $exStudent->formatted_cgpa }}
                                                 </span>
                                             </td>
                                             <td>
-                                                <code>{{ $exStudent->certificate_number }}</code>
+                                                <code class="text-muted">{{ $exStudent->certificate_number }}</code>
                                             </td>
                                             <td>
                                                 @if($exStudent->is_verified)
-                                                    <span class="badge bg-success">Verified</span>
+                                                    <span class="badge-modern badge-modern-success">Verified</span>
                                                 @else
-                                                    <span class="badge bg-warning">Not Verified</span>
+                                                    <span class="badge-modern badge-modern-warning">Not Verified</span>
                                                 @endif
                                             </td>
                                             <td>
-                                                <div class="btn-group" role="group">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                <div class="d-flex gap-1">
+                                                    <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" 
                                                             onclick="generateQR({{ $exStudent->id }})" 
                                                             title="Generate QR Code">
-                                                        <i data-feather="qrcode" width="14" height="14"></i>
+                                                        <i data-feather="qrcode"></i>
                                                     </button>
                                                     <a href="{{ route('admin.ex-students.download-qr', $exStudent) }}" 
-                                                       class="btn btn-sm btn-outline-success" 
+                                                       class="btn-modern btn-modern-success btn-modern-sm" 
                                                        title="Download QR Code">
-                                                        <i data-feather="download" width="14" height="14"></i>
+                                                        <i data-feather="download"></i>
                                                     </a>
                                                 </div>
                                             </td>
                                             <td>
-                                                <div class="btn-group" role="group">
+                                                <div class="d-flex gap-1">
                                                     <a href="{{ route('admin.ex-students.edit', $exStudent) }}" 
-                                                       class="btn btn-sm btn-outline-primary" title="Edit">
-                                                        <i data-feather="edit" width="14" height="14"></i>
+                                                       class="btn-modern btn-modern-secondary btn-modern-sm" title="Edit">
+                                                        <i data-feather="edit-2"></i>
                                                     </a>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger" 
+                                                    <button type="button" class="btn-modern btn-modern-danger btn-modern-sm" 
                                                             onclick="deleteExStudent({{ $exStudent->id }})" 
                                                             title="Delete">
-                                                        <i data-feather="trash-2" width="14" height="14"></i>
+                                                        <i data-feather="trash-2"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -106,20 +126,26 @@
 
                         <!-- Pagination -->
                         @if($exStudents->hasPages())
-                            <div class="d-flex justify-content-center mt-3">
+                            <div class="d-flex justify-content-center mt-4">
                                 {{ $exStudents->links() }}
                             </div>
                         @endif
                     @else
-                        <div class="text-center py-5">
-                            <i data-feather="graduation-cap" width="48" height="48" class="text-muted mb-3"></i>
-                            <h5 class="text-muted">No ex-students found</h5>
-                            <p class="text-muted">Start by adding an ex-student record.</p>
-                            <a href="{{ route('admin.ex-students.create') }}" class="btn btn-primary">
+                        <div class="text-center py-8">
+                            <div class="mb-4">
+                                <div class="bg-gray-100 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                    <i data-feather="graduation-cap" width="32" height="32" class="text-muted"></i>
+                                </div>
+                            </div>
+                            <h5 class="text-muted mb-2">No ex-students found</h5>
+                            <p class="text-muted mb-4">Start by adding an ex-student record to track graduated students.</p>
+                            <a href="{{ route('admin.ex-students.create') }}" class="btn-modern btn-modern-primary">
+                                <i data-feather="plus"></i>
                                 Add First Ex-Student
                             </a>
                         </div>
                     @endif
+                    </div>
                 </div>
             </div>
         </div>

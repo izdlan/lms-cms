@@ -5,63 +5,70 @@
 @section('content')
 <div class="admin-dashboard">
     <div class="container-fluid">
-        <div class="row">
+        <div class="row g-0">
             <!-- Sidebar -->
             @include('admin.partials.sidebar')
 
             <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content">
+            <div class="main-content">
                 <div class="dashboard-header">
-                    <h1>Students Management</h1>
-                    <div class="header-actions">
-                        <a href="{{ route('admin.students.create') }}" class="btn btn-primary">
-                            <i data-feather="plus" width="16" height="16"></i>
-                            Add Student
-                        </a>
-                        <a href="{{ route('admin.import') }}" class="btn btn-outline-primary">
-                            <i data-feather="upload" width="16" height="16"></i>
-                            Import from Excel
-                        </a>
-                        <button type="button" class="btn btn-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
-                            <i data-feather="download" width="16" height="16"></i>
-                            Google Sheets Import
-                        </button>
-                        <button type="button" class="btn btn-info" onclick="runOneDriveImport()" id="oneDriveBtn">
-                            <i data-feather="cloud" width="16" height="16"></i>
-                            OneDrive Import
-                        </button>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h1>Students Management</h1>
+                            <p class="text-muted mb-0">Manage student accounts and information</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('admin.students.create') }}" class="btn-modern btn-modern-primary">
+                                <i data-feather="plus"></i>
+                                Add Student
+                            </a>
+                            <a href="{{ route('admin.import') }}" class="btn-modern btn-modern-secondary">
+                                <i data-feather="upload"></i>
+                                Import Excel
+                            </a>
+                            <button type="button" class="btn-modern btn-modern-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
+                                <i data-feather="download"></i>
+                                Google Sheets
+                            </button>
+                            <button type="button" class="btn-modern btn-modern-info" onclick="runOneDriveImport()" id="oneDriveBtn">
+                                <i data-feather="cloud"></i>
+                                OneDrive
+                            </button>
+                        </div>
                     </div>
                 </div>
 
                 @if(session('success'))
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    <div class="alert-modern alert-modern-success">
+                        <i data-feather="check-circle"></i>
                         {{ session('success') }}
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
 
                 <!-- Students Table -->
-                <div class="card">
+                <div class="card fade-in">
                     <div class="card-header">
-                        <h5>All Students ({{ $students->total() }})</h5>
-                        <div class="d-flex gap-2">
-                            <div class="search-box">
-                                <input type="text" class="form-control" placeholder="Search students..." id="searchInput">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">All Students ({{ $students->total() }})</h5>
+                            <div class="d-flex gap-2">
+                                <div class="search-box">
+                                    <input type="text" class="form-control-modern" placeholder="Search students..." id="searchInput">
+                                </div>
+                                <button type="button" class="btn-modern btn-modern-danger" id="bulkDeleteBtn">
+                                    <i data-feather="trash-2"></i>
+                                    Delete Selected
+                                </button>
+                                <button type="button" class="btn-modern btn-modern-info" onclick="testEditFunction()">
+                                    <i data-feather="edit"></i>
+                                    Test Edit
+                                </button>
                             </div>
-                            <button type="button" class="btn btn-outline-danger" id="bulkDeleteBtn" style="cursor: pointer;">
-                                <i data-feather="trash-2" width="16" height="16"></i>
-                                Delete Selected
-                            </button>
-                            <button type="button" class="btn btn-outline-info" onclick="testEditFunction()">
-                                <i data-feather="edit" width="16" height="16"></i>
-                                Test Edit
-                            </button>
                         </div>
                     </div>
                     <div class="card-body">
                         @if($students->count() > 0)
                             <div class="table-responsive">
-                                <table class="table table-hover" id="studentsTable">
+                                <table class="table-modern" id="studentsTable">
                                     <thead>
                                         <tr>
                                             <th>
@@ -84,38 +91,53 @@
                                                     <input type="checkbox" class="form-check-input student-checkbox" value="{{ $student->id }}">
                                                 </td>
                                                 <td>
-                                                    <div class="student-info">
-                                                        <strong>{{ $student->name }}</strong>
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="me-3">
+                                                            <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                <i data-feather="user" width="16" height="16" class="text-primary"></i>
+                                                            </div>
+                                                        </div>
+                                                        <div>
+                                                            <div class="fw-semibold">{{ $student->name }}</div>
+                                                        </div>
                                                     </div>
                                                 </td>
-                                                <td>{{ $student->ic }}</td>
-                                                <td>{{ $student->email }}</td>
-                                                <td>{{ $student->phone ?? 'N/A' }}</td>
-                                                <td>{{ $student->student_id ?? 'N/A' }}</td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->ic }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->email }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->phone ?? 'N/A' }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->student_id ?? 'N/A' }}</span>
+                                                </td>
                                                 <td>
                                                     @if($student->source_sheet)
-                                                        <span class="badge bg-info">{{ $student->source_sheet }}</span>
+                                                        <span class="badge-modern badge-modern-info">{{ $student->source_sheet }}</span>
                                                     @else
                                                         <span class="text-muted">N/A</span>
                                                     @endif
                                                 </td>
-                                                <td>{{ $student->created_at->format('M d, Y') }}</td>
                                                 <td>
-                                                    <div class="btn-group" role="group">
+                                                    <span class="text-muted">{{ $student->created_at->format('M d, Y') }}</span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-1">
                                                         <a href="{{ route('admin.students.edit', $student) }}" 
-                                                           class="btn btn-sm btn-outline-primary" 
+                                                           class="btn-modern btn-modern-secondary btn-modern-sm" 
                                                            title="Edit Student"
                                                            onclick="console.log('Edit button clicked for student:', {{ $student->id }})">
-                                                            <i data-feather="edit" width="14" height="14"></i>
-                                                            Edit
+                                                            <i data-feather="edit-2"></i>
                                                         </a>
-                                                        <button type="button" class="btn btn-sm btn-outline-danger delete-student-btn" 
+                                                        <button type="button" class="btn-modern btn-modern-danger btn-modern-sm delete-student-btn" 
                                                                 data-student-id="{{ $student->id }}" 
                                                                 data-student-name="{{ $student->name }}" 
                                                                 data-student-email="{{ $student->email }}"
                                                                 title="Delete Student">
-                                                            <i data-feather="trash-2" width="14" height="14"></i>
-                                                            Delete
+                                                            <i data-feather="trash-2"></i>
                                                         </button>
                                                     </div>
                                                 </td>
@@ -138,18 +160,22 @@
                                 {{ $students->links('pagination.admin-pagination') }}
                             </div>
                         @else
-                            <div class="text-center py-5">
-                                <i data-feather="users" width="48" height="48" class="text-muted mb-3"></i>
-                                <h5 class="text-muted">No students found</h5>
-                                <p class="text-muted">Get started by importing students from Excel or adding them manually.</p>
-                                <div class="mt-3">
-                                    <a href="{{ route('admin.students.create') }}" class="btn btn-primary me-2">
-                                        <i data-feather="plus" width="16" height="16"></i>
+                            <div class="text-center py-8">
+                                <div class="mb-4">
+                                    <div class="bg-gray-100 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
+                                        <i data-feather="users" width="32" height="32" class="text-muted"></i>
+                                    </div>
+                                </div>
+                                <h5 class="text-muted mb-2">No students found</h5>
+                                <p class="text-muted mb-4">Get started by importing students from Excel or adding them manually.</p>
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <a href="{{ route('admin.students.create') }}" class="btn-modern btn-modern-primary">
+                                        <i data-feather="plus"></i>
                                         Add Student
                                     </a>
-                                    <a href="{{ route('admin.import') }}" class="btn btn-outline-primary">
-                                        <i data-feather="upload" width="16" height="16"></i>
-                                        Import from Excel
+                                    <a href="{{ route('admin.import') }}" class="btn-modern btn-modern-secondary">
+                                        <i data-feather="upload"></i>
+                                        Import Excel
                                     </a>
                                 </div>
                             </div>
