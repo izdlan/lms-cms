@@ -82,17 +82,17 @@
                             @if($studentsWithPendingPayments->count() > 0)
                                 <div class="table-responsive">
                                     <table class="table table-hover">
-                                        <thead>
+                                        <thead class="table-dark">
                                             <tr>
-                                                <th>Student</th>
-                                                <th>IC Number</th>
-                                                <th>Email</th>
-                                                <th>Student ID</th>
-                                                <th>Pending Amount</th>
-                                                <th>Overdue Days</th>
-                                                <th>Last Payment</th>
-                                                <th>Priority</th>
-                                                <th>Actions</th>
+                                                <th><i class="fas fa-user me-1"></i> Student</th>
+                                                <th><i class="fas fa-id-card me-1"></i> IC Number</th>
+                                                <th><i class="fas fa-envelope me-1"></i> Email</th>
+                                                <th><i class="fas fa-graduation-cap me-1"></i> Student ID</th>
+                                                <th><i class="fas fa-dollar-sign me-1"></i> Pending Amount</th>
+                                                <th><i class="fas fa-clock me-1"></i> Overdue Days</th>
+                                                <th><i class="fas fa-calendar me-1"></i> Last Payment</th>
+                                                <th><i class="fas fa-exclamation-triangle me-1"></i> Priority</th>
+                                                <th><i class="fas fa-cogs me-1"></i> Actions</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -193,8 +193,11 @@
                             @else
                                 <div class="text-center py-5">
                                     <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
-                                    <h5>No Pending Payments</h5>
-                                    <p class="text-muted">All students are up to date with their payments.</p>
+                                    <h5><i class="fas fa-smile me-2"></i>No Pending Payments</h5>
+                                    <p class="text-muted"><i class="fas fa-info-circle me-1"></i>All students are up to date with their payments.</p>
+                                    <a href="{{ route('finance-admin.students') }}" class="btn btn-primary">
+                                        <i class="fas fa-users me-2"></i>View All Students
+                                    </a>
                                 </div>
                             @endif
                         </div>

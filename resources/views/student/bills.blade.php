@@ -94,12 +94,13 @@
                         <table class="table table-bordered bills-table">
                             <thead>
                                 <tr>
-                                    <th>Bill Number</th>
-                                    <th>Bill Date</th>
-                                    <th>Session</th>
-                                    <th>Bill Type</th>
-                                    <th>Amount (RM)</th>
-                                    <th>Payment Status</th>
+                                    <th><i class="fas fa-hashtag me-1"></i> Bill Number</th>
+                                    <th><i class="fas fa-calendar me-1"></i> Bill Date</th>
+                                    <th><i class="fas fa-graduation-cap me-1"></i> Session</th>
+                                    <th><i class="fas fa-tag me-1"></i> Bill Type</th>
+                                    <th><i class="fas fa-dollar-sign me-1"></i> Amount (RM)</th>
+                                    <th><i class="fas fa-info-circle me-1"></i> Payment Status</th>
+                                    <th><i class="fas fa-cogs me-1"></i> Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -122,10 +123,37 @@
                                                 <small class="text-danger d-block">Overdue</small>
                                             @endif
                                         </td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('student.invoice.view', $bill->id) }}" 
+                                                   class="btn btn-sm btn-outline-primary" 
+                                                   title="View Invoice">
+                                                    <i class="fas fa-eye"></i>
+                                                </a>
+                                                <a href="{{ route('student.invoice.download', $bill->id) }}" 
+                                                   class="btn btn-sm btn-outline-success" 
+                                                   title="Download PDF">
+                                                    <i class="fas fa-download"></i>
+                                                </a>
+                                                @if($bill->isPaid())
+                                                    <a href="{{ route('student.receipt') }}?payment_id={{ $bill->payment_id }}" 
+                                                       class="btn btn-sm btn-outline-info" 
+                                                       title="View Receipt">
+                                                        <i class="fas fa-receipt"></i>
+                                                    </a>
+                                                @else
+                                                    <a href="{{ route('student.payment') }}?bill_id={{ $bill->id }}" 
+                                                       class="btn btn-sm btn-outline-warning" 
+                                                       title="Make Payment">
+                                                        <i class="fas fa-credit-card"></i>
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="6" class="text-center py-4">
+                                        <td colspan="7" class="text-center py-4">
                                             <div class="text-muted">
                                                 <i data-feather="file-text" width="48" height="48" class="mb-3"></i>
                                                 <p>No bills found.</p>

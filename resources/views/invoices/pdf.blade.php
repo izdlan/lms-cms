@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Invoice {{ $invoice->invoice_number }}</title>
+    <title>Invoice {{ $bill->bill_number ?? optional($invoice)->invoice_number ?? 'N/A' }}</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -192,21 +192,21 @@
                         <h3>Invoice Details</h3>
                         <div class="info-row">
                             <span class="info-label">Invoice #:</span>
-                            <span class="info-value">{{ $invoice->invoice_number }}</span>
+                            <span class="info-value">{{ $bill->bill_number ?? optional($invoice)->invoice_number ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Date:</span>
-                            <span class="info-value">{{ $invoice->invoice_date->format('d F Y') }}</span>
+                            <span class="info-value">{{ optional($bill->bill_date ?? optional($invoice)->invoice_date)->format('d F Y') ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Due Date:</span>
-                            <span class="info-value">{{ optional($invoice->due_date)->format('d F Y') ?? '—' }}</span>
+                            <span class="info-value">{{ optional($bill->due_date ?? optional($invoice)->due_date)->format('d F Y') ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Status:</span>
                             <span class="info-value">
-                                <span class="status-badge status-{{ $invoice->status }}">
-                                    {{ ucfirst($invoice->status) }}
+                                <span class="status-badge status-{{ $bill->status ?? optional($invoice)->status }}">
+                                    {{ ucfirst($bill->status ?? optional($invoice)->status) }}
                                 </span>
                             </span>
                         </div>
@@ -218,23 +218,23 @@
                         <h3>Bill To</h3>
                         <div class="info-row">
                             <span class="info-label">Name:</span>
-                            <span class="info-value">{{ optional($invoice->user)->name ?? '—' }}</span>
+                            <span class="info-value">{{ optional($bill->user ?? optional($invoice)->user)->name ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Email:</span>
-                            <span class="info-value">{{ optional($invoice->user)->email ?? '—' }}</span>
+                            <span class="info-value">{{ optional($bill->user ?? optional($invoice)->user)->email ?? '—' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Phone:</span>
-                            <span class="info-value">{{ optional($invoice->user)->phone ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($bill->user ?? optional($invoice)->user)->phone ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">IC Number:</span>
-                            <span class="info-value">{{ optional($invoice->user)->ic ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($bill->user ?? optional($invoice)->user)->ic ?? 'N/A' }}</span>
                         </div>
                         <div class="info-row">
                             <span class="info-label">Student ID:</span>
-                            <span class="info-value">{{ optional($invoice->user)->student_id ?? 'N/A' }}</span>
+                            <span class="info-value">{{ optional($bill->user ?? optional($invoice)->user)->student_id ?? 'N/A' }}</span>
                         </div>
                     </div>
                 </div>
@@ -252,10 +252,10 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{{ $invoice->description ?? $invoice->bill_type }}</td>
-                        <td>{{ $invoice->session }}</td>
-                        <td>{{ $invoice->bill_type }}</td>
-                        <td>{{ number_format($invoice->amount, 2) }}</td>
+                        <td>{{ $bill->description ?? optional($invoice)->description ?? $bill->bill_type ?? optional($invoice)->bill_type }}</td>
+                        <td>{{ $bill->session ?? optional($invoice)->session }}</td>
+                        <td>{{ $bill->bill_type ?? optional($invoice)->bill_type }}</td>
+                        <td>{{ number_format($bill->amount ?? optional($invoice)->amount, 2) }}</td>
                     </tr>
                 </tbody>
             </table>
@@ -264,7 +264,7 @@
             <div class="total-section">
                 <div class="total-row">
                     <span>Subtotal:</span>
-                    <span>RM {{ number_format($invoice->amount, 2) }}</span>
+                    <span>RM {{ number_format($bill->amount ?? optional($invoice)->amount, 2) }}</span>
                 </div>
                 <div class="total-row">
                     <span>Tax (0%):</span>
@@ -272,15 +272,15 @@
                 </div>
                 <div class="total-row final">
                     <span>Total Amount:</span>
-                    <span>RM {{ number_format($invoice->amount, 2) }}</span>
+                    <span>RM {{ number_format($bill->amount ?? optional($invoice)->amount, 2) }}</span>
                 </div>
             </div>
             
             <!-- Notes Section -->
-            @if($invoice->notes)
+            @if(($bill->notes ?? optional($invoice)->notes))
             <div class="notes-section">
                 <h4>Notes</h4>
-                <p>{{ $invoice->notes }}</p>
+                <p>{{ $bill->notes ?? optional($invoice)->notes }}</p>
             </div>
             @endif
         </div>

@@ -66,7 +66,7 @@
                     <i class="fas fa-exclamation-triangle"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>{{ $stats['students_with_pending_payments'] }}</h3>
+                    <h3>{{ $stats['pending_payments'] }}</h3>
                     <p>Pending Payments</p>
                 </div>
             </div>
@@ -122,18 +122,21 @@
                     @if($studentsWithPendingPayments->count() > 0)
                         <div class="table-responsive">
                             <table class="table table-hover">
-                                <thead>
+                                <thead class="table-dark">
                                     <tr>
-                                        <th>Student ID</th>
-                                        <th>Name</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
+                                        <th><i class="fas fa-graduation-cap me-1"></i> Student ID</th>
+                                        <th><i class="fas fa-user me-1"></i> Name</th>
+                                        <th><i class="fas fa-envelope me-1"></i> Email</th>
+                                        <th><i class="fas fa-phone me-1"></i> Phone</th>
+                                        <th><i class="fas fa-info-circle me-1"></i> Status</th>
+                                        <th><i class="fas fa-cogs me-1"></i> Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach($studentsWithPendingPayments as $student)
+                                    @foreach($studentsWithPendingPayments as $data)
+                                        @php
+                                            $student = $data['student'];
+                                        @endphp
                                         <tr>
                                             <td>{{ $student->student_id ?? 'N/A' }}</td>
                                             <td>{{ $student->name }}</td>
@@ -159,8 +162,8 @@
                     @else
                         <div class="text-center py-4">
                             <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
-                            <h5 class="mt-3 text-muted">No Pending Payments</h5>
-                            <p class="text-muted">All students are up to date with their payments.</p>
+                            <h5 class="mt-3 text-muted"><i class="fas fa-smile me-2"></i>No Pending Payments</h5>
+                            <p class="text-muted"><i class="fas fa-info-circle me-1"></i>All students are up to date with their payments.</p>
                         </div>
                     @endif
                 </div>

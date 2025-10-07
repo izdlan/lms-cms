@@ -138,6 +138,10 @@ Route::prefix('student')->group(function () {
         Route::get('/invoices/{id}/pdf', [App\Http\Controllers\StudentController::class, 'generateInvoicePdf'])->name('student.invoice.pdf');
         Route::get('/invoices/{id}/view-pdf', [App\Http\Controllers\StudentController::class, 'viewInvoicePdf'])->name('student.invoice.view-pdf');
         
+        // Student bill invoice routes
+        Route::get('/bills/{id}/view', [App\Http\Controllers\StudentController::class, 'viewInvoicePdf'])->name('student.invoice.view');
+        Route::get('/bills/{id}/download', [App\Http\Controllers\StudentController::class, 'generateInvoicePdf'])->name('student.invoice.download');
+        
         // Receipt routes
         Route::get('/receipts/{id}', [App\Http\Controllers\StudentController::class, 'showReceipt'])->name('student.receipt.show');
         Route::get('/receipts/{id}/pdf', [App\Http\Controllers\StudentController::class, 'generateReceiptPdf'])->name('student.receipt.pdf');
