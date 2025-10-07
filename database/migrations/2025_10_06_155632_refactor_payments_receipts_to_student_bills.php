@@ -13,13 +13,13 @@ return new class extends Migration
     {
         Schema::table('payments', function (Blueprint $table) {
             if (!Schema::hasColumn('payments', 'student_bill_id')) {
-                $table->foreignId('student_bill_id')->nullable()->after('invoice_id')->constrained('student_bills')->nullOnDelete();
+                $table->foreignId('student_bill_id')->nullable()->after('user_id')->constrained('student_bills')->nullOnDelete();
             }
         });
 
         Schema::table('receipts', function (Blueprint $table) {
             if (!Schema::hasColumn('receipts', 'student_bill_id')) {
-                $table->foreignId('student_bill_id')->nullable()->after('invoice_id')->constrained('student_bills')->nullOnDelete();
+                $table->foreignId('student_bill_id')->nullable()->after('id')->constrained('student_bills')->nullOnDelete();
             }
         });
     }

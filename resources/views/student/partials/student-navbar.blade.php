@@ -45,7 +45,7 @@
                                 </a>
                             </div>
                             
-                            @if(isset($enrolledSubjects) && $enrolledSubjects->count() > 0)
+                            @if(isset($enrolledSubjects) && $enrolledSubjects && $enrolledSubjects->count() > 0)
                                 <!-- Subjects Header -->
                                 <div class="subjects-header">
                                     <i class="fas fa-book"></i>

@@ -11,6 +11,8 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\StudentBill;
 use App\Models\Payment;
+use App\Models\ExamResult;
+use App\Models\StudentEnrollment;
 use App\Services\BillplzService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -945,5 +947,107 @@ class StudentController extends Controller
             Log::error('Error downloading submission file: ' . $e->getMessage());
             return response()->json(['error' => 'Error downloading file'], 500);
         }
+    }
+
+    /**
+     * Show exam results for the student
+     */
+    public function examResults(Request $request)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user || $user->role !== 'student') {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        // Get current academic year and semester
+        $currentYear = $request->get('year', '2025');
+        $currentSemester = $request->get('semester', 'Semester 1');
+
+        // Get student's enrolled subjects for the current period
+        $enrolledSubjects = StudentEnrollment::where('user_id', $user->id)
+            ->where('status', 'enrolled')
+            ->with(['subject', 'lecturer'])
+            ->get()
+            ->groupBy('program_code');
+
+        // Get exam results for the current period
+        $examResults = ExamResult::where('user_id', $user->id)
+            ->where('academic_year', $currentYear)
+            ->where('semester', $currentSemester)
+            ->with(['subject', 'lecturer'])
+            ->get()
+            ->keyBy('subject_code');
+
+        // Get all available academic years and semesters for filter
+        $availableYears = ExamResult::where('user_id', $user->id)
+            ->distinct()
+            ->pluck('academic_year')
+            ->sort()
+            ->values();
+
+        $availableSemesters = ExamResult::where('user_id', $user->id)
+            ->distinct()
+            ->pluck('semester')
+            ->sort()
+            ->values();
+
+        // Calculate overall GPA
+        $overallGpa = $this->calculateOverallGpa($examResults);
+
+        // Get enrolled subjects for navbar (same as dashboard)
+        $enrolledSubjects = $user->enrolledSubjects()
+            ->where('status', 'enrolled')
+            ->with(['subject', 'lecturer'])
+            ->get();
+
+        return view('student.exam-results', compact(
+            'user',
+            'enrolledSubjects',
+            'examResults',
+            'currentYear',
+            'currentSemester',
+            'availableYears',
+            'availableSemesters',
+            'overallGpa'
+        ));
+    }
+
+    /**
+     * Get current semester based on month
+     */
+    private function getCurrentSemester()
+    {
+        $month = date('n');
+        if ($month >= 1 && $month <= 4) {
+            return 'Semester 1';
+        } elseif ($month >= 5 && $month <= 8) {
+            return 'Semester 2';
+        } else {
+            return 'Semester 3';
+        }
+    }
+
+    /**
+     * Calculate overall GPA for the semester
+     */
+    private function calculateOverallGpa($examResults)
+    {
+        if ($examResults->isEmpty()) {
+            return 0.00;
+        }
+
+        $totalGpa = 0;
+        $totalCredits = 0;
+
+        foreach ($examResults as $result) {
+            if ($result->gpa && $result->subject) {
+                $credits = $result->subject->credit_hours ?? 1;
+                $totalGpa += $result->gpa * $credits;
+                $totalCredits += $credits;
+            }
+        }
+
+        return $totalCredits > 0 ? round($totalGpa / $totalCredits, 2) : 0.00;
     }
 }

@@ -1142,11 +1142,36 @@
             pointer-events: none !important;
             filter: grayscale(0.2) opacity(0.6);
         }
+        .blurred-content {
+            filter: blur(5px);
+            pointer-events: none;
+            user-select: none;
+        }
+        .overlay-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            z-index: 1050;
+            pointer-events: none; /* Allow clicks to pass through to the overlay itself, not the blurred content */
+        }
+        .overlay-container {
+            position: relative;
+        }
+        .clickable-link {
+            pointer-events: auto !important; /* Re-enable clicks for specific elements */
+            filter: none !important; /* Remove blur for specific elements */
+        }
     </style>
 </head>
 
 <body class="">
-    <div id="app" class=" ">
+    <div id="app" class=" {{ (isset($isBlockedStudent) && $isBlockedStudent && isset($blockedCurrentRoute) && isset($blockedAllowedRoutes) && !in_array($blockedCurrentRoute, $blockedAllowedRoutes)) ? 'overlay-container' : '' }}">
         @if((request()->is('student/*') && auth('student')->check()) || (request()->is('staff/*') && auth()->check() && auth()->user()->role === 'staff'))
             @if(request()->is('student/*'))
                 @include('student.partials.student-navbar')
@@ -1158,7 +1183,21 @@
             @include('partials.navbar')
         @endif
         
-        @yield('content')
+        <div class="{{ (isset($isBlockedStudent) && $isBlockedStudent && isset($blockedCurrentRoute) && isset($blockedAllowedRoutes) && !in_array($blockedCurrentRoute, $blockedAllowedRoutes)) ? 'blurred-content' : '' }}">
+            @yield('content')
+        </div>
+
+        @if(isset($isBlockedStudent) && $isBlockedStudent && isset($blockedCurrentRoute) && isset($blockedAllowedRoutes) && !in_array($blockedCurrentRoute, $blockedAllowedRoutes))
+            <div class="overlay-message">
+                <h4>Account Blocked</h4>
+                <p>Your account has been blocked. You can only access the Student Bills page to make payments.</p>
+                <a href="{{ route('student.bills') }}" class="btn btn-primary clickable-link mt-3">Go to Student Bills</a>
+                <form action="{{ route('student.logout') }}" method="POST" class="d-inline clickable-link">
+                    @csrf
+                    <button type="submit" class="btn btn-outline-light clickable-link mt-3 ms-2">Logout</button>
+                </form>
+            </div>
+        @endif
         
         @if(Auth::guard('student')->check() || Auth::guard('staff')->check())
             @include('partials.simple-footer')
@@ -1166,36 +1205,6 @@
             @include('partials.footer')
         @endif
     </div>
-
-    @if(isset($isBlockedStudent) && $isBlockedStudent)
-        @php
-            $route = isset($blockedCurrentRoute) ? $blockedCurrentRoute : (request()->route() ? request()->route()->getName() : null);
-            $allowed = isset($blockedAllowedRoutes) ? $blockedAllowedRoutes : [];
-            $isAllowedPage = in_array($route, $allowed);
-        @endphp
-        @if(!$isAllowedPage)
-            <div class="blocked-overlay"></div>
-            <div class="blocked-toast">
-                <i class="fas fa-exclamation-triangle"></i>
-                Your account is blocked. You can only access Student Bills to make payments.
-            </div>
-            <script>
-                document.addEventListener('DOMContentLoaded', function() {
-                    const selectors = 'a, button, input, select, textarea';
-                    document.querySelectorAll(selectors).forEach(function(el){
-                        const isLogout = (el.closest('form') && el.closest('form').action && el.closest('form').action.includes('/student/logout')) ||
-                                         (el.tagName === 'A' && el.href && el.href.includes('/student/logout'));
-                        const isBillsLink = (el.tagName === 'A' && el.href && el.href.includes('/student/bills'));
-                        if (!isLogout && !isBillsLink) {
-                            el.classList.add('blocked-disabled');
-                            el.setAttribute('tabindex','-1');
-                            el.setAttribute('aria-disabled','true');
-                        }
-                    });
-                });
-            </script>
-        @endif
-    @endif
     
     <!-- Template JS File -->
     <script src="/assets/default/js/app.js"></script>

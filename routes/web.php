@@ -119,6 +119,7 @@ Route::prefix('student')->group(function () {
         Route::get('/stats', [App\Http\Controllers\StudentController::class, 'getStats'])->name('student.stats');
         Route::get('/bills', [App\Http\Controllers\StudentController::class, 'bills'])->name('student.bills');
         Route::get('/payment', [App\Http\Controllers\StudentController::class, 'payment'])->name('student.payment');
+        Route::get('/exam-results', [App\Http\Controllers\StudentController::class, 'examResults'])->name('student.exam-results');
         Route::post('/payment/process', [App\Http\Controllers\StudentController::class, 'processPayment'])->name('student.payment.process');
         Route::get('/receipt', [App\Http\Controllers\StudentController::class, 'receipt'])->name('student.receipt');
         Route::get('/materials/download/{id}', [App\Http\Controllers\StudentController::class, 'downloadMaterial'])->name('student.materials.download');

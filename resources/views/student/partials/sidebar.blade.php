@@ -41,9 +41,9 @@
             <i class="fas fa-file-invoice-dollar"></i>
             Student Bills
         </a>
-        <a href="/maintenance" class="nav-link">
+        <a href="{{ route('student.exam-results') }}" class="nav-link {{ request()->routeIs('student.exam-results') ? 'active' : '' }}">
             <i class="fas fa-chart-line"></i>
-            Exam Result
+            Exam Results
         </a>
 
     </nav>
