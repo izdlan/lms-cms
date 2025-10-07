@@ -16,6 +16,7 @@ use App\Models\Announcement;
 use App\Models\CourseMaterial;
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\ExamResult;
 
 class StaffController extends Controller
 {
@@ -968,6 +969,297 @@ class StaffController extends Controller
         } catch (\Exception $e) {
             Log::error('Error viewing submission file: ' . $e->getMessage());
             return response()->json(['error' => 'Error viewing file'], 500);
+        }
+    }
+
+    /**
+     * Show exam results management page
+     */
+    public function examResults(Request $request)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return redirect()->route('login')->with('error', 'Lecturer profile not found.');
+        }
+
+        // Get subjects taught by this lecturer
+        $subjects = Subject::whereHas('classSchedules', function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        })->with(['classSchedules' => function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        }])->get();
+
+        // Get selected subject and class
+        $selectedSubject = null;
+        $selectedClass = null;
+        $examResults = collect();
+        $students = collect();
+        
+        if ($request->has('subject_code')) {
+            $selectedSubject = $subjects->firstWhere('code', $request->subject_code);
+            
+            if ($selectedSubject) {
+                // Get selected class if specified (only lecturer's assigned classes)
+                if ($request->has('class_code')) {
+                    $selectedClass = $selectedSubject->classSchedules
+                        ->where('lecturer_id', $lecturer->id)
+                        ->firstWhere('class_code', $request->class_code);
+                }
+                
+                // Get students enrolled in this subject and class
+                $studentsQuery = StudentEnrollment::where('subject_code', $selectedSubject->code)
+                    ->where('status', 'enrolled')
+                    ->with(['user']);
+                
+                if ($selectedClass) {
+                    $studentsQuery->where('class_code', $selectedClass->class_code);
+                }
+                
+                $students = $studentsQuery->get();
+
+                // Get exam results for this subject and class
+                $examResultsQuery = ExamResult::where('subject_code', $selectedSubject->code)
+                    ->where('lecturer_id', $lecturer->id)
+                    ->with(['user']);
+                
+                if ($selectedClass) {
+                    $examResultsQuery->whereHas('user.enrolledSubjects', function($query) use ($selectedClass) {
+                        $query->where('class_code', $selectedClass->class_code);
+                    });
+                }
+                
+                $examResults = $examResultsQuery->get()->keyBy('user_id');
+            }
+        }
+
+        return view('staff.exam-results', compact('user', 'lecturer', 'subjects', 'selectedSubject', 'selectedClass', 'students', 'examResults'));
+    }
+
+    /**
+     * Show exam results form for a specific subject and student
+     */
+    public function examResultsForm(Request $request)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return redirect()->route('login')->with('error', 'Lecturer profile not found.');
+        }
+
+        $subjectCode = $request->get('subject_code');
+        $classCode = $request->get('class_code');
+        $studentId = $request->get('student_id');
+        $academicYear = $request->get('academic_year', date('Y'));
+        $semester = $request->get('semester', 'Semester 1');
+
+        // Validate subject access
+        $subject = Subject::whereHas('classSchedules', function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        })->where('code', $subjectCode)->first();
+
+        if (!$subject) {
+            return redirect()->route('staff.exam-results')->with('error', 'Subject not found or access denied.');
+        }
+
+        // Get student
+        $student = User::find($studentId);
+        if (!$student || $student->role !== 'student') {
+            return redirect()->route('staff.exam-results')->with('error', 'Student not found.');
+        }
+
+        // Check if student is enrolled in this subject and class
+        $enrollmentQuery = StudentEnrollment::where('user_id', $studentId)
+            ->where('subject_code', $subjectCode)
+            ->where('status', 'enrolled');
+        
+        if ($classCode) {
+            $enrollmentQuery->where('class_code', $classCode);
+        }
+        
+        $enrollment = $enrollmentQuery->first();
+
+        if (!$enrollment) {
+            return redirect()->route('staff.exam-results')->with('error', 'Student is not enrolled in this subject.');
+        }
+
+        // Get existing exam result
+        $examResult = ExamResult::where('user_id', $studentId)
+            ->where('subject_code', $subjectCode)
+            ->where('academic_year', $academicYear)
+            ->where('semester', $semester)
+            ->where('lecturer_id', $lecturer->id)
+            ->first();
+
+        return view('staff.exam-results-form', compact('user', 'lecturer', 'subject', 'student', 'examResult', 'academicYear', 'semester'));
+    }
+
+    /**
+     * Store or update exam results
+     */
+    public function storeExamResults(Request $request)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return redirect()->route('login')->with('error', 'Lecturer profile not found.');
+        }
+
+        $request->validate([
+            'subject_code' => 'required|string',
+            'student_id' => 'required|integer',
+            'academic_year' => 'required|string',
+            'semester' => 'required|string',
+            'assessments' => 'required|array|min:1',
+            'assessments.*.name' => 'required|string',
+            'assessments.*.score' => 'required|numeric|min:0',
+            'assessments.*.max_score' => 'required|numeric|min:1',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        // Validate subject access
+        $subject = Subject::whereHas('classSchedules', function($query) use ($lecturer) {
+            $query->where('lecturer_id', $lecturer->id);
+        })->where('code', $request->subject_code)->first();
+
+        if (!$subject) {
+            return redirect()->back()->with('error', 'Subject not found or access denied.');
+        }
+
+        // Check if student is enrolled
+        $enrollment = StudentEnrollment::where('user_id', $request->student_id)
+            ->where('subject_code', $request->subject_code)
+            ->where('status', 'enrolled')
+            ->first();
+
+        if (!$enrollment) {
+            return redirect()->back()->with('error', 'Student is not enrolled in this subject.');
+        }
+
+        try {
+            // Calculate totals
+            $totalPossibleMarks = 0;
+            $totalObtainedMarks = 0;
+            $assessments = [];
+
+            foreach ($request->assessments as $assessment) {
+                $totalPossibleMarks += $assessment['max_score'];
+                $totalObtainedMarks += $assessment['score'];
+                $assessments[] = [
+                    'name' => $assessment['name'],
+                    'score' => $assessment['score'],
+                    'max_score' => $assessment['max_score'],
+                    'percentage' => $assessment['max_score'] > 0 ? ($assessment['score'] / $assessment['max_score']) * 100 : 0
+                ];
+            }
+
+            $percentage = $totalPossibleMarks > 0 ? ($totalObtainedMarks / $totalPossibleMarks) * 100 : 0;
+
+            // Determine grade
+            $grade = 'F';
+            if ($percentage >= 90) $grade = 'A+';
+            elseif ($percentage >= 85) $grade = 'A';
+            elseif ($percentage >= 80) $grade = 'A-';
+            elseif ($percentage >= 75) $grade = 'B+';
+            elseif ($percentage >= 70) $grade = 'B';
+            elseif ($percentage >= 65) $grade = 'B-';
+            elseif ($percentage >= 60) $grade = 'C+';
+            elseif ($percentage >= 55) $grade = 'C';
+            elseif ($percentage >= 50) $grade = 'C-';
+            elseif ($percentage >= 45) $grade = 'D+';
+            elseif ($percentage >= 40) $grade = 'D';
+
+            // Calculate GPA
+            $gpa = 0.00;
+            switch ($grade) {
+                case 'A+': case 'A': $gpa = 4.00; break;
+                case 'A-': $gpa = 3.70; break;
+                case 'B+': $gpa = 3.30; break;
+                case 'B': $gpa = 3.00; break;
+                case 'B-': $gpa = 2.70; break;
+                case 'C+': $gpa = 2.30; break;
+                case 'C': $gpa = 2.00; break;
+                case 'C-': $gpa = 1.70; break;
+                case 'D+': $gpa = 1.30; break;
+                case 'D': $gpa = 1.00; break;
+                case 'F': $gpa = 0.00; break;
+            }
+
+            // Create or update exam result
+            ExamResult::updateOrCreate(
+                [
+                    'user_id' => $request->student_id,
+                    'subject_code' => $request->subject_code,
+                    'academic_year' => $request->academic_year,
+                    'semester' => $request->semester,
+                ],
+                [
+                    'lecturer_id' => $lecturer->id,
+                    'assessments' => $assessments,
+                    'total_marks' => $totalObtainedMarks,
+                    'percentage' => $percentage,
+                    'grade' => $grade,
+                    'gpa' => $gpa,
+                    'notes' => $request->notes,
+                ]
+            );
+
+            return redirect()->route('staff.exam-results', ['subject_code' => $request->subject_code])
+                ->with('success', 'Exam results saved successfully!');
+
+        } catch (\Exception $e) {
+            Log::error('Error saving exam results: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Failed to save exam results. Please try again.');
+        }
+    }
+
+    /**
+     * Delete exam results
+     */
+    public function deleteExamResults(Request $request)
+    {
+        $user = Auth::guard('staff')->user();
+        if (!$user || $user->role !== 'lecturer') {
+            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+        }
+
+        $lecturer = $user->lecturer;
+        if (!$lecturer) {
+            return response()->json(['success' => false, 'message' => 'Lecturer profile not found.'], 404);
+        }
+
+        $request->validate([
+            'exam_result_id' => 'required|integer|exists:exam_results,id',
+        ]);
+
+        try {
+            $examResult = ExamResult::where('id', $request->exam_result_id)
+                ->where('lecturer_id', $lecturer->id)
+                ->first();
+
+            if (!$examResult) {
+                return response()->json(['success' => false, 'message' => 'Exam result not found or access denied.'], 404);
+            }
+
+            $examResult->delete();
+
+            return response()->json(['success' => true, 'message' => 'Exam results deleted successfully!']);
+
+        } catch (\Exception $e) {
+            Log::error('Error deleting exam results: ' . $e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Failed to delete exam results.'], 500);
         }
     }
 }

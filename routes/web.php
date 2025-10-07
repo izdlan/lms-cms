@@ -180,6 +180,12 @@ Route::prefix('staff')->group(function () {
         
         // AJAX Routes
         Route::post('/courses/class-students', [App\Http\Controllers\StaffController::class, 'getClassStudents'])->name('staff.courses.class-students');
+        
+        // Exam Results Management
+        Route::get('/exam-results', [App\Http\Controllers\StaffController::class, 'examResults'])->name('staff.exam-results');
+        Route::get('/exam-results/form', [App\Http\Controllers\StaffController::class, 'examResultsForm'])->name('staff.exam-results.form');
+        Route::post('/exam-results/store', [App\Http\Controllers\StaffController::class, 'storeExamResults'])->name('staff.exam-results.store');
+        Route::delete('/exam-results/delete', [App\Http\Controllers\StaffController::class, 'deleteExamResults'])->name('staff.exam-results.delete');
     });
 });
 

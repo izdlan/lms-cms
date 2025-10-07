@@ -37,6 +37,10 @@
             <i class="fas fa-clipboard"></i>
             Assignments
         </a>
+        <a href="{{ route('staff.exam-results') }}" class="nav-link {{ request()->routeIs('staff.exam-results*') ? 'active' : '' }}">
+            <i class="fas fa-chart-line"></i>
+            Exam Results
+        </a>
         <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}">
             <i class="fas fa-user"></i>
             My Profile

@@ -960,35 +960,26 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Please login to access this page.');
         }
 
-        // Get current academic year and semester
+        // Get current academic year
         $currentYear = $request->get('year', '2025');
-        $currentSemester = $request->get('semester', 'Semester 1');
 
-        // Get student's enrolled subjects for the current period
+        // Get student's enrolled subjects (all 12 EMBA subjects)
         $enrolledSubjects = StudentEnrollment::where('user_id', $user->id)
             ->where('status', 'enrolled')
             ->with(['subject', 'lecturer'])
-            ->get()
-            ->groupBy('program_code');
+            ->get();
 
-        // Get exam results for the current period
+        // Get exam results for the current academic year
         $examResults = ExamResult::where('user_id', $user->id)
             ->where('academic_year', $currentYear)
-            ->where('semester', $currentSemester)
             ->with(['subject', 'lecturer'])
             ->get()
             ->keyBy('subject_code');
 
-        // Get all available academic years and semesters for filter
+        // Get all available academic years for filter
         $availableYears = ExamResult::where('user_id', $user->id)
             ->distinct()
             ->pluck('academic_year')
-            ->sort()
-            ->values();
-
-        $availableSemesters = ExamResult::where('user_id', $user->id)
-            ->distinct()
-            ->pluck('semester')
             ->sort()
             ->values();
 
@@ -1006,9 +997,7 @@ class StudentController extends Controller
             'enrolledSubjects',
             'examResults',
             'currentYear',
-            'currentSemester',
             'availableYears',
-            'availableSemesters',
             'overallGpa'
         ));
     }

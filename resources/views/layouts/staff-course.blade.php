@@ -430,31 +430,35 @@
             </div>
         </div>
         <nav class="sidebar-nav">
-            <a href="{{ route('staff.dashboard') }}" class="nav-link">
+            <a href="{{ route('staff.dashboard') }}" class="nav-link {{ request()->routeIs('staff.dashboard') ? 'active' : '' }}">
                 <i class="fas fa-home"></i>
                 Dashboard
             </a>
-            <a href="{{ route('staff.courses') }}" class="nav-link">
+            <a href="{{ route('staff.courses') }}" class="nav-link {{ request()->routeIs('staff.courses') ? 'active' : '' }}">
                 <i class="fas fa-book"></i>
                 My Courses
             </a>
-            <a href="{{ route('staff.announcements') }}" class="nav-link">
+            <a href="{{ route('staff.announcements') }}" class="nav-link {{ request()->routeIs('staff.announcements*') ? 'active' : '' }}">
                 <i class="fas fa-bullhorn"></i>
                 Announcements
             </a>
-            <a href="{{ route('staff.contents') }}" class="nav-link">
+            <a href="{{ route('staff.contents') }}" class="nav-link {{ request()->routeIs('staff.contents*') ? 'active' : '' }}">
                 <i class="fas fa-file-text"></i>
                 Course Materials
             </a>
-            <a href="{{ route('staff.assignments') }}" class="nav-link">
+            <a href="{{ route('staff.assignments') }}" class="nav-link {{ request()->routeIs('staff.assignments*') ? 'active' : '' }}">
                 <i class="fas fa-clipboard"></i>
                 Assignments
             </a>
-            <a href="{{ route('staff.profile') }}" class="nav-link">
+            <a href="{{ route('staff.exam-results') }}" class="nav-link {{ request()->routeIs('staff.exam-results*') ? 'active' : '' }}">
+                <i class="fas fa-chart-line"></i>
+                Exam Results
+            </a>
+            <a href="{{ route('staff.profile') }}" class="nav-link {{ request()->routeIs('staff.profile') ? 'active' : '' }}">
                 <i class="fas fa-user"></i>
                 My Profile
             </a>
-            <a href="{{ route('staff.password.change') }}" class="nav-link">
+            <a href="{{ route('staff.password.change') }}" class="nav-link {{ request()->routeIs('staff.password.change') ? 'active' : '' }}">
                 <i class="fas fa-key"></i>
                 Change Password
             </a>

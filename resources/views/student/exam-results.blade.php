@@ -16,13 +16,13 @@
         </div>
     </div>
 
-    <!-- Filter Section -->
+    <!-- Academic Year Filter -->
     <div class="row mb-3">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
                     <form method="GET" action="{{ route('student.exam-results') }}" class="row g-3">
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label for="year" class="form-label">Academic Year</label>
                             <select name="year" id="year" class="form-select">
                                 @foreach($availableYears as $year)
@@ -32,17 +32,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="col-md-4">
-                            <label for="semester" class="form-label">Semester</label>
-                            <select name="semester" id="semester" class="form-select">
-                                @foreach($availableSemesters as $semester)
-                                    <option value="{{ $semester }}" {{ $semester == $currentSemester ? 'selected' : '' }}>
-                                        {{ $semester }}
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <label class="form-label">&nbsp;</label>
                             <div>
                                 <button type="submit" class="btn btn-primary">Filter Results</button>
@@ -60,193 +50,153 @@
         <div class="col-12">
             <div class="card bg-primary text-white">
                 <div class="card-body text-center">
-                    <h3 class="mb-1">{{ $currentYear }} - {{ $currentSemester }}</h3>
+                    <h3 class="mb-1">{{ $currentYear }} Academic Year</h3>
                     <h1 class="display-4 mb-0">{{ number_format($overallGpa, 2) }}</h1>
-                    <p class="mb-0">Overall GPA</p>
+                    <p class="mb-0">Overall GPA (12 Subjects)</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Exam Results by Program -->
-    @foreach($enrolledSubjects as $programCode => $subjects)
+    <!-- Individual Subject Results -->
+    @foreach($enrolledSubjects as $enrollment)
+        @if($enrollment && is_object($enrollment))
+            @php
+                $result = $examResults->get($enrollment->subject_code);
+                $assessments = $result ? $result->assessments : [];
+            @endphp
         <div class="row mb-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-header">
-                        <h5 class="card-title mb-0">{{ strtoupper($programCode) }} Program Results</h5>
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title mb-0">
+                            {{ $enrollment->subject_code }} - {{ $enrollment->subject->name ?? 'N/A' }}
+                        </h5>
+                        <small class="text-white-50">
+                            Lecturer: {{ $enrollment->lecturer->name ?? 'N/A' }} | 
+                            Credit Hours: {{ $enrollment->subject->credit_hours ?? 'N/A' }}
+                        </small>
                     </div>
                     <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-striped">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th rowspan="2" class="text-center align-middle">Subject Code</th>
-                                        <th rowspan="2" class="text-center align-middle">Subject Name</th>
-                                        <th rowspan="2" class="text-center align-middle">Lecturer</th>
-                                        <th rowspan="2" class="text-center align-middle">Credit Hours</th>
-                                        
-                                        <!-- Dynamic Assessment Columns -->
-                                        @if($subjects->count() > 0)
+                        @if($result && $assessments)
+                            <!-- Assessment Results -->
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h6 class="mb-3">Assessment Results</h6>
+                                    <div class="row">
+                                        @foreach($assessments as $assessment)
+                                            <div class="col-md-4 mb-3">
+                                                <div class="card border">
+                                                    <div class="card-body text-center">
+                                                        <h6 class="card-title">{{ $assessment['name'] ?? 'Assessment' }}</h6>
+                                                        <div class="d-flex justify-content-between align-items-center">
+                                                            <span class="badge bg-{{ $assessment['score'] >= ($assessment['max_score'] * 0.5) ? 'success' : 'warning' }} fs-6">
+                                                                {{ $assessment['score'] ?? '-' }} / {{ $assessment['max_score'] ?? '-' }}
+                                                            </span>
+                                                            <small class="text-muted">
+                                                                {{ isset($assessment['percentage']) ? number_format($assessment['percentage'], 1) . '%' : '' }}
+                                                            </small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Summary Results -->
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Total Marks</h6>
+                                            <h4 class="text-primary">{{ $result->total_marks ?? '-' }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Percentage</h6>
+                                            <h4 class="text-{{ $result->percentage >= 50 ? 'success' : 'danger' }}">
+                                                {{ number_format($result->percentage, 1) }}%
+                                            </h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">Grade</h6>
                                             @php
-                                                $firstSubject = $subjects->first();
-                                                $sampleResult = $firstSubject ? $examResults->get($firstSubject->subject_code) : null;
-                                                $assessments = $sampleResult ? $sampleResult->assessments : [];
+                                                $gradeColor = 'secondary';
+                                                if($result->grade) {
+                                                    switch($result->grade) {
+                                                        case 'A+':
+                                                        case 'A':
+                                                        case 'A-':
+                                                            $gradeColor = 'success';
+                                                            break;
+                                                        case 'B+':
+                                                        case 'B':
+                                                        case 'B-':
+                                                            $gradeColor = 'primary';
+                                                            break;
+                                                        case 'C+':
+                                                        case 'C':
+                                                        case 'C-':
+                                                            $gradeColor = 'warning';
+                                                            break;
+                                                        case 'D+':
+                                                        case 'D':
+                                                            $gradeColor = 'danger';
+                                                            break;
+                                                        case 'F':
+                                                            $gradeColor = 'dark';
+                                                            break;
+                                                    }
+                                                }
                                             @endphp
-                                            
-                                            @if($assessments)
-                                                @foreach($assessments as $assessment)
-                                                    <th class="text-center">{{ $assessment['name'] ?? 'Assessment' }}</th>
-                                                @endforeach
-                                            @else
-                                                <!-- Default assessment columns if no data -->
-                                                <th class="text-center">Quiz</th>
-                                                <th class="text-center">Assignment 1</th>
-                                                <th class="text-center">Assignment 2</th>
-                                                <th class="text-center">Midterm</th>
-                                                <th class="text-center">Final Exam</th>
-                                            @endif
-                                        @endif
-                                        
-                                        <th rowspan="2" class="text-center align-middle">Total</th>
-                                        <th rowspan="2" class="text-center align-middle">Percentage</th>
-                                        <th rowspan="2" class="text-center align-middle">Grade</th>
-                                        <th rowspan="2" class="text-center align-middle">GPA</th>
-                                    </tr>
-                                    <tr>
-                                        @if($subjects->count() > 0)
-                                            @php
-                                                $firstSubject = $subjects->first();
-                                                $sampleResult = $firstSubject ? $examResults->get($firstSubject->subject_code) : null;
-                                                $assessments = $sampleResult ? $sampleResult->assessments : [];
-                                            @endphp
-                                            
-                                            @if($assessments)
-                                                @foreach($assessments as $assessment)
-                                                    <th class="text-center small">
-                                                        @if(isset($assessment['max_score']))
-                                                            /{{ $assessment['max_score'] }}
-                                                        @endif
-                                                    </th>
-                                                @endforeach
-                                            @else
-                                                <th class="text-center small">/10</th>
-                                                <th class="text-center small">/20</th>
-                                                <th class="text-center small">/20</th>
-                                                <th class="text-center small">/30</th>
-                                                <th class="text-center small">/40</th>
-                                            @endif
-                                        @endif
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($subjects as $enrollment)
-                                        @if($enrollment && is_object($enrollment))
-                                            @php
-                                                $result = $examResults->get($enrollment->subject_code);
-                                            @endphp
-                                        <tr>
-                                            <td class="text-center fw-bold">{{ $enrollment->subject_code }}</td>
-                                            <td>{{ $enrollment->subject->name ?? 'N/A' }}</td>
-                                            <td>{{ $enrollment->lecturer->name ?? 'N/A' }}</td>
-                                            <td class="text-center">{{ $enrollment->subject->credit_hours ?? 'N/A' }}</td>
-                                            
-                                            <!-- Assessment Scores -->
-                                            @if($result && $result->assessments)
-                                                @foreach($result->assessments as $assessment)
-                                                    <td class="text-center">
-                                                        <span class="badge bg-{{ $assessment['score'] >= ($assessment['max_score'] * 0.5) ? 'success' : 'warning' }}">
-                                                            {{ $assessment['score'] ?? '-' }}
-                                                        </span>
-                                                    </td>
-                                                @endforeach
-                                            @else
-                                                <!-- Show empty cells for subjects without results -->
-                                                @php
-                                                    $firstSubject = $subjects->first();
-                                                    $sampleResult = $firstSubject ? $examResults->get($firstSubject->subject_code) : null;
-                                                    $assessments = $sampleResult ? $sampleResult->assessments : [];
-                                                    $assessmentCount = $assessments ? count($assessments) : 5;
-                                                @endphp
-                                                @for($i = 0; $i < $assessmentCount; $i++)
-                                                    <td class="text-center">-</td>
-                                                @endfor
-                                            @endif
-                                            
-                                            <!-- Summary Columns -->
-                                            <td class="text-center fw-bold">
-                                                @if($result)
-                                                    {{ $result->total_marks ?? '-' }}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if($result)
-                                                    <span class="badge bg-{{ $result->percentage >= 50 ? 'success' : 'danger' }}">
-                                                        {{ number_format($result->percentage, 1) }}%
-                                                    </span>
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                            <td class="text-center">
-                                                @if($result)
-                                                    @php
-                                                        $gradeColor = 'secondary';
-                                                        if($result->grade) {
-                                                            switch($result->grade) {
-                                                                case 'A+':
-                                                                case 'A':
-                                                                case 'A-':
-                                                                    $gradeColor = 'success';
-                                                                    break;
-                                                                case 'B+':
-                                                                case 'B':
-                                                                case 'B-':
-                                                                    $gradeColor = 'primary';
-                                                                    break;
-                                                                case 'C+':
-                                                                case 'C':
-                                                                case 'C-':
-                                                                    $gradeColor = 'warning';
-                                                                    break;
-                                                                case 'D+':
-                                                                case 'D':
-                                                                    $gradeColor = 'danger';
-                                                                    break;
-                                                                case 'F':
-                                                                    $gradeColor = 'dark';
-                                                                    break;
-                                                            }
-                                                        }
-                                                    @endphp
-                                                    <span class="badge bg-{{ $gradeColor }}">
-                                                        {{ $result->grade ?? '-' }}
-                                                    </span>
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                            <td class="text-center fw-bold">
-                                                @if($result)
-                                                    {{ number_format($result->gpa, 2) }}
-                                                @else
-                                                    -
-                                                @endif
-                                            </td>
-                                        </tr>
-                                        @else
-                                        <!-- Skip invalid enrollment records -->
-                                        @endif
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                            <h4><span class="badge bg-{{ $gradeColor }} fs-6">{{ $result->grade ?? '-' }}</span></h4>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3">
+                                    <div class="card bg-light">
+                                        <div class="card-body text-center">
+                                            <h6 class="card-title">GPA</h6>
+                                            <h4 class="text-info">{{ number_format($result->gpa, 2) }}</h4>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            @if($result->notes)
+                                <div class="row mt-3">
+                                    <div class="col-12">
+                                        <div class="alert alert-info">
+                                            <h6 class="alert-heading">Lecturer Notes:</h6>
+                                            <p class="mb-0">{{ $result->notes }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                        @else
+                            <!-- No Results Available -->
+                            <div class="text-center py-5">
+                                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">No Results Available</h5>
+                                <p class="text-muted">Results for this subject will be published by your lecturer once they are finalized.</p>
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
         </div>
+        @else
+        <!-- Skip invalid enrollment records -->
+        @endif
     @endforeach
 
     <!-- No Results Message -->
@@ -257,7 +207,7 @@
                     <div class="card-body text-center py-5">
                         <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
                         <h4 class="text-muted">No Exam Results Available</h4>
-                        <p class="text-muted">Your exam results for {{ $currentYear }} - {{ $currentSemester }} will be published by your lecturers once they are finalized.</p>
+                        <p class="text-muted">Your exam results for {{ $currentYear }} will be published by your lecturers once they are finalized.</p>
                     </div>
                 </div>
             </div>
