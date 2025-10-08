@@ -3,7 +3,7 @@
     <div class="container">
         <div class="d-flex align-items-center justify-content-between w-100">
             <a class="navbar-brand navbar-order d-flex align-items-center justify-content-center mr-0 ml-auto" href="/">
-                <img src="/store/1/dark-logo.png" class="img-cover" alt="site logo">
+                <img src="/store/1/dark-logo.png" alt="site logo" style="height: 40px; width: auto; object-fit: contain;">
             </a>
 
             <button class="navbar-toggler navbar-order" type="button" id="navbarToggle">

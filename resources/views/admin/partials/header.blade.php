@@ -5,7 +5,7 @@
             <!-- Logo -->
             <div class="admin-logo">
                 <a href="{{ route('admin.dashboard') }}" class="d-flex align-items-center">
-                    <img src="/store/1/dark-logo.png" class="img-cover" alt="Olympia Education Logo">
+                    <img src="/store/1/dark-logo.png" alt="Olympia Education Logo" style="height: 40px; width: auto; object-fit: contain;">
                 </a>
             </div>
 

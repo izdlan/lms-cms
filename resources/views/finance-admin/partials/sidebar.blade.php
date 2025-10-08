@@ -7,7 +7,7 @@
                     <img src="{{ asset('storage/' . auth()->user()->profile_picture) }}" alt="Profile Picture" class="profile-picture">
                 @else
                     <div class="profile-picture-placeholder">
-                        <i class="fas fa-user-tie"></i>
+                        <i class="bi bi-person-badge"></i>
                     </div>
                 @endif
             </div>
@@ -20,49 +20,49 @@
     
     <nav class="sidebar-nav">
         <a href="{{ route('finance-admin.dashboard') }}" class="nav-link {{ request()->routeIs('finance-admin.dashboard') ? 'active' : '' }}">
-            <i class="fas fa-tachometer-alt"></i>
+            <i class="bi bi-speedometer2"></i>
             Dashboard
         </a>
         
         <a href="{{ route('finance-admin.students') }}" class="nav-link {{ request()->routeIs('finance-admin.students') ? 'active' : '' }}">
-            <i class="fas fa-users"></i>
+            <i class="bi bi-people"></i>
             All Students
         </a>
         
         <a href="{{ route('finance-admin.students', ['status' => 'active']) }}" class="nav-link {{ request()->routeIs('finance-admin.students') && request('status') == 'active' ? 'active' : '' }}">
-            <i class="fas fa-user-check"></i>
+            <i class="bi bi-person-check"></i>
             Active Students
         </a>
         
         <a href="{{ route('finance-admin.students', ['status' => 'blocked']) }}" class="nav-link {{ request()->routeIs('finance-admin.students') && request('status') == 'blocked' ? 'active' : '' }}">
-            <i class="fas fa-user-times"></i>
+            <i class="bi bi-person-x"></i>
             Blocked Students
         </a>
         
         <a href="{{ route('finance-admin.pending-payments') }}" class="nav-link {{ request()->routeIs('finance-admin.pending-payments') ? 'active' : '' }}">
-            <i class="fas fa-exclamation-triangle"></i>
+            <i class="bi bi-exclamation-triangle"></i>
             Pending Payments
         </a>
         
         <a href="{{ route('finance-admin.invoices') }}" class="nav-link {{ request()->routeIs('finance-admin.invoices') ? 'active' : '' }}">
-            <i class="fas fa-file-invoice"></i>
+            <i class="bi bi-file-earmark-text"></i>
             Invoices
         </a>
         
         <a href="{{ route('finance-admin.reports') }}" class="nav-link {{ request()->routeIs('finance-admin.reports') ? 'active' : '' }}">
-            <i class="fas fa-chart-bar"></i>
+            <i class="bi bi-bar-chart"></i>
             Reports
         </a>
         
         <hr class="sidebar-divider">
         
         <a href="#" class="nav-link">
-            <i class="fas fa-user"></i>
+            <i class="bi bi-person"></i>
             My Profile
         </a>
         
         <a href="{{ route('logout') }}" class="nav-link" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-            <i class="fas fa-sign-out-alt"></i>
+            <i class="bi bi-box-arrow-right"></i>
             Logout
         </a>
     </nav>

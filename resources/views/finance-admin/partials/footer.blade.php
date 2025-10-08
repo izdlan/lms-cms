@@ -9,7 +9,7 @@
                         <div class="col-md-4">
                             <div class="footer-logo">
                                 <a href="{{ route('finance-admin.dashboard') }}">
-                                    <img src="/store/1/white-logo.png" class="img-cover" alt="Olympia Education Logo" style="height: 40px;">
+                                    <img src="/store/1/white-logo.png" alt="Olympia Education Logo" style="height: 40px; width: auto; object-fit: contain;">
                                 </a>
                             </div>
                         </div>

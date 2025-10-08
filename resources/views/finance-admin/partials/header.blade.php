@@ -4,7 +4,7 @@
         <!-- Left Side -->
         <div class="navbar-nav-left">
             <a class="navbar-brand" href="{{ route('finance-admin.dashboard') }}">
-                <img src="/store/1/dark-logo.png" class="img-cover" alt="Olympia Education" height="40">
+                <img src="/store/1/dark-logo.png" alt="Olympia Education" style="height: 40px; width: auto; object-fit: contain;">
                 <span class="brand-text">
                     <strong>OLYMPIA EDUCATION</strong>
                     <small>Centre for Professional, Executive, Advanced & Continuing Education</small>
@@ -32,29 +32,29 @@
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="financeAdminDropdown">
                         <li>
                             <a class="dropdown-item" href="{{ route('finance-admin.dashboard') }}">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                                <i class="bi bi-speedometer2"></i> Dashboard
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('finance-admin.students') }}">
-                                <i class="fas fa-users"></i> Students
+                                <i class="bi bi-people"></i> Students
                             </a>
                         </li>
                         <li>
                             <a class="dropdown-item" href="{{ route('finance-admin.pending-payments') }}">
-                                <i class="fas fa-clock"></i> Pending Payments
+                                <i class="bi bi-clock"></i> Pending Payments
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item" href="{{ route('finance-admin.password.change') }}">
-                                <i class="fas fa-key"></i> Change Password
+                                <i class="bi bi-key"></i> Change Password
                             </a>
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <a class="dropdown-item text-danger" href="{{ route('logout') }}" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
-                                <i class="fas fa-sign-out-alt"></i> Logout
+                                <i class="bi bi-box-arrow-right"></i> Logout
                             </a>
                         </li>
                     </ul>

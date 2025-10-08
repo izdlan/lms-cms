@@ -233,6 +233,7 @@ class StudentsImport implements ToCollection
                 return !empty(trim($cell));
             })));
             
+            // Enhanced filtering for non-student data
             if (is_string($firstColumnValue) && (
                 stripos($firstColumnValue, 'PHILOSOPHY') !== false ||
                 stripos($firstColumnValue, 'INTERNATIONAL') !== false ||
@@ -241,13 +242,32 @@ class StudentsImport implements ToCollection
                 stripos($firstColumnValue, 'DOCTOR') !== false ||
                 stripos($firstColumnValue, 'MASTER') !== false ||
                 stripos($firstColumnValue, 'BACHELOR') !== false ||
+                stripos($firstColumnValue, 'DIPLOMA') !== false ||
+                stripos($firstColumnValue, 'EXECUTIVE') !== false ||
+                stripos($firstColumnValue, 'DIGITAL') !== false ||
+                stripos($firstColumnValue, 'MARKETING') !== false ||
+                stripos($firstColumnValue, 'JULY') !== false ||
+                stripos($firstColumnValue, 'AUGUST') !== false ||
+                stripos($firstColumnValue, 'SEPTEMBER') !== false ||
+                stripos($firstColumnValue, 'OCTOBER') !== false ||
+                stripos($firstColumnValue, 'NOVEMBER') !== false ||
+                stripos($firstColumnValue, 'DECEMBER') !== false ||
+                stripos($firstColumnValue, 'JANUARY') !== false ||
+                stripos($firstColumnValue, 'FEBRUARY') !== false ||
+                stripos($firstColumnValue, 'MARCH') !== false ||
+                stripos($firstColumnValue, 'APRIL') !== false ||
+                stripos($firstColumnValue, 'MAY') !== false ||
+                stripos($firstColumnValue, 'JUNE') !== false ||
                 stripos($firstColumnValue, 'TOTAL') !== false ||
                 stripos($firstColumnValue, 'FILE STATUS') !== false ||
                 stripos($firstColumnValue, 'SUMMARY') !== false ||
                 stripos($firstColumnValue, 'LEARNERS') !== false ||
                 stripos($firstColumnValue, 'STUDENTS') !== false ||
                 stripos($firstColumnValue, 'COUNT') !== false ||
-                stripos($firstColumnValue, 'STATISTICS') !== false
+                stripos($firstColumnValue, 'STATISTICS') !== false ||
+                stripos($firstColumnValue, 'JPK') !== false ||
+                stripos($firstColumnValue, 'IUC') !== false ||
+                stripos($firstColumnValue, 'PROSPECT') !== false
             )) {
                 Log::info("Skipping summary/program row " . ($index + 1) . " - contains: " . $firstColumnValue);
                 continue;
@@ -327,6 +347,39 @@ class StudentsImport implements ToCollection
                 stripos($nameValue, 'EMAIL') !== false ||
                 stripos($nameValue, 'ID STUDENT') !== false ||
                 stripos($nameValue, '=') !== false || // Skip formulas like =SUM(F3:F4)
+                stripos($nameValue, 'DIPLOMA') !== false ||
+                stripos($nameValue, 'EXECUTIVE') !== false ||
+                stripos($nameValue, 'DIGITAL') !== false ||
+                stripos($nameValue, 'MARKETING') !== false ||
+                stripos($nameValue, 'JULY') !== false ||
+                stripos($nameValue, 'AUGUST') !== false ||
+                stripos($nameValue, 'SEPTEMBER') !== false ||
+                stripos($nameValue, 'OCTOBER') !== false ||
+                stripos($nameValue, 'NOVEMBER') !== false ||
+                stripos($nameValue, 'DECEMBER') !== false ||
+                stripos($nameValue, 'JANUARY') !== false ||
+                stripos($nameValue, 'FEBRUARY') !== false ||
+                stripos($nameValue, 'MARCH') !== false ||
+                stripos($nameValue, 'APRIL') !== false ||
+                stripos($nameValue, 'MAY') !== false ||
+                stripos($nameValue, 'JUNE') !== false ||
+                stripos($nameValue, 'JPK') !== false ||
+                stripos($nameValue, 'IUC') !== false ||
+                stripos($nameValue, 'PROSPECT') !== false ||
+                stripos($nameValue, 'PROGRAMME') !== false ||
+                stripos($nameValue, 'PROGRAM') !== false ||
+                stripos($nameValue, 'BACHELOR') !== false ||
+                stripos($nameValue, 'MASTER') !== false ||
+                stripos($nameValue, 'DOCTOR') !== false ||
+                stripos($nameValue, 'PHILOSOPHY') !== false ||
+                stripos($nameValue, 'INTERNATIONAL') !== false ||
+                stripos($nameValue, 'LOCAL') !== false ||
+                stripos($nameValue, 'NAME') !== false || // Skip generic names
+                stripos($nameValue, 'name') !== false ||
+                stripos($nameValue, 'Name') !== false ||
+                stripos($nameValue, 'PIC') !== false || // Skip generic ICs
+                stripos($nameValue, 'pic') !== false ||
+                stripos($nameValue, 'Pic') !== false ||
                 is_numeric($nameValue) || // Skip pure numbers
                 strlen(trim($nameValue)) < 3) { // Skip very short names
                 Log::info("Skipping non-student row " . ($index + 1) . " - name: " . $nameValue);
@@ -346,12 +399,37 @@ class StudentsImport implements ToCollection
                     $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
                     Log::warning("Generated auto IC for student with empty IC: " . $data['name'] . " - IC: " . $data['ic/passport']);
                 } else {
-                    Log::info("Using real IC for student: " . $data['name'] . " - IC: " . $icValue);
+                    // Check if this looks like a real IC number
+                    $isRealIC = $this->isValidICNumber($icValue);
+                    if (!$isRealIC) {
+                        // If it's not a real IC, generate an auto one
+                        $data['ic/passport'] = 'AUTO-' . strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $data['name']), 0, 8)) . '-' . date('Y');
+                        Log::warning("Replaced invalid IC with auto IC for student: " . $data['name'] . " - Original: " . $icValue . " - New: " . $data['ic/passport']);
+                    } else {
+                        Log::info("Using real IC for student: " . $data['name'] . " - IC: " . $icValue);
+                    }
                 }
             }
             if (!$hasEmail) {
                 $emailName = strtolower(preg_replace('/[^A-Za-z0-9]/', '', $data['name']));
                 $data['email'] = $emailName . '@olympia.edu.my';
+            }
+            
+            // Additional validation: Skip rows that have auto-generated patterns
+            $icValue = $data['ic/passport'] ?? '';
+            $emailValue = $data['email'] ?? '';
+            
+            // Skip if IC looks like auto-generated
+            if (strpos($icValue, 'AUTO_') === 0 || 
+                (strpos($icValue, 'AUTO-') === 0 && strpos($icValue, date('Y')) !== false)) {
+                Log::info("Skipping row with auto-generated IC: " . $icValue . " for student: " . $data['name']);
+                continue;
+            }
+            
+            // Skip if email looks like auto-generated
+            if (strpos($emailValue, 'student_') === 0 && strpos($emailValue, '@lms.local') !== false) {
+                Log::info("Skipping row with auto-generated email: " . $emailValue . " for student: " . $data['name']);
+                continue;
             }
 
             // Additional validation for IC numbers - reject obviously fake ones
@@ -362,14 +440,18 @@ class StudentsImport implements ToCollection
                 // Check if IC looks like a passport number (letters + numbers)
                 $isValidPassport = preg_match('/^[A-Z]{2}\d{7}$/', $icValue);
                 // Check if IC looks like a fake value (names, titles, etc.)
-                $isFakeIC = in_array(strtolower($icValue), ['en harris', 'miss shana', 'dato', 'dr', 'prof', 'mr', 'mrs', 'ms']) ||
+                $isFakeIC = in_array(strtolower($icValue), ['en harris', 'miss shana', 'dato', 'dr', 'prof', 'mr', 'mrs', 'ms', 'name', 'pic']) ||
                            stripos($icValue, 'harris') !== false ||
                            stripos($icValue, 'shana') !== false ||
                            stripos($icValue, 'dato') !== false ||
                            stripos($icValue, 'miss') !== false ||
                            stripos($icValue, 'en ') !== false ||
                            stripos($icValue, 'dr ') !== false ||
-                           stripos($icValue, 'prof') !== false;
+                           stripos($icValue, 'prof') !== false ||
+                           stripos($icValue, 'name') !== false ||
+                           stripos($icValue, 'pic') !== false ||
+                           stripos($icValue, 'NAME') !== false ||
+                           stripos($icValue, 'PIC') !== false;
                 
                 // For VIVA-IUC LMS, allow numeric IDs (like 45866)
                 $isNumericId = is_numeric($icValue) && strlen($icValue) >= 4;
@@ -716,6 +798,59 @@ class StudentsImport implements ToCollection
             
             Log::info("Updated mapped headers after position-based mapping:", $mappedHeader);
         }
+    }
+    
+    /**
+     * Check if an IC number looks like a real Malaysian IC or passport
+     */
+    private function isValidICNumber($icValue)
+    {
+        if (empty($icValue) || $icValue === '-' || $icValue === 'N/A') {
+            return false;
+        }
+        
+        // Check if it's a Malaysian IC format (YYMMDD-XX-####)
+        $isValidMalaysianIC = preg_match('/^\d{6}-\d{2}-\d{4}$/', $icValue);
+        
+        // Check if it's a passport format (2 letters + 7 numbers)
+        $isValidPassport = preg_match('/^[A-Z]{2}\d{7}$/', $icValue);
+        
+        // Check if it's a numeric ID (like 45866) - valid for some systems
+        $isNumericId = is_numeric($icValue) && strlen($icValue) >= 4 && strlen($icValue) <= 10;
+        
+        // Check if it starts with X (some special cases)
+        $isSpecialId = str_starts_with($icValue, 'X') && strlen($icValue) >= 5;
+        
+        // Check if it's clearly fake (names, titles, etc.)
+        $isFakeIC = in_array(strtolower($icValue), ['en harris', 'miss shana', 'dato', 'dr', 'prof', 'mr', 'mrs', 'ms']) ||
+                   stripos($icValue, 'harris') !== false ||
+                   stripos($icValue, 'shana') !== false ||
+                   stripos($icValue, 'dato') !== false ||
+                   stripos($icValue, 'miss') !== false ||
+                   stripos($icValue, 'en ') !== false ||
+                   stripos($icValue, 'dr ') !== false ||
+                   stripos($icValue, 'prof') !== false ||
+                   stripos($icValue, 'july') !== false ||
+                   stripos($icValue, 'august') !== false ||
+                   stripos($icValue, 'september') !== false ||
+                   stripos($icValue, 'october') !== false ||
+                   stripos($icValue, 'november') !== false ||
+                   stripos($icValue, 'december') !== false ||
+                   stripos($icValue, 'january') !== false ||
+                   stripos($icValue, 'february') !== false ||
+                   stripos($icValue, 'march') !== false ||
+                   stripos($icValue, 'april') !== false ||
+                   stripos($icValue, 'may') !== false ||
+                   stripos($icValue, 'june') !== false ||
+                   stripos($icValue, 'jpk') !== false ||
+                   stripos($icValue, 'iuc') !== false ||
+                   stripos($icValue, 'prospect') !== false ||
+                   stripos($icValue, 'diploma') !== false ||
+                   stripos($icValue, 'executive') !== false ||
+                   stripos($icValue, 'digital') !== false ||
+                   stripos($icValue, 'marketing') !== false;
+        
+        return ($isValidMalaysianIC || $isValidPassport || $isNumericId || $isSpecialId) && !$isFakeIC;
     }
     
 }
