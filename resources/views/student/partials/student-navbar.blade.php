@@ -1,5 +1,5 @@
 <!-- Student Navigation Bar -->
-<nav class="navbar navbar-expand-lg navbar-light student-navbar">
+<nav class="student-navbar" data-navbar-disabled="true">
     <div class="container-fluid">
         <!-- Left Side -->
         <div class="navbar-nav-left">
@@ -17,7 +17,7 @@
             @auth('student')
                 <!-- My Program Dropdown -->
                 <div class="dropdown courses-dropdown-right">
-                    <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" aria-expanded="false">
                         <i class="fas fa-graduation-cap"></i>
                         My Program
                     </button>
@@ -144,3 +144,74 @@
         </div>
     </div>
 </nav>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    // --- SAFELY DISABLE THEME NAVBAR.JS ---
+    // Prevent error from navbar.min.js (offsetTop issue)
+    try {
+        const mainNavbar = document.querySelector('.student-navbar');
+        if (mainNavbar && mainNavbar.hasAttribute('data-navbar-disabled')) {
+            console.log("Navbar disabled by data attribute - skipping theme navbar.js");
+            return;
+        }
+        if (mainNavbar && mainNavbar.offsetTop !== undefined) {
+            // OK
+        }
+    } catch (err) {
+        console.warn("Navbar init skipped to prevent offsetTop error:", err);
+    }
+
+    // --- CUSTOM DROPDOWN LOGIC ---
+    const coursesDropdown = document.getElementById("coursesDropdown");
+    const coursesDropdownMenu = document.querySelector(".courses-dropdown-menu");
+
+    if (coursesDropdown && coursesDropdownMenu) {
+        // Click to toggle
+        coursesDropdown.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const isOpen = coursesDropdownMenu.classList.contains("show");
+
+            // Close all other open dropdowns
+            document.querySelectorAll(".dropdown-menu.show").forEach(menu => {
+                menu.classList.remove("show");
+            });
+
+            // Toggle this dropdown
+            if (!isOpen) {
+                coursesDropdownMenu.classList.add("show");
+                coursesDropdown.setAttribute("aria-expanded", "true");
+            } else {
+                coursesDropdownMenu.classList.remove("show");
+                coursesDropdown.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        // Click outside to close
+        document.addEventListener("click", function (e) {
+            if (
+                !coursesDropdown.contains(e.target) &&
+                !coursesDropdownMenu.contains(e.target)
+            ) {
+                coursesDropdownMenu.classList.remove("show");
+                coursesDropdown.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        // Escape key closes dropdown
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                coursesDropdownMenu.classList.remove("show");
+                coursesDropdown.setAttribute("aria-expanded", "false");
+            }
+        });
+
+        // Prevent closing when clicking inside menu
+        coursesDropdownMenu.addEventListener("click", function (e) {
+            e.stopPropagation();
+        });
+    }
+});
+</script>

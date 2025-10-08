@@ -1286,6 +1286,79 @@
     <link href="/assets/default/vendors/flagstrap/css/flags.css" rel="stylesheet">
     <script src="/assets/default/vendors/flagstrap/js/jquery.flagstrap.min.js"></script>
     <script src="/assets/default/js/parts/top_nav_flags.min.js"></script>
+    <!-- Prevent Bootstrap navbar conflicts -->
+    <script>
+    // Override Bootstrap navbar before it loads
+    (function() {
+        'use strict';
+        
+        // Store original console.error to prevent navbar errors
+        const originalError = console.error;
+        console.error = function(...args) {
+            // Filter out navbar offsetTop errors
+            if (args[0] && typeof args[0] === 'string' && args[0].includes('offsetTop')) {
+                return;
+            }
+            originalError.apply(console, args);
+        };
+        
+        // Override Bootstrap navbar initialization
+        if (typeof window.bootstrap !== 'undefined' && window.bootstrap.Navbar) {
+            const originalNavbar = window.bootstrap.Navbar;
+            window.bootstrap.Navbar = function(element, config) {
+                // Skip initialization for our custom navbar
+                if (element && element.classList && element.classList.contains('student-navbar')) {
+                    return;
+                }
+                // Allow normal Bootstrap behavior for other navbars
+                return new originalNavbar(element, config);
+            };
+        }
+        
+        // Disable Bootstrap navbar auto-initialization for our navbar
+        function disableBootstrapNavbar() {
+            const navbar = document.querySelector('.student-navbar');
+            if (navbar) {
+                // Remove all Bootstrap classes that might trigger initialization
+                navbar.classList.remove('navbar-expand-lg', 'navbar-light');
+                
+                // Set attributes to prevent Bootstrap initialization
+                navbar.setAttribute('data-bs-auto-close', 'false');
+                navbar.setAttribute('data-bs-toggle', 'false');
+                navbar.setAttribute('data-bs-target', 'false');
+                navbar.setAttribute('data-bs-collapse', 'false');
+                
+                // Remove any Bootstrap data attributes
+                navbar.removeAttribute('data-bs-toggle');
+                navbar.removeAttribute('data-bs-target');
+                navbar.removeAttribute('data-bs-collapse');
+            }
+        }
+        
+        // Run immediately
+        disableBootstrapNavbar();
+        
+        // Run when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                disableBootstrapNavbar();
+            });
+        } else {
+            disableBootstrapNavbar();
+        }
+        
+        // Prevent Bootstrap from initializing on our navbar
+        if (typeof bootstrap !== 'undefined' && bootstrap.Navbar) {
+            const navbarElements = document.querySelectorAll('.student-navbar');
+            navbarElements.forEach(element => {
+                if (element._bsNavbar) {
+                    element._bsNavbar.dispose();
+                    delete element._bsNavbar;
+                }
+            });
+        }
+    })();
+    </script>
     <script src="/assets/default/js/parts/navbar.min.js"></script>
     <script src="/assets/default/js/parts/main.min.js"></script>
 

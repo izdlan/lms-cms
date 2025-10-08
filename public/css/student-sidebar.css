@@ -208,19 +208,23 @@
 
 /* My Program Dropdown Styles - Professional Design */
 .courses-dropdown-menu {
-    min-width: 320px !important;
-    max-width: 400px !important;
-    max-height: 60vh !important;
+    min-width: 360px !important;
+    max-width: 420px !important;
+    max-height: 70vh !important;
     overflow-y: auto !important;
     border: none !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-    border-radius: 12px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 16px !important;
     padding: 0 !important;
-    margin-top: 8px !important;
+    margin-top: 12px !important;
     background: #ffffff !important;
     position: absolute !important;
     z-index: 1050 !important;
     display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    transform: translateY(-10px) !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
 }
 
 .courses-dropdown-menu::-webkit-scrollbar {
@@ -243,10 +247,10 @@
 
 /* Program Header Section */
 .program-header {
-    background: linear-gradient(135deg, #20c997 0%, #17a2b8 100%) !important;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
     color: white !important;
-    padding: 0.75rem 1rem !important;
-    border-radius: 12px 12px 0 0 !important;
+    padding: 1.25rem 1.5rem !important;
+    border-radius: 16px 16px 0 0 !important;
     position: relative !important;
     overflow: hidden !important;
     margin: 0 !important;
@@ -275,19 +279,19 @@
 }
 
 .program-icon {
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 0.875rem;
+    margin-right: 1rem;
     color: white;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     backdrop-filter: blur(10px);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .program-info {
@@ -297,26 +301,26 @@
 .program-code {
     font-weight: 700;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     letter-spacing: 1px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.3rem;
 }
 
 .program-name {
     color: rgba(255, 255, 255, 0.9);
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     font-weight: 500;
-    line-height: 1.2;
+    line-height: 1.3;
 }
 
 /* Subjects Header */
 .subjects-header {
-    background: linear-gradient(135deg, #6c5ce7 0%, #a29bfe 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 0.75rem 1.25rem;
+    padding: 1rem 1.5rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 1px;
     position: relative;
@@ -336,9 +340,9 @@
 .subject-item {
     display: flex !important;
     align-items: flex-start !important;
-    padding: 0.5rem 1rem !important;
+    padding: 0.875rem 1.25rem !important;
     border: none !important;
-    border-bottom: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f8f9fa !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     position: relative !important;
     background: white !important;
@@ -349,7 +353,7 @@
 
 .subject-item:last-child {
     border-bottom: none;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 16px 16px;
 }
 
 .subject-item:hover {
@@ -370,18 +374,18 @@
 }
 
 .subject-icon {
-    width: 32px !important;
-    height: 32px !important;
+    width: 36px !important;
+    height: 36px !important;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
-    margin-right: 0.75rem !important;
+    margin-right: 1rem !important;
     color: white !important;
-    font-size: 0.8rem !important;
+    font-size: 0.9rem !important;
     flex-shrink: 0 !important;
-    box-shadow: 0 2px 6px rgba(102, 126, 234, 0.3) !important;
+    box-shadow: 0 3px 8px rgba(102, 126, 234, 0.25) !important;
     transition: all 0.3s ease !important;
 }
 
@@ -398,50 +402,50 @@
 .subject-code {
     font-weight: 700 !important;
     color: #2d3436 !important;
-    font-size: 0.8rem !important;
+    font-size: 0.85rem !important;
     display: block !important;
-    margin-bottom: 0.15rem !important;
+    margin-bottom: 0.2rem !important;
     letter-spacing: 0.5px !important;
-    line-height: 1.2 !important;
+    line-height: 1.3 !important;
 }
 
 .subject-title {
     color: #636e72 !important;
-    font-size: 0.7rem !important;
+    font-size: 0.75rem !important;
     font-weight: 500 !important;
-    line-height: 1.2 !important;
-    margin-bottom: 0.3rem !important;
+    line-height: 1.3 !important;
+    margin-bottom: 0.4rem !important;
     display: block !important;
 }
 
 .lecturer-info {
     color: #0984e3 !important;
-    font-size: 0.65rem !important;
+    font-size: 0.7rem !important;
     font-weight: 600 !important;
     display: flex !important;
     align-items: center !important;
-    margin-bottom: 0.15rem !important;
+    margin-bottom: 0.2rem !important;
 }
 
 .lecturer-info i {
-    margin-right: 0.3rem !important;
-    font-size: 0.6rem !important;
+    margin-right: 0.4rem !important;
+    font-size: 0.65rem !important;
 }
 
 .class-info {
     color: #00b894 !important;
-    font-size: 0.6rem !important;
+    font-size: 0.65rem !important;
     font-weight: 600 !important;
     display: inline-flex !important;
     align-items: center !important;
     background: rgba(0, 184, 148, 0.1) !important;
-    padding: 0.15rem 0.3rem !important;
-    border-radius: 3px !important;
+    padding: 0.2rem 0.4rem !important;
+    border-radius: 4px !important;
 }
 
 .class-info i {
-    margin-right: 0.25rem !important;
-    font-size: 0.55rem !important;
+    margin-right: 0.3rem !important;
+    font-size: 0.6rem !important;
 }
 
 /* Dropdown Headers */
@@ -463,24 +467,24 @@
 
 /* View All Button */
 .view-all-btn {
-    background: linear-gradient(135deg, #fd79a8 0%, #fdcb6e 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
     border: none;
-    padding: 0.75rem 1.25rem;
+    padding: 1rem 1.5rem;
     font-weight: 600;
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    border-radius: 0 0 12px 12px;
+    border-radius: 0 0 16px 16px;
     transition: all 0.3s ease;
     text-align: center;
     width: 100%;
 }
 
 .view-all-btn:hover {
-    background: linear-gradient(135deg, #e84393 0%, #fdcb6e 100%);
+    background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(232, 67, 147, 0.3);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
     color: white;
 }
 
@@ -593,23 +597,30 @@
 
 /* Bootstrap Override - Force our styles */
 .dropdown-menu.courses-dropdown-menu {
-    min-width: 320px !important;
-    max-width: 400px !important;
-    max-height: 60vh !important;
+    min-width: 360px !important;
+    max-width: 420px !important;
+    max-height: 70vh !important;
     overflow-y: auto !important;
     border: none !important;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-    border-radius: 12px !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
+    border-radius: 16px !important;
     padding: 0 !important;
-    margin-top: 8px !important;
+    margin-top: 12px !important;
     background: #ffffff !important;
     position: absolute !important;
     z-index: 1050 !important;
     display: none !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
 }
 
 .dropdown-menu.courses-dropdown-menu.show {
     display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: translateY(0) !important;
 }
 
 /* Override Bootstrap dropdown item styles */
@@ -627,6 +638,80 @@
 .dropdown-menu.courses-dropdown-menu .dropdown-item:focus {
     background: transparent !important;
     color: inherit !important;
+}
+
+/* Custom Student Navbar - No Bootstrap Dependencies */
+.student-navbar {
+    position: relative !important;
+    overflow: visible !important;
+    display: flex !important;
+    align-items: center !important;
+    padding: 1rem 0 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #e9ecef !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+    z-index: 1000 !important;
+}
+
+.student-navbar .container-fluid {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+    padding: 0 1rem !important;
+}
+
+.student-navbar .navbar-nav-left {
+    display: flex !important;
+    align-items: center !important;
+}
+
+.student-navbar .navbar-nav-right {
+    display: flex !important;
+    align-items: center !important;
+    gap: 1rem !important;
+}
+
+.student-navbar .navbar-brand {
+    display: flex !important;
+    align-items: center !important;
+    text-decoration: none !important;
+    color: #333 !important;
+    font-weight: bold !important;
+}
+
+.student-navbar .navbar-brand img {
+    margin-right: 0.5rem !important;
+}
+
+.student-navbar .brand-text {
+    display: flex !important;
+    flex-direction: column !important;
+    line-height: 1.2 !important;
+}
+
+.student-navbar .brand-text strong {
+    font-size: 1.1rem !important;
+    color: #333 !important;
+}
+
+.student-navbar .brand-text small {
+    font-size: 0.8rem !important;
+    color: #666 !important;
+    font-weight: normal !important;
+}
+
+/* Prevent Bootstrap navbar conflicts */
+.courses-dropdown-right {
+    position: relative !important;
+}
+
+.courses-dropdown-right .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    right: auto !important;
+    transform: none !important;
 }
 
 /* Responsive Design */

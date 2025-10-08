@@ -19,8 +19,8 @@
                     <p>Update your account password for security.</p>
                 </div>
 
-                <div class="row">
-                    <div class="col-12">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8 col-md-10 col-12">
                         <div class="password-change-card">
                             <div class="card-header">
                                 <h5><i data-feather="shield" width="20" height="20" class="me-2"></i>Password Security</h5>
