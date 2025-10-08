@@ -35,7 +35,7 @@
                                 <i data-feather="book-open"></i>
                             </div>
                             <div class="stats-content">
-                                <h3>0</h3>
+                                <h3>{{ $totalCourses ?? 0 }}</h3>
                                 <p>Total Courses</p>
                             </div>
                         </div>
@@ -46,8 +46,8 @@
                                 <i data-feather="activity"></i>
                             </div>
                             <div class="stats-content">
-                                <h3>0</h3>
-                                <p>Active Sessions</p>
+                                <h3>{{ $activeEnrollments ?? 0 }}</h3>
+                                <p>Active Enrollments</p>
                             </div>
                         </div>
                     </div>
@@ -107,9 +107,15 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    @if($student->courses && count($student->courses) > 0)
-                                                        @foreach($student->courses as $course)
-                                                            <span class="badge-modern badge-modern-primary me-1">{{ $course }}</span>
+                                                    @php
+                                                        $enrollments = \App\Models\StudentEnrollment::where('user_id', $student->id)
+                                                            ->where('status', 'enrolled')
+                                                            ->with('subject')
+                                                            ->get();
+                                                    @endphp
+                                                    @if($enrollments->count() > 0)
+                                                        @foreach($enrollments as $enrollment)
+                                                            <span class="badge-modern badge-modern-primary me-1">{{ $enrollment->subject->name ?? $enrollment->subject_code }}</span>
                                                         @endforeach
                                                     @else
                                                         <span class="text-muted">No courses</span>
