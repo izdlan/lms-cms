@@ -177,7 +177,7 @@
                                         <button type="button" class="btn btn-outline-primary me-2" onclick="previewResults()">
                                             <i class="fas fa-eye me-1"></i>Preview
                                         </button>
-                                        <button type="submit" class="btn btn-success">
+                                        <button type="button" class="btn btn-success" onclick="submitForm()">
                                             <i class="fas fa-save me-1"></i>Save Results
                                         </button>
                                     </div>
@@ -292,6 +292,7 @@ function updateTable() {
     const tableBody = document.getElementById('assessmentTableBody');
     const configRows = document.querySelectorAll('#assessmentHeaders .row');
     
+    if (!tableBody) return; // Exit if table body doesn't exist
     tableBody.innerHTML = '';
     
     configRows.forEach((row, index) => {
@@ -302,8 +303,10 @@ function updateTable() {
         
         // Update percentage badge
         const percentageBadge = row.querySelector('.assessment-percentage');
-        percentageBadge.textContent = percentage + '%';
-        percentageBadge.className = `badge ${percentage >= 50 ? 'bg-success' : 'bg-warning'}`;
+        if (percentageBadge) {
+            percentageBadge.textContent = percentage + '%';
+            percentageBadge.className = `badge ${percentage >= 50 ? 'bg-success' : 'bg-warning'}`;
+        }
         
         // Add to table
         const tableRow = document.createElement('tr');
@@ -347,10 +350,16 @@ function updateSummary() {
     const percentage = totalPossible > 0 ? ((totalObtained / totalPossible) * 100).toFixed(1) : 0;
     const grade = calculateGrade(percentage);
     
-    document.getElementById('totalPossible').textContent = totalPossible;
-    document.getElementById('totalObtained').textContent = totalObtained;
-    document.getElementById('totalPercentage').textContent = percentage + '%';
-    document.getElementById('finalGrade').textContent = grade;
+    // Add null checks to prevent errors
+    const totalPossibleEl = document.getElementById('totalPossible');
+    const totalObtainedEl = document.getElementById('totalObtained');
+    const totalPercentageEl = document.getElementById('totalPercentage');
+    const finalGradeEl = document.getElementById('finalGrade');
+    
+    if (totalPossibleEl) totalPossibleEl.textContent = totalPossible;
+    if (totalObtainedEl) totalObtainedEl.textContent = totalObtained;
+    if (totalPercentageEl) totalPercentageEl.textContent = percentage + '%';
+    if (finalGradeEl) finalGradeEl.textContent = grade;
 }
 
 function calculateGrade(percentage) {
@@ -480,7 +489,6 @@ function submitForm() {
             form.appendChild(input);
         });
     });
-    
     form.submit();
 }
 </script>

@@ -43,7 +43,7 @@
                             <select name="class_code" id="class_code" class="form-select" onchange="this.form.submit()">
                                 <option value="">Select a class...</option>
                                 @if($selectedSubject)
-                                    @foreach($selectedSubject->classSchedules->where('lecturer_id', $lecturer->id) as $class)
+                                    @foreach($selectedSubject->classSchedules as $class)
                                         <option value="{{ $class->class_code }}" {{ $selectedClass && $selectedClass->class_code == $class->class_code ? 'selected' : '' }}>
                                             {{ $class->class_name }} ({{ $class->class_code }})
                                         </option>
@@ -238,55 +238,22 @@
 </div>
 
 <script>
-let deleteResultId = null;
-
-function deleteResult(resultId) {
-    deleteResultId = resultId;
-    $('#deleteModal').modal('show');
-}
-
-$('#confirmDelete').click(function() {
-    if (deleteResultId) {
-        $.ajax({
-            url: '{{ route("staff.exam-results.delete") }}',
-            method: 'DELETE',
-            data: {
-                exam_result_id: deleteResultId,
-                _token: '{{ csrf_token() }}'
-            },
-            success: function(response) {
-                if (response.success) {
-                    location.reload();
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            },
-            error: function() {
-                alert('An error occurred while deleting the result.');
-            }
-        });
-    }
-});
-
 // Dynamic subject classes from backend (same as courses page)
 const subjectClasses = {
     @foreach($subjects as $subject)
     '{{ $subject->code }}': [
-        @foreach($subject->classSchedules->where('lecturer_id', $lecturer->id) as $class)
+        @foreach($subject->classSchedules as $class)
         { value: '{{ $class->class_code }}', text: '{{ $class->class_name }} ({{ $class->class_code }})' },
         @endforeach
     ],
     @endforeach
 };
 
-// Load classes on page load if subject is already selected
-document.addEventListener('DOMContentLoaded', function() {
-    const subjectSelect = document.getElementById('subject_code');
-    if (subjectSelect.value) {
-        loadClasses();
-    }
-});
+// Debug: Log the subjectClasses object
+console.log('Subject classes data:', subjectClasses);
+console.log('Current lecturer ID:', {{ $lecturer->id }});
 
+// Define loadClasses function before it's used
 function loadClasses() {
     const subjectCode = document.getElementById('subject_code').value;
     const classSelect = document.getElementById('class_code');
@@ -308,6 +275,53 @@ function addBulkResults() {
     // This would open a modal or redirect to a bulk results page
     alert('Bulk results feature coming soon!');
 }
+
+// Modal and delete functionality
+let deleteResultId = null;
+
+function deleteResult(resultId) {
+    deleteResultId = resultId;
+    const modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    modal.show();
+}
+
+// Load classes on page load if subject is already selected
+document.addEventListener('DOMContentLoaded', function() {
+    const subjectSelect = document.getElementById('subject_code');
+    if (subjectSelect.value) {
+        loadClasses();
+    }
+    
+    // Handle delete confirmation
+    const confirmDeleteBtn = document.getElementById('confirmDelete');
+    if (confirmDeleteBtn) {
+        confirmDeleteBtn.addEventListener('click', function() {
+            if (deleteResultId) {
+                fetch('{{ route("staff.exam-results.delete") }}', {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        exam_result_id: deleteResultId
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    alert('An error occurred while deleting the result.');
+                });
+            }
+        });
+    }
+});
 </script>
 
 <style>
