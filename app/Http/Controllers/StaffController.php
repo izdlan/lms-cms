@@ -1107,6 +1107,7 @@ class StaffController extends Controller
      */
     public function storeExamResults(Request $request)
     {
+
         $user = Auth::guard('staff')->user();
         if (!$user || $user->role !== 'lecturer') {
             return redirect()->route('login')->with('error', 'Please login to access this page.');
@@ -1146,6 +1147,12 @@ class StaffController extends Controller
 
         if (!$enrollment) {
             return redirect()->back()->with('error', 'Student is not enrolled in this subject.');
+        }
+
+        // Get student information
+        $student = User::find($request->student_id);
+        if (!$student) {
+            return redirect()->back()->with('error', 'Student not found.');
         }
 
         try {
@@ -1207,12 +1214,18 @@ class StaffController extends Controller
                 ],
                 [
                     'lecturer_id' => $lecturer->id,
+                    'student_name' => $student->name,
+                    'student_ic' => $student->ic ?? 'N/A',
+                    'student_id' => $student->student_id ?? $student->id,
+                    'class_code' => $enrollment->class_code ?? null,
                     'assessments' => $assessments,
                     'total_marks' => $totalObtainedMarks,
                     'percentage' => $percentage,
                     'grade' => $grade,
                     'gpa' => $gpa,
-                    'notes' => $request->notes,
+                    'remarks' => $request->notes,
+                    'status' => 'published',
+                    'published_at' => now(),
                 ]
             );
 
