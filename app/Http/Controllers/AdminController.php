@@ -37,13 +37,23 @@ class AdminController extends Controller
         $students = User::where('role', 'student')->paginate(20);
         $totalStudents = User::where('role', 'student')->count();
         
-        // Get course statistics
-        $totalCourses = \App\Models\Subject::count();
-        $activeCourses = \App\Models\Subject::where('is_active', true)->count();
+        // Get programme statistics
+        $totalProgrammes = \App\Models\User::where('role', 'student')
+            ->whereNotNull('programme_name')
+            ->where('programme_name', '!=', '')
+            ->distinct('programme_name')
+            ->count('programme_name');
+        
+        $activeProgrammes = \App\Models\User::where('role', 'student')
+            ->whereNotNull('programme_name')
+            ->where('programme_name', '!=', '')
+            ->distinct('programme_name')
+            ->count('programme_name');
+        
         $totalEnrollments = \App\Models\StudentEnrollment::count();
         $activeEnrollments = \App\Models\StudentEnrollment::where('status', 'enrolled')->count();
         
-        return view('admin.dashboard', compact('students', 'totalStudents', 'totalCourses', 'activeCourses', 'totalEnrollments', 'activeEnrollments'));
+        return view('admin.dashboard', compact('students', 'totalStudents', 'totalProgrammes', 'activeProgrammes', 'totalEnrollments', 'activeEnrollments'));
     }
 
     public function students()

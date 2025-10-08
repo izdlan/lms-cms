@@ -35,8 +35,8 @@
                                 <i data-feather="book-open"></i>
                             </div>
                             <div class="stats-content">
-                                <h3>{{ $totalCourses ?? 0 }}</h3>
-                                <p>Total Courses</p>
+                                <h3>{{ $totalProgrammes ?? 0 }}</h3>
+                                <p>Total Programmes</p>
                             </div>
                         </div>
                     </div>
@@ -74,7 +74,7 @@
                                             <th>IC</th>
                                             <th>Email</th>
                                             <th>Phone</th>
-                                            <th>Courses</th>
+                                            <th>Programme</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -107,18 +107,10 @@
                                                     @endif
                                                 </td>
                                                 <td>
-                                                    @php
-                                                        $enrollments = \App\Models\StudentEnrollment::where('user_id', $student->id)
-                                                            ->where('status', 'enrolled')
-                                                            ->with('subject')
-                                                            ->get();
-                                                    @endphp
-                                                    @if($enrollments->count() > 0)
-                                                        @foreach($enrollments as $enrollment)
-                                                            <span class="badge-modern badge-modern-primary me-1">{{ $enrollment->subject->name ?? $enrollment->subject_code }}</span>
-                                                        @endforeach
+                                                    @if($student->programme_name)
+                                                        <span class="badge-modern badge-modern-primary">{{ $student->programme_name }}</span>
                                                     @else
-                                                        <span class="text-muted">No courses</span>
+                                                        <span class="text-muted">No programme</span>
                                                     @endif
                                                 </td>
                                                 <td>

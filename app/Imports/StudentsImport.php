@@ -2,8 +2,6 @@
 namespace App\Imports;
 
 use App\Models\User;
-use App\Models\Subject;
-use App\Models\StudentEnrollment;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -568,9 +566,6 @@ class StudentsImport implements ToCollection
                     ]);
                     $this->created++;
                     Log::info('Student created', ['name' => $name, 'ic' => $ic, 'sheet' => $this->currentSheet]);
-                    
-                    // Create course enrollments for the student
-                    $this->createCourseEnrollments($user, $programmeName, $programmeCode);
                 } else {
                     // update fields if changed, keep password as "0000"
                     $user->update([
@@ -604,9 +599,6 @@ class StudentsImport implements ToCollection
                     ]);
                     $this->updated++;
                     Log::info('Student updated', ['name' => $name, 'ic' => $ic, 'sheet' => $this->currentSheet]);
-                    
-                    // Update course enrollments for the student
-                    $this->createCourseEnrollments($user, $programmeName, $programmeCode);
                 }
                    } catch (\Exception $e) {
                        Log::error('Error processing student', [
@@ -726,58 +718,4 @@ class StudentsImport implements ToCollection
         }
     }
     
-    /**
-     * Create course enrollments for a student
-     */
-    private function createCourseEnrollments($user, $programmeName, $programmeCode)
-    {
-        if (empty($programmeName)) {
-            return;
-        }
-        
-        try {
-            // Create or find the subject/course
-            $subject = \App\Models\Subject::firstOrCreate(
-                [
-                    'code' => $programmeCode ?: strtoupper(substr(preg_replace('/[^A-Za-z0-9]/', '', $programmeName), 0, 8)),
-                    'name' => $programmeName
-                ],
-                [
-                    'description' => $programmeName,
-                    'classification' => 'Core',
-                    'credit_hours' => 3,
-                    'program_code' => $programmeCode ?: 'GEN',
-                    'is_active' => true
-                ]
-            );
-            
-            // Create enrollment if it doesn't exist
-            $enrollment = \App\Models\StudentEnrollment::firstOrCreate(
-                [
-                    'user_id' => $user->id,
-                    'subject_code' => $subject->code
-                ],
-                [
-                    'program_code' => $programmeCode ?: 'GEN',
-                    'status' => 'enrolled',
-                    'enrollment_date' => now(),
-                    'grade' => null
-                ]
-            );
-            
-            Log::info('Course enrollment created/updated', [
-                'student' => $user->name,
-                'subject' => $subject->name,
-                'subject_code' => $subject->code,
-                'enrollment_id' => $enrollment->id
-            ]);
-            
-        } catch (\Exception $e) {
-            Log::error('Error creating course enrollment', [
-                'student' => $user->name,
-                'programme' => $programmeName,
-                'error' => $e->getMessage()
-            ]);
-        }
-    }
 }
