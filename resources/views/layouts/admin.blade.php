@@ -99,7 +99,7 @@
     
     <!-- Template JS Files -->
     <script src="/assets/default/js/app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/feather-icons@4.29.0/dist/feather.min.js"></script>
+    <!-- Bootstrap Icons are already loaded via CSS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/assets/default/vendors/moment.min.js"></script>
     <script src="/assets/default/vendors/sweetalert2/dist/sweetalert2.min.js"></script>
@@ -108,48 +108,8 @@
 
     <!-- Admin Scripts -->
     <script>
-        // Safe Feather icons replacement function
-        function safeFeatherReplace() {
-            try {
-                if (typeof feather !== 'undefined') {
-                    // Only replace icons that actually exist and are valid
-                    const featherElements = document.querySelectorAll('[data-feather]');
-                    if (featherElements.length > 0) {
-                        // Check if elements are valid before replacing
-                        const validElements = Array.from(featherElements).filter(el => {
-                            return el && 
-                                   el.getAttribute && 
-                                   el.getAttribute('data-feather') && 
-                                   el.parentNode && 
-                                   el.offsetParent !== null; // Element is visible
-                        });
-                        
-                        if (validElements.length > 0) {
-                            // Replace only valid elements
-                            feather.replace({
-                                'class': 'feather',
-                                'width': 16,
-                                'height': 16
-                            });
-                        }
-                    }
-                }
-            } catch (error) {
-                console.warn('Feather icons replacement error:', error);
-                // Don't throw the error, just log it
-            }
-        }
-
-        // Make the function globally available
-        window.safeFeatherReplace = safeFeatherReplace;
-
-        // Initialize Feather icons
-        document.addEventListener('DOMContentLoaded', function() {
-            // Wait for all elements to be ready
-            setTimeout(() => {
-                safeFeatherReplace();
-            }, 200);
-        });
+        // Bootstrap Icons are already loaded via CSS - no initialization needed
+        console.log('Using Bootstrap Icons for admin sidebar');
 
         // Admin specific JavaScript
         var deleteAlertTitle = 'Are you sure?';
@@ -168,3 +128,4 @@
     @stack('scripts')
 </body>
 </html>
+

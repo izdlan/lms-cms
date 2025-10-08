@@ -54,7 +54,7 @@ class FinanceAdminController extends Controller
                         return now()->diffInDays($bill->due_date);
                     }) : 0;
                     
-                    $lastPayment = Payment::where('user_id', $student->id)
+                    $lastPayment = Payment::where('student_id', $student->id)
                         ->where('status', 'completed')
                         ->latest('paid_at')
                         ->first();
@@ -174,7 +174,7 @@ class FinanceAdminController extends Controller
         $student = User::where('id', $id)->where('role', 'student')->firstOrFail();
         
         // Get real payment data from database
-        $payments = Payment::where('user_id', $id)
+        $payments = Payment::where('student_id', $id)
             ->with(['invoice', 'receipt'])
             ->orderBy('created_at', 'desc')
             ->get();
@@ -205,7 +205,7 @@ class FinanceAdminController extends Controller
                     return now()->diffInDays($bill->due_date);
                 }) : 0;
                 
-                $lastPayment = Payment::where('user_id', $student->id)
+                $lastPayment = Payment::where('student_id', $student->id)
                     ->where('status', 'completed')
                     ->latest('paid_at')
                     ->first();

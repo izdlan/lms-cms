@@ -10,9 +10,9 @@
     /* Color Palette */
     --admin-primary: #667eea;
     --admin-primary-dark: #5a67d8;
-    --admin-secondary: #2d3748;
-    --admin-secondary-dark: #1a202c;
-    --admin-accent: #4a5568;
+    --admin-secondary: #1a1a1a;
+    --admin-secondary-dark: #000000;
+    --admin-accent: #333333;
     --admin-success: #48bb78;
     --admin-warning: #ed8936;
     --admin-danger: #f56565;
@@ -104,7 +104,7 @@
    SIDEBAR COMPONENT
    ======================================== */
 .sidebar {
-    background: var(--admin-secondary);
+    background: linear-gradient(180deg, var(--admin-secondary-dark) 0%, var(--admin-secondary) 100%);
     min-height: 100vh;
     padding: 0;
     position: fixed;
@@ -114,6 +114,8 @@
     z-index: 1000;
     transition: transform var(--admin-transition-normal);
     flex-shrink: 0;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+    border-right: 1px solid var(--admin-accent);
 }
 
 /* Fix Bootstrap column conflicts */
@@ -127,7 +129,9 @@
     background: var(--admin-secondary-dark);
     padding: var(--admin-spacing-lg);
     color: var(--admin-white);
-    border-bottom: 1px solid var(--admin-accent);
+    border-bottom: 2px solid var(--admin-accent);
+    position: relative;
+    overflow: hidden;
 }
 
 .sidebar-header h4 {
@@ -144,23 +148,28 @@
     display: flex;
     align-items: center;
     padding: var(--admin-spacing-md) var(--admin-spacing-lg);
-    color: var(--admin-gray-500);
+    color: #cccccc;
     text-decoration: none;
     transition: all var(--admin-transition-normal);
     border-left: 3px solid transparent;
     position: relative;
+    font-weight: 500;
 }
 
 .nav-link:hover {
-    background: var(--admin-accent);
+    background: linear-gradient(90deg, var(--admin-accent) 0%, rgba(51, 51, 51, 0.8) 100%);
     color: var(--admin-white);
     text-decoration: none;
+    transform: translateX(5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .nav-link.active {
-    background: var(--admin-primary);
+    background: linear-gradient(90deg, var(--admin-primary) 0%, var(--admin-primary-dark) 100%);
     color: var(--admin-white);
     border-left-color: var(--admin-primary-dark);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+    transform: translateX(8px);
 }
 
 .nav-link i {
@@ -168,6 +177,48 @@
     width: 20px;
     height: 20px;
     flex-shrink: 0;
+}
+
+/* Ensure all nav-links are properly aligned */
+.nav-link {
+    margin-left: 0 !important;
+    padding-left: var(--admin-spacing-lg) !important;
+    text-indent: 0 !important;
+}
+
+/* Remove any indentation from nested items */
+.sidebar-nav .nav-link {
+    margin-left: 0;
+    padding-left: var(--admin-spacing-lg);
+    position: relative;
+}
+
+/* Ensure consistent icon alignment */
+.nav-link i {
+    display: inline-block;
+    vertical-align: middle;
+    text-align: center;
+    line-height: 1;
+}
+
+/* Make sure all nav items have consistent spacing */
+.sidebar-nav a {
+    display: flex !important;
+    align-items: center !important;
+    padding: var(--admin-spacing-md) var(--admin-spacing-lg) !important;
+    margin: 0 !important;
+    text-indent: 0 !important;
+}
+
+/* Bootstrap Icons styling */
+.nav-link i {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 16px !important;
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+    text-align: center !important;
 }
 
 /* ========================================
