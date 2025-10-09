@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AutomationController;
+use App\Http\Controllers\CertificateController;
 
 // Maintenance route - direct access
 Route::get('/maintenance', function () {
@@ -656,6 +657,7 @@ Route::prefix('ex-student')->group(function () {
     Route::get('/verify', [App\Http\Controllers\ExStudentController::class, 'verify'])->name('ex-student.verify');
     Route::get('/dashboard', [App\Http\Controllers\ExStudentController::class, 'dashboard'])->name('ex-student.dashboard');
     Route::get('/certificate', [App\Http\Controllers\ExStudentController::class, 'certificate'])->name('ex-student.certificate');
+    Route::get('/certificate-preview', [App\Http\Controllers\ExStudentController::class, 'certificatePreview'])->name('ex-student.certificate.preview');
     Route::get('/transcript1', [App\Http\Controllers\ExStudentController::class, 'transcript1'])->name('ex-student.transcript1');
     Route::get('/transcript2', [App\Http\Controllers\ExStudentController::class, 'transcript2'])->name('ex-student.transcript2');
     Route::post('/generate-qr', [App\Http\Controllers\ExStudentController::class, 'generateQrCode'])->name('ex-student.generate-qr');
@@ -777,6 +779,30 @@ Route::post('/test-onedrive-import', function() {
             'error' => $e->getMessage()
         ], 500);
     }
+});
+
+// Certificate generation routes
+Route::prefix('certificates')->group(function () {
+    // Generate Word certificate
+    Route::post('/generate/word', [CertificateController::class, 'generateWordCertificate'])->name('certificate.generate.word');
+    
+    // Generate PDF certificate
+    Route::post('/generate/pdf', [CertificateController::class, 'generatePdfCertificate'])->name('certificate.generate.pdf');
+    
+    // Preview certificate
+    Route::get('/preview', [CertificateController::class, 'previewCertificate'])->name('certificate.preview');
+    
+    // Generate template (for testing)
+    Route::get('/template', [CertificateController::class, 'generateTemplate'])->name('certificate.template');
+    
+    // Get certificate data
+    Route::get('/data', [CertificateController::class, 'getCertificateData'])->name('certificate.data');
+    
+    // Bulk generate certificates
+    Route::post('/bulk-generate', [CertificateController::class, 'bulkGenerateCertificates'])->name('certificate.bulk.generate');
+    
+    // Download certificate
+    Route::get('/download/{filename}', [CertificateController::class, 'downloadCertificate'])->name('certificate.download');
 });
 
 // Maintenance route - catch all URLs with # and redirect to maintenance page

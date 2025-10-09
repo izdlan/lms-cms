@@ -3,11 +3,19 @@
     <div class="container-fluid">
         <!-- Left Side -->
         <div class="navbar-nav-left">
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle d-lg-none" type="button" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            
             <a class="navbar-brand" href="{{ route('student.dashboard') }}">
-                <img src="/store/1/dark-logo.png" alt="Olympia Education" style="height: 40px; width: auto; object-fit: contain;">
-                <span class="brand-text">
+                <img src="/store/1/dark-logo.png" alt="Olympia Education" class="navbar-logo">
+                <span class="brand-text d-none d-md-inline">
                     <strong>OLYMPIA EDUCATION</strong>
                     <small>Centre for Professional, Executive, Advanced & Continuing Education</small>
+                </span>
+                <span class="brand-text d-md-none">
+                    <strong>OLYMPIA</strong>
                 </span>
             </a>
         </div>
@@ -16,10 +24,10 @@
         <div class="navbar-nav-right">
             @auth('student')
                 <!-- My Program Dropdown -->
-                <div class="dropdown courses-dropdown-right">
+                <div class="dropdown courses-dropdown-right d-none d-md-block">
                     <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" aria-expanded="false">
                         <i class="fas fa-graduation-cap"></i>
-                        My Program
+                        <span class="d-none d-lg-inline">My Program</span>
                     </button>
                     <ul class="dropdown-menu courses-dropdown-menu" aria-labelledby="coursesDropdown">
                         <li class="dropdown-header">
@@ -109,7 +117,7 @@
                                     <i class="fas fa-user"></i>
                                 </div>
                             @endif
-                            <span class="student-name">{{ auth('student')->user()->name }}</span>
+                            <span class="student-name d-none d-sm-inline">{{ auth('student')->user()->name }}</span>
                         </div>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="studentDropdown">
@@ -160,6 +168,55 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     } catch (err) {
         console.warn("Navbar init skipped to prevent offsetTop error:", err);
+    }
+
+    // --- MOBILE MENU TOGGLE ---
+    const mobileMenuToggle = document.getElementById("mobileMenuToggle");
+    const sidebar = document.querySelector(".sidebar");
+    const sidebarOverlay = document.querySelector(".sidebar-overlay");
+    const mainContent = document.querySelector(".main-content");
+
+    if (mobileMenuToggle && sidebar) {
+        mobileMenuToggle.addEventListener("click", function() {
+            sidebar.classList.toggle("mobile-open");
+            if (sidebarOverlay) {
+                sidebarOverlay.classList.toggle("show");
+            }
+            document.body.classList.toggle("sidebar-open");
+        });
+
+        // Close sidebar when clicking overlay
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener("click", function() {
+                sidebar.classList.remove("mobile-open");
+                sidebarOverlay.classList.remove("show");
+                document.body.classList.remove("sidebar-open");
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        document.addEventListener("click", function(e) {
+            if (window.innerWidth < 992) {
+                if (!sidebar.contains(e.target) && !mobileMenuToggle.contains(e.target)) {
+                    sidebar.classList.remove("mobile-open");
+                    if (sidebarOverlay) {
+                        sidebarOverlay.classList.remove("show");
+                    }
+                    document.body.classList.remove("sidebar-open");
+                }
+            }
+        });
+
+        // Close sidebar when window is resized to desktop
+        window.addEventListener("resize", function() {
+            if (window.innerWidth >= 992) {
+                sidebar.classList.remove("mobile-open");
+                if (sidebarOverlay) {
+                    sidebarOverlay.classList.remove("show");
+                }
+                document.body.classList.remove("sidebar-open");
+            }
+        });
     }
 
     // --- CUSTOM DROPDOWN LOGIC ---

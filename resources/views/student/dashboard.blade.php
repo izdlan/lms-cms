@@ -7,6 +7,9 @@
     <!-- Student Navigation Bar -->
     @include('student.partials.student-navbar')
     
+    <!-- Mobile Sidebar Overlay -->
+    <div class="sidebar-overlay d-lg-none"></div>
+    
     <div class="container-fluid">
         <div class="row">
             <!-- Sidebar -->
@@ -186,6 +189,54 @@
     color: #6c757d;
     font-size: 0.9rem;
     margin-bottom: 1rem;
+}
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+    .stats-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .stats-card .icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+    
+    .course-card .course-content {
+        padding: 1rem;
+    }
+    
+    .dashboard-header h1 {
+        font-size: 1.5rem;
+    }
+    
+    .dashboard-header p {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .stats-card {
+        padding: 0.75rem;
+    }
+    
+    .stats-card h4 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-card p {
+        font-size: 0.8rem;
+    }
+    
+    .course-card .course-image {
+        height: 100px;
+    }
+    
+    .course-card .course-image i {
+        font-size: 1.5rem;
+    }
 }
 </style>
 @endpush

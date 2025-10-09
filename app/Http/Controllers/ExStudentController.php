@@ -177,6 +177,30 @@ class ExStudentController extends Controller
     }
 
     /**
+     * Show certificate preview page
+     */
+    public function certificatePreview(Request $request)
+    {
+        $studentId = $request->get('student_id');
+        
+        if (!$studentId) {
+            return redirect()->route('ex-student.login')->with('error', 'Student ID required.');
+        }
+        
+        $exStudent = ExStudent::findByStudentId($studentId);
+        
+        if (!$exStudent) {
+            return redirect()->route('ex-student.login')->with('error', 'Student record not found.');
+        }
+
+        // Generate QR codes for preview
+        $qrCodePath1 = $this->qrCodeService->generateCertificateQrCode($exStudent);
+        $qrCodePath2 = $this->qrCodeService->generateSimpleQrCode($exStudent->student_id);
+
+        return view('ex-student.certificate-preview', compact('exStudent', 'qrCodePath1', 'qrCodePath2'));
+    }
+
+    /**
      * Show transcript page 1
      */
     public function transcript1(Request $request)
