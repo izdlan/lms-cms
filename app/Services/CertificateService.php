@@ -13,6 +13,7 @@ use PhpOffice\PhpWord\Element\TextRun;
 use PhpOffice\PhpWord\Element\Table;
 use PhpOffice\PhpWord\Element\Image;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Carbon\Carbon;
 
 class CertificateService
@@ -410,7 +411,7 @@ class CertificateService
             
             return $filepath;
         } catch (\Exception $e) {
-            \Log::error("QR Code generation failed: " . $e->getMessage());
+            Log::error("QR Code generation failed: " . $e->getMessage());
             return null;
         }
     }
