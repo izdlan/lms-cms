@@ -14,9 +14,6 @@
                     <strong>OLYMPIA EDUCATION</strong>
                     <small>Centre for Professional, Executive, Advanced & Continuing Education</small>
                 </span>
-                <span class="brand-text d-md-none">
-                    <strong>OLYMPIA</strong>
-                </span>
             </a>
         </div>
 
