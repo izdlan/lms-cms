@@ -1,4 +1,16 @@
 <?php
+/**
+ * Controller: FinanceAdminController
+ * Purpose: Finance admin operations for students, invoices (student bills),
+ *          payments, receipts, and related reports. Restricts access to finance
+ *          admins/admins via middleware.
+ * Key Views: `finance-admin.dashboard`, `finance-admin.students`,
+ *            `finance-admin.student-details`, `finance-admin.pending-payments`,
+ *            `finance-admin.invoices`, `finance-admin.invoice-details`,
+ *            `finance-admin.change-password`.
+ * Notes: Creates and finalizes payments/receipts (transactional), filters/searches,
+ *        and generates PDFs using DomPDF.
+ */
 
 namespace App\Http\Controllers;
 

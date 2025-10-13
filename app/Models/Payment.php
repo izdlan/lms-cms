@@ -1,4 +1,11 @@
 <?php
+/**
+ * Model: Payment
+ * Purpose: Records payment attempts and completions for both invoice (StudentBill)
+ *          and Billplz-based flows, including method, status, and metadata.
+ * Relations: belongsTo StudentBill (aka invoice), User; hasOne Receipt.
+ * Utilities: Number generator, status helpers, URL accessor, and query scopes.
+ */
 
 namespace App\Models;
 

@@ -1,4 +1,12 @@
 <?php
+/**
+ * Model: StudentBill
+ * Purpose: Represents a bill/invoice issued to a student, with status lifecycle
+ *          (pending, paid, overdue, cancelled) and compatibility helpers for legacy
+ *          invoice references.
+ * Relations: belongsTo User, belongsTo/hasMany Payment (single and multiple payments).
+ * Utilities: Number generation, status helpers, UI accessors, and query scopes.
+ */
 
 namespace App\Models;
 

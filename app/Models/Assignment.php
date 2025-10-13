@@ -1,4 +1,10 @@
 <?php
+/**
+ * Model: Assignment
+ * Purpose: Lecturer-created assignment entity with timing, attachments, and grading
+ *          parameters. Provides availability checks and relations to subject/class.
+ * Relations: belongsTo Subject, ClassSchedule, Lecturer; hasMany AssignmentSubmission.
+ */
 
 namespace App\Models;
 

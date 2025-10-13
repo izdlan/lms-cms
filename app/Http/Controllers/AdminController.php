@@ -1,4 +1,16 @@
 <?php
+/**
+ * Controller: AdminController
+ * Purpose: Admin and staff tools for user management (students, lecturers),
+ *          data imports (CSV/XLSX/Google Sheets/Drive), automation controls,
+ *          and ex-student certificate/QR handling.
+ * Access: Requires authenticated admin or staff via `checkAdminAccess()`.
+ * Key Views: `admin.dashboard`, `admin.students`, `admin.import-students`,
+ *            `admin.lecturers` (+ create/edit), `admin.ex-students`,
+ *            automation pages and JSON endpoints.
+ * Notes: Heavily logs actions, uses cache for automation state, and exposes
+ *        HTTP endpoints for cron-like operations.
+ */
 
 namespace App\Http\Controllers;
 

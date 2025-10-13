@@ -1,4 +1,15 @@
 <?php
+/**
+ * Controller: StaffController
+ * Purpose: Lecturer tools for managing subjects, classes, announcements, materials,
+ *          assignments, grading, and exam result publication.
+ * Auth: Uses `auth:staff` guard and lecturer role checks; verifies resource ownership
+ *       (e.g., class/assignment belongs to lecturer) before read/write operations.
+ * Key Views: `staff.dashboard`, `staff.courses`, `staff.announcements`,
+ *            `staff.contents`, `staff.assignments`, `staff.password-change`.
+ * Data Flow: Reads/writes `Announcement`, `CourseMaterial`, `Assignment`,
+ *            `AssignmentSubmission`, and `ExamResult`, often filtered by lecturer id.
+ */
 
 namespace App\Http\Controllers;
 

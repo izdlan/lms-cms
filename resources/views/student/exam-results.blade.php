@@ -1,5 +1,7 @@
+{{-- Use the main application layout --}}
 @extends('layouts.app')
 
+{{-- Page content starts here --}}
 @section('content')
 <div class="container-fluid exam-results-page">
     <div class="row">
@@ -11,19 +13,21 @@
                         <li class="breadcrumb-item active">Exam Results</li>
                     </ol>
                 </div>
-                <h4 class="page-title">Exam Results</h4>
+                <h4 class="page-t=itle">Exam Results</h4>
             </div>
         </div>
     </div>
-    <!-- Academic Year Filter -->
+    <!-- Academic Year Filter: allows students to filter results by academic year -->
     <div class="row mb-3">
         <div class="col-12">
             <div class="card">
                 <div class="card-body">
+                    {{-- GET form preserves filters in URL; resets via the Reset link --}}
                     <form method="GET" action="{{ route('student.exam-results') }}" class="row g-3">
                         <div class="col-md-6">
                             <label for="year" class="form-label">Academic Year</label>
                             <select name="year" id="year" class="form-select">
+                                {{-- Populate year dropdown from controller-provided list --}}
                                 @foreach($availableYears as $year)
                                     <option value="{{ $year }}" {{ $year == $currentYear ? 'selected' : '' }}>
                                         {{ $year }}
@@ -44,7 +48,7 @@
         </div>
     </div>
 
-    <!-- Overall GPA Summary -->
+    <!-- Overall GPA Summary: displays computed GPA across all subjects for selected year -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
@@ -57,10 +61,11 @@
         </div>
     </div>
 
-    <!-- Individual Subject Results -->
+    <!-- Individual Subject Results: loop through student's enrolled subjects and render results per subject -->
     @foreach($enrolledSubjects as $enrollment)
         @if($enrollment && is_object($enrollment))
             @php
+                // Retrieve the result for this subject code and unpack assessments
                 $result = $examResults->get($enrollment->subject_code);
                 $assessments = $result ? $result->assessments : [];
             @endphp
@@ -78,7 +83,7 @@
                     </div>
                     <div class="card-body">
                         @if($result && $assessments)
-                            <!-- Assessment Results -->
+                            <!-- Assessment Results: cards for each assessment within the subject -->
                             <div class="row mb-4">
                                 <div class="col-12">
                                     <h6 class="mb-3">Assessment Results</h6>
@@ -104,7 +109,7 @@
                                 </div>
                             </div>
                             
-                            <!-- Summary Results -->
+                            <!-- Summary Results: totals and grade/GPA summary for the subject -->
                             <div class="row">
                                 <div class="col-md-3">
                                     <div class="card border-0 bg-light">
@@ -143,6 +148,7 @@
                             </div>
                             
                             @if($result->notes)
+                                {{-- Optional lecturer notes for the subject --}}
                                 <div class="row mt-3">
                                     <div class="col-12">
                                         <div class="alert alert-light border">
@@ -153,7 +159,7 @@
                                 </div>
                             @endif
                         @else
-                            <!-- No Results Available -->
+                            <!-- No Results Available: subject exists but its results are not yet published -->
                             <div class="text-center py-5">
                                 <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
                                 <h5 class="text-muted">No Results Available</h5>
@@ -165,11 +171,11 @@
             </div>
         </div>
         @else
-        <!-- Skip invalid enrollment records -->
+        <!-- Skip invalid enrollment records: guard against unexpected data shapes -->
         @endif
     @endforeach
 
-    <!-- No Results Message -->
+    <!-- No Results Message: shown when there are no results for the selected year -->
     @if($examResults->isEmpty())
         <div class="row">
             <div class="col-12">
@@ -186,11 +192,17 @@
 </div>
 
 <style>
+/*
+    Scoped styles for the Exam Results page. These override Bootstrap defaults
+    to produce a clean, professional look. Keep selectors prefixed with
+    .exam-results-page to avoid bleeding styles into other pages.
+*/
 /* Professional styling for exam results page - Override any conflicting styles */
 .exam-results-page {
     background-color: #f8f9fa !important;
 }
 
+/* Card appearance enhancements */
 .exam-results-page .card {
     border: none !important;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
@@ -202,6 +214,7 @@
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 }
 
+/* Card header styling */
 .exam-results-page .card-header {
     background-color: #ffffff !important;
     border-bottom: 1px solid #e9ecef !important;
@@ -215,11 +228,13 @@
     border-bottom: 1px solid #e9ecef !important;
 }
 
+/* Emphasized GPA number styling */
 .exam-results-page .display-4 {
     font-weight: 700 !important;
     color: #212529 !important;
 }
 
+/* Neutral badge styling used for grades and scores */
 .exam-results-page .badge {
     font-size: 0.875rem !important;
     font-weight: 500 !important;
@@ -228,12 +243,14 @@
     color: #ffffff !important;
 }
 
+/* Neutral alert used for lecturer notes */
 .exam-results-page .alert {
     border: 1px solid #e9ecef !important;
     background-color: #ffffff !important;
     color: #212529 !important;
 }
 
+/* Brand-consistent primary button overrides */
 .exam-results-page .btn-primary {
     background-color: #495057 !important;
     border-color: #495057 !important;
@@ -246,6 +263,7 @@
     color: #ffffff !important;
 }
 
+/* Outline secondary button overrides */
 .exam-results-page .btn-outline-secondary {
     color: #6c757d !important;
     border-color: #6c757d !important;
@@ -320,7 +338,7 @@
     padding-bottom: 3rem !important;
 }
 
-/* Override any colorful text classes */
+/* Override any colorful text classes to maintain neutral theme */
 .exam-results-page .text-primary,
 .exam-results-page .text-success,
 .exam-results-page .text-danger,
@@ -329,7 +347,7 @@
     color: #212529 !important;
 }
 
-/* Override any colorful background classes */
+/* Override any colorful background classes to maintain neutral theme */
 .exam-results-page .bg-primary,
 .exam-results-page .bg-success,
 .exam-results-page .bg-danger,
@@ -339,7 +357,7 @@
     color: #212529 !important;
 }
 
-/* Ensure all text is professional */
+/* Ensure all text is neutral and readable */
 .exam-results-page h1,
 .exam-results-page h2,
 .exam-results-page h3,

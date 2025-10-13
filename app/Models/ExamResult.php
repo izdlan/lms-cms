@@ -1,4 +1,11 @@
 <?php
+/**
+ * Model: ExamResult
+ * Purpose: Stores per-subject assessment breakdowns and computed totals for a
+ *          student's exam result (percentage, grade, GPA) per academic year/semester.
+ * Relations: belongsTo User (student), Subject, Lecturer; links to enrollment via user/subject.
+ * Notes: Casts assessment arrays and timestamps; auto-computes totals on save.
+ */
 
 namespace App\Models;
 

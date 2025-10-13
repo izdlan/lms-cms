@@ -1,4 +1,11 @@
 <?php
+/**
+ * Controller: CourseController
+ * Purpose: Student-facing course pages (summary, announcements, contents) under
+ *          `auth:student` guard. Currently serves mock data; ready to be wired to
+ *          real course storage.
+ * Key Views: `course.summary`, `course.announcements`, `course.contents`.
+ */
 
 namespace App\Http\Controllers;
 

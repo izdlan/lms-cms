@@ -1,4 +1,18 @@
 <?php
+/**
+ * Controller: StudentController
+ * Purpose: Handles student-facing pages and actions (dashboard, courses, assignments,
+ *          payments, profile, and exam results). Enforces `auth:student` guard and
+ *          role checks. Aggregates model data and renders Blade views under `student/*`.
+ * Key Views: `student.dashboard`, `student.courses`, `student.course-summary`,
+ *            `student.course-class`, `student.assignments`, `student.bills`,
+ *            `student.payment`, `student.receipt`, `student.exam-results`.
+ * Important Models: Program, Subject, Announcement, CourseContent, Assignment,
+ *                   AssignmentSubmission, StudentBill, Payment, ExamResult,
+ *                   StudentEnrollment.
+ * Notes: Uses helper methods like `calculateOverallGpa` and guard rails for enrolled
+ *        subject/class access and secure file responses (PDFs).
+ */
 
 namespace App\Http\Controllers;
 

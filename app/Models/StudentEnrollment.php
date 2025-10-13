@@ -1,4 +1,10 @@
 <?php
+/**
+ * Model: StudentEnrollment
+ * Purpose: Tracks a student's enrollment in a subject/class with lecturer and status,
+ *          including enrollment/completion dates and awarded grade.
+ * Relations: belongsTo User (student), Subject, Lecturer, ClassSchedule.
+ */
 
 namespace App\Models;
 
