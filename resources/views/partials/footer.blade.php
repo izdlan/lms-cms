@@ -32,7 +32,7 @@
                     </p>
                     <p>
                         <font color="#ffffff">
-                            <a href="/certificate_validation">
+                            <a href="{{ route('ex-student.login') }}">
                                 <font color="#ffffff">- Certificate validation</font>
                             </a><br></font>
                     </p>
@@ -90,16 +90,13 @@
             </div>
 
             <div class="footer-social">
-                <a href="https://www.instagram.com/" target="_blank">
+                <a href="https://www.instagram.com/olympia.peace/" target="_blank">
                     <img src="/store/1/default_images/social/instagram.svg" alt="Instagram" class="mr-15">
                 </a>
-                <a href="https://web.whatsapp.com/" target="_blank">
+                <a href="/maintenance" target="_self">
                     <img src="/store/1/default_images/social/whatsapp.svg" alt="Whatsapp" class="mr-15">
                 </a>
-                <a href="https://twitter.com/" target="_blank">
-                    <img src="/store/1/default_images/social/twitter.svg" alt="Twitter" class="mr-15">
-                </a>
-                <a href="https://www.facebook.com/" target="_blank">
+                <a href="https://www.facebook.com/profile.php?id=100081460991839" target="_blank">
                     <img src="/store/1/default_images/social/facebook.svg" alt="Facebook" class="mr-15">
                 </a>
             </div>
