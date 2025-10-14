@@ -133,9 +133,6 @@
                         <a class="nav-link" href="/">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url('/classes') }}?sort=newest">Courses</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="/announcements">Announcements</a>
                     </li>
                 </ul>
