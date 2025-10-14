@@ -13,12 +13,7 @@
                 <h1 class="text-secondary font-weight-bold">{{ $heroSection->title ?? 'Advance Your Career with Olympia Education' }}</h1>
                 <p class="slide-hint text-gray mt-15">{{ $heroSection->content ?? 'We offer industry relevant programs, hands-on learning, and strong career support empowering students with the skills, knowledge, and confidence to thrive in today\'s fast-paced world.' }}</p>
 
-                <form action="/search" method="get" class="d-inline-flex mt-20 mt-lg-20 w-100">
-                    <div class="form-group d-flex align-items-center m-0 slider-search p-10 bg-white w-100">
-                        <input type="text" name="search" class="form-control border-0 mr-lg-50" placeholder="Search courses, instructors and organizations..." />
-                        <button type="submit" class="btn btn-primary rounded-pill">Search</button>
-                    </div>
-                </form>
+                
             </div>
             <div class="col-12 col-md-5 col-lg-6">
                 <lottie-player src="/store/1/animated-header.json" background="transparent" speed="1" class="w-100" loop autoplay></lottie-player>
