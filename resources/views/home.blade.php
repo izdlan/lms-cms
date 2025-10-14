@@ -173,6 +173,107 @@
     </div>
 </section>
 
+<section class="degree-programs-section">
+    <div class="container">
+        <div class="header-content mb-5">
+            <p class="eyebrow-text">Degree Programs</p>
+            <h2 class="section-title">Find a top degree that fits your life</h2>
+            <p class="section-subtitle">Breakthrough pricing on 100% online degrees from top universities.</p>
+        </div>
+
+        <div class="row">
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="degree-card">
+                    <div class="card-image-wrapper">
+                        <img src="/store/1/content/image-1.jpg" alt="Bachelor of Information Technology" class="card-img-top">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-institution">
+                            <img src="/store/1/logo/UCB.png" alt="University College Bestari Logo" class="institution-logo">
+                            <span>University College Bestari</span>
+                        </div>
+                        <h5 class="card-title"><a href="/maintenance">Bachelor of Information Technology</a></h5>
+                        <div class="card-footer-info">
+                            <a href="/maintenance" class="footer-link">
+                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
+                                <span>Earn a degree</span>
+                            </a>
+                            <small class="footer-note">Degree</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="degree-card">
+                    <div class="card-image-wrapper">
+                        <img src="/store/1/content/image-2.jpg" alt="Bachelor of Mechanical Engineering Technology" class="card-img-top">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-institution">
+                            <img src="/store/1/logo/UCB.png" alt="University College Bestari Logo" class="institution-logo">
+                            <span>University College Bestari</span>
+                        </div>
+                        <h5 class="card-title"><a href="/maintenance">Bachelor of Mechanical Engineering Technology</a></h5>
+                        <div class="card-footer-info">
+                            <a href="/maintenance" class="footer-link">
+                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
+                                <span>Earn a degree</span>
+                            </a>
+                            <small class="footer-note">Degree</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="degree-card">
+                    <div class="card-image-wrapper">
+                        <img src="/store/1/content/image-3.jpg" alt="Diploma in Procurement Management" class="card-img-top">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-institution">
+                            <img src="/store/1/logo/DHU.png" alt="DRB-Hicom University Logo" class="institution-logo">
+                            <span>DRB-Hicom University</span>
+                        </div>
+                        <h5 class="card-title"><a href="/maintenance">Diploma in Procurement Management</a></h5>
+                        <div class="card-footer-info">
+                            <a href="/maintenance" class="footer-link">
+                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
+                                <span>Earn a degree</span>
+                            </a>
+                            <small class="footer-note">Degree</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+                <div class="degree-card">
+                    <div class="card-image-wrapper">
+                        <img src="/store/1/content/image-4.jpg" alt="Diploma in Procurement Management" class="card-img-top">
+                    </div>
+                    <div class="card-body">
+                        <div class="card-institution">
+                            <img src="/store/1/logo/DHU.png" alt="DRB-Hicom University Logo" class="institution-logo">
+                            <span>DRB-Hicom University</span>
+                        </div>
+                        <h5 class="card-title"><a href="/maintenance">Diploma in Procurement Management</a></h5>
+                        <div class="card-footer-info">
+                            <a href="/maintenance" class="footer-link">
+                                <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 16"><path fill="currentColor" fill-rule="evenodd" d="M3.03 11.88q.17.3.45.43l3.25 1.64a1 1 0 0 0 .27.09c.17.03.36.03.53 0q.13-.02.27-.1l3.25-1.62q.3-.15.45-.45.16-.29.16-.62V8.02l1.6-.8v4q0 .23.18.41a.56.56 0 0 0 .42.19.58.58 0 0 0 .42-.19.57.57 0 0 0 .18-.41V6.96a.56.56 0 0 0-.08-.3.6.6 0 0 0-.23-.21L7.8 3.28a1.12 1.12 0 0 0-1.07 0l-5.6 2.8a.6.6 0 0 0-.25.22.6.6 0 0 0-.08.31q0 .18.08.32t.25.22l1.73.87v3.23q0 .33.17.63m7.75-4.76L7.26 8.87 2.75 6.62l4.51-2.25 3.52 1.75H7.2a.5.5 0 0 0 0 1zm-.32 4.15-3.2 1.58-3.2-1.59V8.63l2.62 1.3q.13.09.28.12c.2.04.4.04.6 0q.14-.04.29-.12l2.61-1.3z" clip-rule="evenodd"/></svg>
+                                <span>Earn a Professional Certificate</span>
+                            </a>
+                            <small class="footer-note">Certificate</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-actions mt-5">
+            <a href="/maintenance" class="btn btn-primary">Show 8 more</a>
+            <a href="/maintenance" class="btn btn-outline-primary ms-3">View all →</a>
+        </div>
+    </div>
+</section>
 
 <section class="home-sections stats-container page-has-hero-section-2">
     <div class="container">
@@ -225,6 +326,73 @@
 </section>
 
 
+<section class="home-sections business-talent-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-12 col-lg-6 text-center text-lg-left mb-5 mb-lg-0">
+                <div class="content-wrapper">
+                    <h2 class="font-36 font-weight-bold text-dark">
+                        Drive your business forward by empowering your talent
+                    </h2>
+                    <p class="font-16 font-weight-normal mt-10">
+                        Train teams with industry-leading experts and universities, enhanced by AI tools and recognized credentials.
+                    </p>
+
+                    <a href="/maintenance" class="btn btn-primary btn-lg px-4 mt-3">Discover Olympia for Business</a>
+
+                    <div class="up-skill-link mt-3">
+                        <p>
+                            Upskill a small team?
+                            <a href="/maintenance" class="text-primary font-weight-bold">Check out Olympia for Teams</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 col-lg-6">
+                <div class="logo-grid">
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Capgemini Logo.png" alt="Drive your business forward by empowering your talent Image 0">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Danone Logo.png" alt="Drive your business forward by empowering your talent Image 1">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Emirates NBD Logo.png" alt="Drive your business forward by empowering your talent Image 2">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/General Electric Logo.png" alt="Drive your business forward by empowering your talent Image 3">
+                    </div>
+                    <div class="logo-item">
+                        <img src="https://lms.olympia-education.com/store/1/business_talent/L'OREAL%20Logo.png" alt="Drive your business forward by empowering your talent Image 4">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Procter &amp; Gamble Logo.png" alt="Drive your business forward by empowering your talent Image 5">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Reliance Industries Limited Logo.png" alt="Drive your business forward by empowering your talent Image 6">
+                    </div>
+                    <div class="logo-item">
+                        <img src="/store/1/business_talent/Tata Communications Logo.png" alt="Drive your business forward by empowering your talent Image 7">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="home-sections next-steps-section">
+    <div class="container">
+        <h2 class="section-heading">NEXT STEPS</h2>
+        <div class="cta-card">
+            <h3 class="card-title">APPLY TO OLYMPIA</h3>
+            <p class="card-text">
+                You have a good sense of what you want to achieve and the impact you want to make on the world. Are you ready for your bigger goals? Apply to begin your journey as a #FutureOlympia.
+            </p>
+            <a href="/maintenance" class="btn btn-cta">START YOUR APPLICATION</a>
+        </div>
+    </div>
+</section>
 @endsection
 
 @section('styles')
