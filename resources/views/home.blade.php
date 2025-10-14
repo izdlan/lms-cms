@@ -35,11 +35,10 @@
                 <div class="sidebar-content">
                     <h2 class="sidebar-title">Student Portal</h2>
                     <ul class="top-links-list">
-                        <li><a href="/maintenance" class="top-link-item">LMS</a></li>
                         <li><a href="/login" class="top-link-item">Login</a></li>
-                        <li><a href="/maintenance" class="top-link-item">Course Registration</a></li>
-                        <li><a href="/maintenance" class="top-link-item">Student Bills</a></li>
-                        <li><a href="/maintenance" class="top-link-item">Exam Result</a></li>
+                        <li><a href="/login" class="top-link-item">Course Registration</a></li>
+                        <li><a href="/login" class="top-link-item">Student Bills</a></li>
+                        <li><a href="/login" class="top-link-item">Exam Result</a></li>
                     </ul>
                 </div>
             </div>
