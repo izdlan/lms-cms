@@ -55,15 +55,6 @@
             </div>
             <div class="footer-group">
                 <div class="footer-col">
-                    <span class="header d-block text-white font-weight-bold">Coming Soon</span>
-                    <div class="mt-20">
-                        <div class="d-flex flex-wrap align-items-center" style="gap:10px">
-                            <img src="/store/1/footer/app-store.png" style="width:auto;height:45px;">
-                            <img src="/store/1/footer/google-play.png" style="width:auto;height:45px;">
-                        </div>
-                    </div>
-                </div>
-                <div class="footer-col">
                     <span class="header d-block text-white font-weight-bold">Certified</span>
                     <div class="mt-20">
                         <div class="d-flex flex-wrap align-items-center" style="gap:10px">
