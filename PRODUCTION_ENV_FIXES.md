@@ -112,3 +112,5 @@ AWS_BUCKET=your_s3_bucket
 5. Set up Redis (performance)
 6. Configure S3 (scalability)
 
+
+

@@ -157,3 +157,5 @@ php artisan optimize
 
 **If this doesn't work, then contact ServerFreak with the error logs.**
 
+
+
