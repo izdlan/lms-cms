@@ -755,7 +755,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return Math.round(size * 100) / 100 + ' ' + units[unitIndex];
     }
     
-    function deleteMaterial(materialId) {
+    window.deleteMaterial = function(materialId) {
         if (!confirm('Are you sure you want to delete this material?')) {
             return;
         }
