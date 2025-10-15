@@ -164,7 +164,7 @@
 
 <!-- QR Code Modal -->
 <div class="modal fade" id="qrModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">QR Code for Certificate</h5>
@@ -223,11 +223,11 @@ function generateQR(exStudentId) {
     .then(data => {
         console.log('QR Code Response:', data); // Debug log
         if (data.success) {
-            // Display QR code
+            // Display QR code at full resolution
             document.getElementById('qrCodeContainer').innerHTML = `
-                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;" 
+                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 500px; width: 100%; height: auto;" 
                      onerror="console.error('QR Code image failed to load:', this.src); this.style.display='none';">
-                <p class="mt-2 small text-muted">Right-click to save as SVG for printing</p>
+                <p class="mt-2 small text-muted">Right-click to save as PNG for printing</p>
                 <p class="mt-1 small text-info">URL: ${data.qr_code_url}</p>
             `;
             

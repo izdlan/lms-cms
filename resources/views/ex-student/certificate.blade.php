@@ -287,8 +287,14 @@
     <div class="certificate-container">
         <!-- Action Buttons -->
         <div class="print-button">
-            <button class="btn btn-primary" onclick="window.print()">
-                <i class="fas fa-print"></i> Print
+            <button class="btn btn-success me-2" onclick="downloadWord()">
+                <i class="fas fa-download"></i> Download Word
+            </button>
+            <button class="btn btn-primary me-2" onclick="downloadPdf()">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-info" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Preview
             </button>
         </div>
         
@@ -299,6 +305,12 @@
             <a href="{{ route('ex-student.transcript1', ['student_id' => $exStudent->student_id]) }}" class="btn btn-primary">
                 <i class="fas fa-file-alt"></i> View Transcript
             </a>
+        </div>
+        
+        <!-- Preview Notice -->
+        <div class="alert alert-info mb-4">
+            <h5><i class="fas fa-info-circle"></i> Certificate Preview</h5>
+            <p class="mb-0">This is a preview of your certificate. Click the buttons above to download the official Word document or PDF version with the latest template design and QR code.</p>
         </div>
         
         <!-- Certificate -->
@@ -361,6 +373,15 @@
                     <div class="signature-label">Registrar</div>
                     <div class="signature-subtitle">Olympia Examination Board</div>
                 </div>
+                
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <div style="width: 100%; height: 100%; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.8rem; text-align: center;">
+                            QR Code<br>Will Be Here
+                        </div>
+                    </div>
+                    <div class="qr-text">Verification QR Code</div>
+                </div>
             </div>
         </div>
         
@@ -369,10 +390,51 @@
             <p><strong>Certificate Number:</strong> {{ $exStudent->certificate_number }}</p>
             <p><strong>Verification URL:</strong> {{ $exStudent->getVerificationUrl() }}</p>
             <p><strong>Issued Date:</strong> {{ now()->format('F j, Y') }}</p>
+            <p><strong>QR Code:</strong> The official certificate includes a QR code for instant verification</p>
             <p class="mb-0"><strong>Status:</strong> <span class="text-success">Verified and Authentic</span></p>
+        </div>
+        
+        <div class="alert alert-warning mt-4">
+            <h6><i class="fas fa-exclamation-triangle"></i> Important Notice</h6>
+            <p class="mb-0">This is a preview only. The official certificate with QR code and proper formatting will be available when you download the Word or PDF version using the buttons above.</p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function downloadWord() {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            
+            // Download Word certificate
+            window.open('{{ route("certificate.generate", $exStudent->id) }}', '_blank');
+            
+            // Reset button after a delay
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 3000);
+        }
+        
+        function downloadPdf() {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            
+            // Download PDF certificate
+            window.open('{{ route("certificate.generate.pdf", $exStudent->id) }}', '_blank');
+            
+            // Reset button after a delay
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 5000);
+        }
+    </script>
 </body>
 </html>

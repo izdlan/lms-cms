@@ -211,7 +211,7 @@
 
 <!-- QR Code Modal -->
 <div class="modal fade" id="qrModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">QR Code for Certificate</h5>
@@ -269,10 +269,10 @@ function generateQR(exStudentId) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // Display QR code
+            // Display QR code at full resolution
             document.getElementById('qrCodeContainer').innerHTML = `
-                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 300px;">
-                <p class="mt-2 small text-muted">Right-click to save as SVG for printing</p>
+                <img src="${data.qr_code_url}" alt="QR Code" class="img-fluid" style="max-width: 500px; width: 100%; height: auto;">
+                <p class="mt-2 small text-muted">Right-click to save as PNG for printing</p>
             `;
             
             // Show info
