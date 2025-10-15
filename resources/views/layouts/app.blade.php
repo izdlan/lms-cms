@@ -1289,7 +1289,6 @@
                 @include('staff.partials.staff-navbar')
             @endif
         @else
-            @include('partials.top-navbar')
             @include('partials.navbar')
         @endif
         

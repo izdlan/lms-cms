@@ -137,6 +137,12 @@
                     </li>
                 </ul>
             </div>
+            
+            <div class="nav-icons-or-start-live navbar-order d-flex align-items-center justify-content-end" style="display: flex !important;">
+                <div class="d-flex align-items-center mr-3" style="display: flex !important;">
+                    <a href="/login" class="nav-link font-weight-bold" style="display: inline-block !important; visibility: visible !important; text-decoration: none !important; padding: 0.5rem 1rem !important; color: #1a365d !important;">LOGIN</a>
+                </div>
+            </div>
 
         </div>
     </div>
