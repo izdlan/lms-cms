@@ -787,7 +787,10 @@ Route::prefix('certificates')->group(function () {
     Route::post('/generate/word', [CertificateController::class, 'generateWordCertificate'])->name('certificate.generate.word');
     
     // Generate PDF certificate
-    Route::post('/generate/pdf', [CertificateController::class, 'generatePdfCertificate'])->name('certificate.generate.pdf');
+    Route::get('/generate/pdf/{studentId}', [CertificateController::class, 'generatePdfCertificate'])->name('certificate.generate.pdf');
+    
+    // Test PDF generation endpoint
+    Route::get('/test-pdf/{studentId}', [CertificateController::class, 'testPdfGeneration']);
     
     // Preview certificate
     Route::get('/preview', [CertificateController::class, 'previewCertificate'])->name('certificate.preview');
@@ -797,6 +800,12 @@ Route::prefix('certificates')->group(function () {
     
     // Get certificate data
     Route::get('/data', [CertificateController::class, 'getCertificateData'])->name('certificate.data');
+    
+    // Ex-students certificate routes
+    Route::get('/', [CertificateController::class, 'index'])->name('certificate.index');
+    Route::get('/generate/{studentId}', [CertificateController::class, 'generateCertificate'])->name('certificate.generate');
+    Route::get('/download/{studentId}', [CertificateController::class, 'download'])->name('certificate.download');
+    Route::get('/verify/{certificateNumber}', [CertificateController::class, 'verifyCertificate'])->name('certificate.verify');
     
     // Bulk generate certificates
     Route::post('/bulk-generate', [CertificateController::class, 'bulkGenerateCertificates'])->name('certificate.bulk.generate');

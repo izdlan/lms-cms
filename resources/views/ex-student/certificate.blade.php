@@ -62,16 +62,18 @@
         .university-name {
             font-size: 2.5rem;
             font-weight: bold;
-            color: #2c3e50;
-            margin-bottom: 10px;
+            color: #dc3545;
+            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 2px;
         }
         
         .university-subtitle {
             font-size: 1.2rem;
-            color: #6c757d;
+            color: #007bff;
             margin-bottom: 20px;
+            text-transform: uppercase;
+            text-decoration: underline;
         }
         
         .certificate-title {
@@ -103,6 +105,26 @@
             text-decoration: underline;
             text-decoration-color: #667eea;
             text-decoration-thickness: 3px;
+            font-style: italic;
+        }
+        
+        .course-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-decoration-thickness: 3px;
+            font-style: italic;
+        }
+        
+        .graduation-date {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-style: italic;
         }
         
         .certificate-details {
@@ -153,6 +175,12 @@
             font-weight: bold;
             color: #2c3e50;
             font-size: 1rem;
+        }
+        
+        .signature-subtitle {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
         }
         
         .qr-section {
@@ -279,12 +307,12 @@
                 <div class="university-logo">
                     <i class="fas fa-graduation-cap"></i>
                 </div>
-                <h1 class="university-name">Olympia Education</h1>
-                <p class="university-subtitle">Excellence in Education Since 1995</p>
+                <h1 class="university-name">OLYMPIA COLLEGE</h1>
+                <p class="university-subtitle">MALAYSIA</p>
             </div>
             
             <div class="certificate-body">
-                <h2 class="certificate-title">Certificate of Graduation</h2>
+                <h2 class="certificate-title">{{ $exStudent->program ?? 'Bachelor of Science' }}</h2>
                 
                 <p class="certificate-text">
                     This is to certify that
@@ -295,49 +323,43 @@
                 </div>
                 
                 <p class="certificate-text">
-                    has successfully completed the requirements for the degree of
+                    has been awarded the
                 </p>
+                
+                <div class="course-name">
+                    {{ $exStudent->program ?? 'Bachelor of Science' }}
+                </div>
+                
+                <p class="certificate-text">
+                    having fulfilled the requirements prescribed by the Academic Board, and with the assent of the Examination Board. Witness our hand and seal this
+                </p>
+                
+                <div class="graduation-date">
+                    {{ $exStudent->graduation_date }}
+                </div>
                 
                 <div class="certificate-details">
                     <div class="detail-item">
-                        <div class="detail-label">Program:</div>
-                        <div class="detail-value">{{ $exStudent->program ?? 'Bachelor of Science' }}</div>
-                    </div>
-                    <div class="detail-item">
                         <div class="detail-label">Student ID:</div>
                         <div class="detail-value">{{ $exStudent->student_id }}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Graduation Date:</div>
-                        <div class="detail-value">{{ $exStudent->graduation_date }}</div>
                     </div>
                     <div class="detail-item">
                         <div class="detail-label">CGPA:</div>
                         <div class="detail-value">{{ $exStudent->formatted_cgpa }}</div>
                     </div>
                 </div>
-                
-                <p class="certificate-text">
-                    and is hereby awarded this certificate on this {{ now()->format('jS \of F, Y') }}.
-                </p>
             </div>
             
             <div class="certificate-footer">
                 <div class="signature-section">
                     <div class="signature-line"></div>
-                    <div class="signature-label">Registrar</div>
-                </div>
-                
-                <div class="qr-section">
-                    <div class="qr-code">
-                        <img src="{{ asset('storage/' . $qrCodePath) }}" alt="QR Code" style="width: 100px; height: 100px;">
-                    </div>
-                    <div class="qr-text">Verification QR Code</div>
+                    <div class="signature-label">Director</div>
                 </div>
                 
                 <div class="signature-section">
                     <div class="signature-line"></div>
-                    <div class="signature-label">Vice Chancellor</div>
+                    <div class="signature-label">Registrar</div>
+                    <div class="signature-subtitle">Olympia Examination Board</div>
                 </div>
             </div>
         </div>

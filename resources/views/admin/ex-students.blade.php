@@ -18,7 +18,7 @@
                             <p class="text-muted mb-0">Manage graduated students and their certificates</p>
                         </div>
                         <a href="{{ route('admin.ex-students.create') }}" class="btn-modern btn-modern-primary">
-                            <i data-feather="plus"></i>
+                            <i class="bi bi-plus"></i>
                             Add Ex-Student
                         </a>
                     </div>
@@ -31,7 +31,7 @@
                     <div class="card-body">
                         @if(session('success'))
                             <div class="alert-modern alert-modern-success">
-                                <i data-feather="check-circle"></i>
+                                <i class="bi bi-check-circle"></i>
                                 {{ session('success') }}
                             </div>
                         @endif
@@ -59,7 +59,7 @@
                                                 <div class="d-flex align-items-center">
                                                     <div class="me-3">
                                                         <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                            <i data-feather="graduation-cap" width="16" height="16" class="text-primary"></i>
+                                                            <i class="bi bi-mortarboard" width="16" height="16" class="text-primary"></i>
                                                         </div>
                                                     </div>
                                                     <div>
@@ -96,25 +96,35 @@
                                                     <button type="button" class="btn-modern btn-modern-secondary btn-modern-sm" 
                                                             onclick="generateQR({{ $exStudent->id }})" 
                                                             title="Generate QR Code">
-                                                        <i data-feather="qrcode"></i>
+                                                        <i class="bi bi-qr-code"></i>
                                                     </button>
                                                     <a href="{{ route('admin.ex-students.download-qr', $exStudent) }}" 
                                                        class="btn-modern btn-modern-success btn-modern-sm" 
                                                        title="Download QR Code">
-                                                        <i data-feather="download"></i>
+                                                        <i class="bi bi-download"></i>
                                                     </a>
                                                 </div>
                                             </td>
                                             <td>
                                                 <div class="d-flex gap-1">
+                                                    <a href="{{ route('certificate.generate', $exStudent->id) }}" 
+                                                       class="btn-modern btn-modern-success btn-modern-sm" 
+                                                       title="Generate Word Certificate" target="_blank">
+                                                        <i class="bi bi-file-text"></i>
+                                                    </a>
+                                                    <a href="{{ url('/certificates/generate/pdf/' . $exStudent->id) }}" 
+                                                       class="btn-modern btn-modern-info btn-modern-sm" 
+                                                       title="Generate PDF Certificate" target="_blank">
+                                                        <i class="bi bi-file-pdf"></i>
+                                                    </a>
                                                     <a href="{{ route('admin.ex-students.edit', $exStudent) }}" 
                                                        class="btn-modern btn-modern-secondary btn-modern-sm" title="Edit">
-                                                        <i data-feather="edit-2"></i>
+                                                        <i class="bi bi-pencil"></i>
                                                     </a>
                                                     <button type="button" class="btn-modern btn-modern-danger btn-modern-sm" 
                                                             onclick="deleteExStudent({{ $exStudent->id }})" 
                                                             title="Delete">
-                                                        <i data-feather="trash-2"></i>
+                                                        <i class="bi bi-trash"></i>
                                                     </button>
                                                 </div>
                                             </td>
@@ -134,13 +144,13 @@
                         <div class="text-center py-8">
                             <div class="mb-4">
                                 <div class="bg-gray-100 rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px;">
-                                    <i data-feather="graduation-cap" width="32" height="32" class="text-muted"></i>
+                                    <i class="bi bi-mortarboard" width="32" height="32" class="text-muted"></i>
                                 </div>
                             </div>
                             <h5 class="text-muted mb-2">No ex-students found</h5>
                             <p class="text-muted mb-4">Start by adding an ex-student record to track graduated students.</p>
                             <a href="{{ route('admin.ex-students.create') }}" class="btn-modern btn-modern-primary">
-                                <i data-feather="plus"></i>
+                                <i class="bi bi-plus"></i>
                                 Add First Ex-Student
                             </a>
                         </div>
@@ -175,7 +185,7 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" id="downloadQrBtn" style="display: none;">
-                    <i data-feather="download" width="16" height="16"></i> Download QR Code
+                    <i class="bi bi-download" width="16" height="16"></i> Download QR Code
                 </button>
             </div>
         </div>
@@ -230,7 +240,7 @@ function generateQR(exStudentId) {
             console.error('QR Code generation failed:', data.message);
             document.getElementById('qrCodeContainer').innerHTML = `
                 <div class="alert alert-danger">
-                    <i data-feather="alert-circle" width="20" height="20"></i>
+                    <i class="bi bi-exclamation-circle" width="20" height="20"></i>
                     ${data.message}
                 </div>
             `;
@@ -240,7 +250,7 @@ function generateQR(exStudentId) {
         console.error('QR Code fetch error:', error);
         document.getElementById('qrCodeContainer').innerHTML = `
             <div class="alert alert-danger">
-                <i data-feather="alert-circle" width="20" height="20"></i>
+                <i class="bi bi-exclamation-circle" width="20" height="20"></i>
                 Failed to generate QR code. Please try again.
                 <br><small>Error: ${error.message}</small>
             </div>
@@ -279,9 +289,6 @@ document.getElementById('downloadQrBtn').addEventListener('click', function() {
     }
 });
 
-// Initialize feather icons
-document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
-});
+// Bootstrap Icons are already loaded via CDN
 </script>
 @endpush

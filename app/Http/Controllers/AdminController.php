@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Models\Lecturer;
 use App\Models\ExStudent;
 use App\Services\QrCodeService;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
@@ -1857,14 +1858,66 @@ if ($returnCode === 0) {
         $this->checkAdminAccess();
 
         try {
-            $qrCodeService = new QrCodeService();
-            $qrCodePath = $qrCodeService->generateCertificateQrCode($exStudent);
-            $qrCodeUrl = $qrCodeService->getQrCodeUrl($qrCodePath);
+            // Generate QR Code data for verification (compatible with verification system)
+            $qrCodeData = [
+                'student_id' => $exStudent->student_id,
+                'student_name' => $exStudent->name,
+                'certificate_number' => $exStudent->certificate_number,
+                'course' => $exStudent->program ?? 'Not Specified',
+                'graduation_date' => $exStudent->graduation_date,
+                'verification_url' => url('/certificates/verify/' . $exStudent->certificate_number),
+                'certificate_download_url' => url('/certificates/generate/' . $exStudent->id),
+                'generated_at' => now()->toISOString()
+            ];
+
+            // Generate QR Code (try PNG first, fallback to SVG)
+            // Encode data as base64 JSON for verification system compatibility
+            $encodedQrData = base64_encode(json_encode($qrCodeData));
+            
+            try {
+                $qrCode = QrCode::format('png')
+                    ->size(200)
+                    ->margin(1)
+                    ->generate($encodedQrData);
+            } catch (\Exception $e) {
+                // Fallback to SVG if PNG fails (no ImageMagick)
+                $qrCode = QrCode::format('svg')
+                    ->size(200)
+                    ->margin(1)
+                    ->generate($encodedQrData);
+            }
+
+            // Save QR Code temporarily
+            $qrCodeExtension = strpos($qrCode, '<svg') !== false ? 'svg' : 'png';
+            $qrCodePath = 'temp/qr_' . $exStudent->id . '_' . time() . '.' . $qrCodeExtension;
+            
+            // Ensure temp directory exists in both storage and public
+            $tempDir = storage_path('app/public/temp');
+            $publicTempDir = public_path('storage/temp');
+            
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+            if (!is_dir($publicTempDir)) {
+                mkdir($publicTempDir, 0755, true);
+            }
+            
+            Storage::disk('public')->put($qrCodePath, $qrCode);
+            
+            // Also copy to public directory for immediate access
+            $sourceFile = storage_path('app/public/' . $qrCodePath);
+            $publicFile = public_path('storage/' . $qrCodePath);
+            if (file_exists($sourceFile)) {
+                copy($sourceFile, $publicFile);
+            }
+            
+            $qrCodeUrl = Storage::disk('public')->url($qrCodePath);
 
             return response()->json([
                 'success' => true,
                 'qr_code_url' => $qrCodeUrl,
-                'verification_url' => $exStudent->getVerificationUrl(),
+                'verification_url' => url('/certificates/verify/' . $exStudent->certificate_number),
+                'certificate_download_url' => url('/certificates/generate/' . $exStudent->id),
                 'student_id' => $exStudent->student_id
             ]);
         } catch (\Exception $e) {

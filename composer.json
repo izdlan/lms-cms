@@ -8,13 +8,14 @@
     "require": {
         "php": "^8.2",
         "barryvdh/laravel-dompdf": "^3.1",
+        "dompdf/dompdf": "^3.1",
         "google/apiclient": "^2.18",
         "intervention/image": "^3.11",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "maatwebsite/excel": "^3.1",
         "phpoffice/phpspreadsheet": "^1.30",
-        "phpoffice/phpword": "^1.4",
+        "phpoffice/phpword": "1.0",
         "simplesoftwareio/simple-qrcode": "^4.2"
     },
     "require-dev": {

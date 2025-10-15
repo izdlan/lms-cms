@@ -395,18 +395,29 @@
             // Extract student ID from the QR code result
             let studentId = null;
             
-            // Check if the result contains a student ID pattern
-            const studentIdMatch = result.match(/student_id=([^&]+)/);
-            if (studentIdMatch) {
-                studentId = studentIdMatch[1];
-            } else if (result.includes('670219-08-6113')) {
-                studentId = '670219-08-6113';
-            } else if (result.includes('670220-09-7224')) {
-                studentId = '670220-09-7224';
-            } else if (result.includes('670221-10-8335')) {
-                studentId = '670221-10-8335';
-            } else if (result.includes('670222-11-9446')) {
-                studentId = '670222-11-9446';
+            try {
+                // First, try to decode as base64 JSON (new format)
+                const decodedData = JSON.parse(atob(result));
+                if (decodedData && decodedData.student_id) {
+                    studentId = decodedData.student_id;
+                    console.log('Decoded QR data:', decodedData);
+                }
+            } catch (e) {
+                console.log('Not base64 JSON, trying other formats...');
+                
+                // Check if the result contains a student ID pattern (URL format)
+                const studentIdMatch = result.match(/student_id=([^&]+)/);
+                if (studentIdMatch) {
+                    studentId = studentIdMatch[1];
+                } else if (result.includes('670219-08-6113')) {
+                    studentId = '670219-08-6113';
+                } else if (result.includes('670220-09-7224')) {
+                    studentId = '670220-09-7224';
+                } else if (result.includes('670221-10-8335')) {
+                    studentId = '670221-10-8335';
+                } else if (result.includes('670222-11-9446')) {
+                    studentId = '670222-11-9446';
+                }
             }
             
             setTimeout(() => {
