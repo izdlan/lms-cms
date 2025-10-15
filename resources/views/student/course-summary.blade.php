@@ -29,7 +29,7 @@
                 <!-- Program Information Table -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h3><i class="fas fa-info-circle"></i> Program Information</h3>
+                        <h3>Program Information</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -85,7 +85,7 @@
                 <!-- Program Synopsis -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h3><i class="fas fa-book-open"></i> Program Synopsis</h3>
+                        <h3>Program Synopsis</h3>
                     </div>
                     <div class="card-body">
                         <h4 class="mb-3">Executive Master in Business Administration (EMBA)</h4>
@@ -107,7 +107,7 @@
                 <!-- Program Learning Outcomes Table -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h3><i class="fas fa-graduation-cap"></i> Program Learning Outcomes (PLOs) - Aligned with Malaysia Qualification Framework 2.0 Domains</h3>
+                        <h3>Program Learning Outcomes (PLOs) - Aligned with Malaysia Qualification Framework 2.0 Domains</h3>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -178,7 +178,7 @@
                 <!-- Subjects Table -->
                 <div class="card mb-4">
                     <div class="card-header">
-                        <h3><i class="fas fa-book"></i> Program Subjects</h3>
+                        <h3>Program Subjects</h3>
                         <p class="mb-0">The 12 competencies are:</p>
                     </div>
                     <div class="card-body">
@@ -218,7 +218,7 @@
                 <!-- Subject Details Display -->
                 <div id="subjectDetailsSection" class="card mb-4" style="display: none;">
                     <div class="card-header">
-                        <h3><i class="fas fa-book"></i> <span id="subjectTitle">Subject Details</span></h3>
+                        <h3><span id="subjectTitle">Subject Details</span></h3>
                         <button type="button" class="btn-close" onclick="closeSubjectDetails()" aria-label="Close"></button>
                     </div>
                     <div class="card-body">
@@ -234,17 +234,17 @@
                         <div class="row">
                             <div class="col-md-4">
                                 <a href="/maintenance" class="btn btn-primary btn-lg w-100 mb-2">
-                                    <i class="fas fa-bullhorn"></i> Announcements
+                                    Announcements
                                 </a>
                             </div>
                             <div class="col-md-4">
                                 <a href="/maintenance" class="btn btn-success btn-lg w-100 mb-2">
-                                    <i class="fas fa-book-open"></i> Course Content
+                                    Course Content
                                 </a>
                             </div>
                             <div class="col-md-4">
                                 <a href="/maintenance" class="btn btn-warning btn-lg w-100 mb-2">
-                                    <i class="fas fa-clipboard-list"></i> Assignments
+                                    Assignments
                                 </a>
                             </div>
                         </div>
@@ -258,13 +258,153 @@
 
 @push('styles')
 <style>
-.course-summary-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 2rem;
-    border-radius: 15px;
-    margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+/* Override Bootstrap with higher specificity */
+.student-dashboard .course-summary-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    padding: 0.5rem 0.75rem !important;
+    border-radius: 4px !important;
+    margin-bottom: 0.25rem !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.student-dashboard .course-summary-header h1 {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin-bottom: 0.1rem !important;
+    line-height: 1.2 !important;
+    color: white !important;
+}
+
+.student-dashboard .course-summary-header p {
+    font-size: 0.75rem !important;
+    opacity: 0.9 !important;
+    margin: 0 !important;
+    line-height: 1.3 !important;
+    color: white !important;
+}
+
+.student-dashboard .card {
+    border: none !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    margin-bottom: 1rem !important;
+    background: white !important;
+}
+
+.student-dashboard .card:first-of-type {
+    margin-top: 0.25rem !important;
+}
+
+.student-dashboard .card-header {
+    background: #f8f9fa !important;
+    border-bottom: 1px solid #e9ecef !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 0.75rem 1rem !important;
+}
+
+.student-dashboard .card-header h3 {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    color: #495057 !important;
+}
+
+.student-dashboard .card-body {
+    padding: 1rem !important;
+}
+
+.student-dashboard .table td {
+    padding: 0.75rem 1rem !important;
+    vertical-align: middle !important;
+    border: none !important;
+}
+
+.student-dashboard .table-striped tbody tr {
+    border-bottom: 1px solid #f1f3f4 !important;
+}
+
+.student-dashboard .table-striped tbody tr:hover {
+    background-color: #f8f9fa !important;
+}
+
+.student-dashboard .subject-code {
+    font-weight: 600 !important;
+    color: #2c3e50 !important;
+    font-size: 0.9rem !important;
+    margin-bottom: 0.25rem !important;
+    display: block !important;
+}
+
+.student-dashboard .subject-title {
+    color: #495057 !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 0.25rem !important;
+    display: block !important;
+    line-height: 1.3 !important;
+}
+
+.student-dashboard .lecturer-name {
+    color: #0056d2 !important;
+    font-size: 0.8rem !important;
+    text-decoration: none !important;
+    display: block !important;
+    margin-bottom: 0.25rem !important;
+}
+
+.student-dashboard .lecturer-name:hover {
+    text-decoration: underline !important;
+}
+
+.student-dashboard .class-code {
+    background: #e8f5e8 !important;
+    color: #2d5a2d !important;
+    padding: 0.2rem 0.5rem !important;
+    border-radius: 4px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    display: inline-block !important;
+}
+
+/* Mobile responsive overrides */
+@media (max-width: 768px) {
+    .student-dashboard .course-summary-header {
+        padding: 0.4rem 0.6rem !important;
+        margin-bottom: 0.15rem !important;
+    }
+    
+    .student-dashboard .card:first-of-type {
+        margin-top: 0.15rem !important;
+    }
+    
+    .student-dashboard .course-summary-header h1 {
+        font-size: 1rem !important;
+    }
+    
+    .student-dashboard .course-summary-header p {
+        font-size: 0.7rem !important;
+    }
+    
+    .student-dashboard .table td {
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    .student-dashboard .subject-code {
+        font-size: 0.85rem !important;
+    }
+    
+    .student-dashboard .subject-title {
+        font-size: 0.8rem !important;
+    }
+    
+    .student-dashboard .lecturer-name {
+        font-size: 0.75rem !important;
+    }
+    
+    .student-dashboard .class-code {
+        font-size: 0.7rem !important;
+        padding: 0.15rem 0.4rem !important;
+    }
 }
 
 /* Information Table Styles */
@@ -293,24 +433,6 @@
     background-color: #f8f9fa;
 }
 
-.card {
-    border: none;
-    border-radius: 15px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    margin-bottom: 2rem;
-    background: white;
-}
-
-.card-header {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-bottom: 1px solid #dee2e6;
-    border-radius: 15px 15px 0 0 !important;
-    padding: 1.5rem;
-}
-
-.card-body {
-    padding: 2rem;
-}
 
 
 .subject-row:hover {
@@ -518,11 +640,6 @@
     min-height: 50px;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .course-summary-header {
-        padding: 1.5rem;
-    }
     
     .info-label,
     .info-value {
