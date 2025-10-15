@@ -1096,15 +1096,15 @@
     <link rel="stylesheet" href="/assets/default/vendors/select2/select2.min.css">
 
     <style>
-        /* Optima Font Family */
+        /* System Font Stack - No external font loading */
         @font-face {
             font-family: 'main-font-family';
             font-style: normal;
             font-weight: 400;
             font-display: swap;
             src: local('Optima'), local('Optima-Regular'), 
-                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         @font-face {
@@ -1113,8 +1113,8 @@
             font-weight: 500;
             font-display: swap;
             src: local('Optima Medium'), local('Optima-Medium'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         @font-face {
@@ -1123,8 +1123,8 @@
             font-weight: 700;
             font-display: swap;
             src: local('Optima Bold'), local('Optima-Bold'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         @font-face {
@@ -1133,8 +1133,8 @@
             font-weight: 400;
             font-display: swap;
             src: local('Optima'), local('Optima-Regular'), 
-                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         @font-face {
@@ -1143,8 +1143,8 @@
             font-weight: 500;
             font-display: swap;
             src: local('Optima Medium'), local('Optima-Medium'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Medium.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         @font-face {
@@ -1153,8 +1153,8 @@
             font-weight: 700;
             font-display: swap;
             src: local('Optima Bold'), local('Optima-Bold'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff2') format('woff2'),
-                 url('https://fonts.cdnfonts.com/s/16011/Optima Bold.woff') format('woff');
+                 local('-apple-system'), local('BlinkMacSystemFont'),
+                 local('Segoe UI'), local('Helvetica Neue'), local('Arial');
         }
 
         :root {
@@ -1390,11 +1390,14 @@
             console.warn('JavaScript error caught:', e.message, e.filename, e.lineno);
         });
     </script>
-    <script src="/assets/default/js/parts/home.min.js"></script>
-    <script src="/assets/default/js/parts/categories.min.js"></script>
-    <link href="/assets/default/vendors/flagstrap/css/flags.css" rel="stylesheet">
-    <script src="/assets/default/vendors/flagstrap/js/jquery.flagstrap.min.js"></script>
-    <script src="/assets/default/js/parts/top_nav_flags.min.js"></script>
+    <!-- Disabled problematic scripts for student dashboard -->
+    @if(!request()->is('student/*'))
+        <script src="/assets/default/js/parts/home.min.js"></script>
+        <script src="/assets/default/js/parts/categories.min.js"></script>
+        <link href="/assets/default/vendors/flagstrap/css/flags.css" rel="stylesheet">
+        <script src="/assets/default/vendors/flagstrap/js/jquery.flagstrap.min.js"></script>
+        <script src="/assets/default/js/parts/top_nav_flags.min.js"></script>
+    @endif
     <!-- Prevent Bootstrap navbar conflicts -->
     <script>
     // Override Bootstrap navbar before it loads
@@ -1468,7 +1471,10 @@
         }
     })();
     </script>
-    <script src="/assets/default/js/parts/navbar.min.js"></script>
+    <!-- Disabled navbar.min.js for student pages to prevent errors -->
+    @if(!request()->is('student/*'))
+        <script src="/assets/default/js/parts/navbar.min.js"></script>
+    @endif
     <script src="/assets/default/js/parts/main.min.js"></script>
 
     <script>
