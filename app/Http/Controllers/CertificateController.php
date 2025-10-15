@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use PhpOffice\PhpWord\TemplateProcessor;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpWord\Settings;
 use App\Services\CustomTemplateProcessor;
 
@@ -100,7 +101,7 @@ class CertificateController extends Controller
             return response()->download($fullCertificatePath, $certificateFileName);
 
         } catch (\Exception $e) {
-            \Log::error('Certificate generation failed: ' . $e->getMessage());
+            Log::error('Certificate generation failed: ' . $e->getMessage());
             return response()->json(['error' => 'Certificate generation failed: ' . $e->getMessage()], 500);
         }
     }
@@ -240,7 +241,7 @@ class CertificateController extends Controller
                 unlink($batchFile);
             }
             
-            \Log::info('LibreOffice conversion attempt', [
+            Log::info('LibreOffice conversion attempt', [
                 'command' => 'cmd /c "' . $batchFile . '"',
                 'return_code' => $returnCode,
                 'output' => $output,
@@ -250,7 +251,7 @@ class CertificateController extends Controller
             ]);
             
             if ($returnCode === 0 && file_exists($fullPdfPath) && filesize($fullPdfPath) > 50000) {
-                \Log::info('PDF generated successfully using LibreOffice', [
+                Log::info('PDF generated successfully using LibreOffice', [
                     'pdf_size' => filesize($fullPdfPath),
                     'pdf_path' => $fullPdfPath
                 ]);
@@ -261,7 +262,7 @@ class CertificateController extends Controller
                 
                 return response()->download($fullPdfPath, $pdfFileName);
             } else {
-                \Log::warning('LibreOffice conversion failed', [
+                Log::warning('LibreOffice conversion failed', [
                     'return_code' => $returnCode,
                     'output' => $output,
                     'target_path' => $fullPdfPath,
@@ -280,7 +281,7 @@ class CertificateController extends Controller
                 $pdfWriter->save($fullPdfPath);
                 
                 if (file_exists($fullPdfPath) && filesize($fullPdfPath) > 10000) {
-                    \Log::info('PDF generated successfully using PhpWord');
+                    Log::info('PDF generated successfully using PhpWord');
                     
                     // Clean up temporary files
                     Storage::disk('public')->delete($qrCodePath);
@@ -289,7 +290,7 @@ class CertificateController extends Controller
                     return response()->download($fullPdfPath, $pdfFileName);
                 }
             } catch (\Exception $e) {
-                \Log::warning('PhpWord PDF conversion failed: ' . $e->getMessage());
+                Log::warning('PhpWord PDF conversion failed: ' . $e->getMessage());
             }
             
             // Method 3: Use Windows built-in Word to PDF conversion
@@ -304,7 +305,7 @@ class CertificateController extends Controller
                 $wordApp->Quit();
                 
                 if (file_exists($fullPdfPath) && filesize($fullPdfPath) > 50000) {
-                    \Log::info('PDF generated successfully using Microsoft Word COM');
+                    Log::info('PDF generated successfully using Microsoft Word COM');
                     
                     // Clean up temporary files
                     Storage::disk('public')->delete($qrCodePath);
@@ -313,11 +314,11 @@ class CertificateController extends Controller
                     return response()->download($fullPdfPath, $pdfFileName);
                 }
             } catch (\Exception $e) {
-                \Log::warning('Microsoft Word COM conversion failed: ' . $e->getMessage());
+                Log::warning('Microsoft Word COM conversion failed: ' . $e->getMessage());
             }
             
             // Method 4: Fallback to HTML template (only if all Word-to-PDF methods fail)
-            \Log::warning('All Word-to-PDF conversion methods failed, using HTML fallback');
+            Log::warning('All Word-to-PDF conversion methods failed, using HTML fallback');
             
             $qrCodeBase64 = 'data:image/' . $qrCodeExtension . ';base64,' . base64_encode($qrCode);
             $data = [
@@ -326,7 +327,7 @@ class CertificateController extends Controller
                 'qrCodeData' => $qrCodeData
             ];
 
-            $pdf = Pdf::loadView('certificate.pdf-template', $data);
+            $pdf = PDF::loadView('certificate.pdf-template', $data);
             $pdf->setPaper('A4', 'portrait');
             $pdf->setOptions([
                 'isHtml5ParserEnabled' => true,
@@ -341,7 +342,7 @@ class CertificateController extends Controller
             return $pdf->download($pdfFileName);
 
         } catch (\Exception $e) {
-            \Log::error('PDF Certificate generation failed: ' . $e->getMessage());
+            Log::error('PDF Certificate generation failed: ' . $e->getMessage());
             return response()->json(['error' => 'PDF Certificate generation failed: ' . $e->getMessage()], 500);
         }
     }
