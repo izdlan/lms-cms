@@ -789,8 +789,23 @@ Route::prefix('certificates')->group(function () {
     // Generate PDF certificate
     Route::get('/generate/pdf/{studentId}', [CertificateController::class, 'generatePdfCertificate'])->name('certificate.generate.pdf');
     
+    // Generate PDF preview (for preview page)
+    Route::post('/preview/pdf', [CertificateController::class, 'generatePdfPreview'])->name('certificate.preview.pdf');
+    
+    // Generate PDF preview (for iframe direct access)
+    Route::get('/preview/pdf/{studentId}', [CertificateController::class, 'generatePdfPreview'])->name('certificate.preview.pdf.get');
+    
+    // Static PDF preview (simple iframe)
+    Route::get('/preview/{id}', [CertificateController::class, 'previewCertificate'])->name('certificates.preview');
+    
     // Test PDF generation endpoint
     Route::get('/test-pdf/{studentId}', [CertificateController::class, 'testPdfGeneration']);
+    
+    // Minimal test PDF route
+    Route::get('/test-pdf', function () {
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML('<h1>Test PDF</h1><p>If you see this, PDF works.</p>');
+        return $pdf->stream('test.pdf');
+    });
     
     // Preview certificate
     Route::get('/preview', [CertificateController::class, 'previewCertificate'])->name('certificate.preview');

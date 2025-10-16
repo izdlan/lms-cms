@@ -287,9 +287,6 @@
     <div class="certificate-container">
         <!-- Action Buttons -->
         <div class="print-button">
-            <button class="btn btn-success me-2" onclick="downloadWord()">
-                <i class="fas fa-download"></i> Download Word
-            </button>
             <button class="btn btn-primary me-2" onclick="downloadPdf()">
                 <i class="fas fa-file-pdf"></i> Download PDF
             </button>
@@ -310,114 +307,63 @@
         <!-- Preview Notice -->
         <div class="alert alert-info mb-4">
             <h5><i class="fas fa-info-circle"></i> Certificate Preview</h5>
-            <p class="mb-0">This is a preview of your certificate. Click the buttons above to download the official Word document or PDF version with the latest template design and QR code.</p>
+            <p class="mb-0">This is a preview of your certificate. Click the button above to download the official PDF version with the latest template design and QR code.</p>
         </div>
         
-        <!-- Certificate -->
-        <div class="certificate">
-            <div class="certificate-header">
-                <div class="university-logo">
-                    <i class="fas fa-graduation-cap"></i>
+        <!-- PDF Preview -->
+        <div class="pdf-preview-section mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-file-pdf"></i> Certificate Preview</h5>
+                    <p class="mb-0 text-muted">View the official certificate</p>
                 </div>
-                <h1 class="university-name">OLYMPIA COLLEGE</h1>
-                <p class="university-subtitle">MALAYSIA</p>
-            </div>
-            
-            <div class="certificate-body">
-                <h2 class="certificate-title">{{ $exStudent->program ?? 'Bachelor of Science' }}</h2>
-                
-                <p class="certificate-text">
-                    This is to certify that
-                </p>
-                
-                <div class="student-name">
-                    {{ $exStudent->name }}
-                </div>
-                
-                <p class="certificate-text">
-                    has been awarded the
-                </p>
-                
-                <div class="course-name">
-                    {{ $exStudent->program ?? 'Bachelor of Science' }}
-                </div>
-                
-                <p class="certificate-text">
-                    having fulfilled the requirements prescribed by the Academic Board, and with the assent of the Examination Board. Witness our hand and seal this
-                </p>
-                
-                <div class="graduation-date">
-                    {{ $exStudent->graduation_date }}
-                </div>
-                
-                <div class="certificate-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Student ID:</div>
-                        <div class="detail-value">{{ $exStudent->student_id }}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">CGPA:</div>
-                        <div class="detail-value">{{ $exStudent->formatted_cgpa }}</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="certificate-footer">
-                <div class="signature-section">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Director</div>
-                </div>
-                
-                <div class="signature-section">
-                    <div class="signature-line"></div>
-                    <div class="signature-label">Registrar</div>
-                    <div class="signature-subtitle">Olympia Examination Board</div>
-                </div>
-                
-                <div class="qr-section">
-                    <div class="qr-code">
-                        <div style="width: 100%; height: 100%; background: #f8f9fa; border: 2px dashed #dee2e6; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 0.8rem; text-align: center;">
-                            QR Code<br>Will Be Here
+                <div class="card-body p-0">
+                    <div class="pdf-preview-container" style="height: 600px; border: 1px solid #ddd;">
+                        <object id="interactivePdfViewer" 
+                                data="{{ route('certificates.preview', $exStudent->student_id) }}#toolbar=0&navpanes=0&scrollbar=1" 
+                                type="application/pdf"
+                                width="100%" 
+                                height="100%"
+                                style="border: none;">
+                            <iframe id="pdfIframe" 
+                                    src="{{ route('certificates.preview', $exStudent->student_id) }}#toolbar=0&navpanes=0&scrollbar=1" 
+                                    width="100%" 
+                                    height="100%" 
+                                    frameborder="0"
+                                    style="border: none;">
+                            </iframe>
+                        </object>
+                        <div id="pdfFallback" style="display: none; padding: 20px; text-align: center;">
+                            <p>PDF preview not available. <a href="{{ route('certificates.preview', $exStudent->student_id) }}" target="_blank" class="btn btn-primary">View Certificate in New Tab</a></p>
                         </div>
                     </div>
-                    <div class="qr-text">Verification QR Code</div>
                 </div>
             </div>
         </div>
         
-        <div class="verification-info">
-            <h6><i class="fas fa-shield-check"></i> Certificate Verification</h6>
-            <p><strong>Certificate Number:</strong> {{ $exStudent->certificate_number }}</p>
-            <p><strong>Verification URL:</strong> {{ $exStudent->getVerificationUrl() }}</p>
-            <p><strong>Issued Date:</strong> {{ now()->format('F j, Y') }}</p>
-            <p><strong>QR Code:</strong> The official certificate includes a QR code for instant verification</p>
-            <p class="mb-0"><strong>Status:</strong> <span class="text-success">Verified and Authentic</span></p>
-        </div>
-        
-        <div class="alert alert-warning mt-4">
-            <h6><i class="fas fa-exclamation-triangle"></i> Important Notice</h6>
-            <p class="mb-0">This is a preview only. The official certificate with QR code and proper formatting will be available when you download the Word or PDF version using the buttons above.</p>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        function downloadWord() {
-            // Show loading state
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
-            btn.disabled = true;
+        // Simple PDF loading - let iframe handle it directly
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Certificate page loaded');
             
-            // Download Word certificate
-            window.open('{{ route("certificate.generate", $exStudent->id) }}', '_blank');
-            
-            // Reset button after a delay
+            // Set a simple timeout to show fallback if needed
             setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 3000);
-        }
+                const pdfViewer = document.getElementById('interactivePdfViewer');
+                const pdfIframe = document.getElementById('pdfIframe');
+                const pdfFallback = document.getElementById('pdfFallback');
+                
+                // Check if iframe has loaded content
+                if (pdfIframe && pdfIframe.contentDocument && pdfIframe.contentDocument.body && pdfIframe.contentDocument.body.innerHTML.trim() === '') {
+                    console.log('PDF not loaded, showing fallback');
+                    if (pdfViewer) pdfViewer.style.display = 'none';
+                    if (pdfIframe) pdfIframe.style.display = 'none';
+                    pdfFallback.style.display = 'block';
+                }
+            }, 10000);
+        });
         
         function downloadPdf() {
             // Show loading state

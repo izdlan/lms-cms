@@ -14,9 +14,6 @@
                     </div>
 
                     <div class="certificate-actions mb-4">
-                        <button class="btn btn-primary" onclick="generateWordCertificate()">
-                            <i class="fas fa-file-word"></i> Download Word Certificate
-                        </button>
                         <button class="btn btn-success" onclick="generatePdfCertificate()">
                             <i class="fas fa-file-pdf"></i> Download PDF Certificate
                         </button>
@@ -27,88 +24,51 @@
 
                     <!-- Certificate Preview -->
                     <div class="certificate-preview" id="certificatePreview">
-                        <div class="certificate-document">
-                            <!-- University Header -->
-                            <div class="certificate-header-section text-center mb-4">
-                                <div class="university-logo mb-3">
-                                    <img src="/store/1/logo/OLYMPIA.png" alt="Olympia University" class="logo-img" style="height: 80px;">
+                        <div class="certificate-preview-container">
+                            <div class="preview-loading text-center py-5" id="previewLoading">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="sr-only">Loading...</span>
                                 </div>
-                                <h1 class="university-name">OLYMPIA UNIVERSITY</h1>
-                                <h2 class="education-name">OLYMPIA EDUCATION</h2>
+                                <p class="mt-3">Generating certificate preview...</p>
                             </div>
-
-                            <!-- Certificate Body -->
-                            <div class="certificate-body">
-                                <!-- Declaration Text -->
-                                <div class="declaration-text text-center mb-4">
-                                    <p class="declaration-malay">DENGAN KUASA YANG DIBERIKAN OLEH LEMBAGA AKADEMIK, ADALAH DIPERAKUI BAHAWA</p>
-                                    <p class="declaration-english">By the authority of Academic Board it is certify that</p>
+                            
+                            <div class="preview-content" id="previewContent" style="display: none;">
+                                <div class="preview-actions mb-3">
+                                    <button class="btn btn-sm btn-outline-primary" onclick="refreshPreview()">
+                                        <i class="fas fa-sync-alt"></i> Refresh Preview
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="toggleFullscreen()">
+                                        <i class="fas fa-expand"></i> Fullscreen
+                                    </button>
                                 </div>
-
-                                <!-- Student Information -->
-                                <div class="student-info text-center mb-4">
-                                    <h3 class="student-name">{{ $exStudent->name }}</h3>
-                                    <p class="student-id">{{ $exStudent->student_id }}</p>
-                                </div>
-
-                                <!-- Award Text -->
-                                <div class="award-text text-center mb-4">
-                                    <p>TELAH DIANUGERAHKAN / has been awarded the</p>
-                                    <h4 class="degree-malay">{{ $exStudent->program ?? 'SARJANA MUDA EKSEKUTIF PENTADBIRAN PERNIAGAAN' }}</h4>
-                                    <p class="degree-english">Bachelor Executive in Business Administration</p>
-                                </div>
-
-                                <!-- Completion Text -->
-                                <div class="completion-text text-center mb-4">
-                                    <p>SETELAH MEMENUHI SEMUA SYARAT YANG DITETAPKAN DAN DIKURNIAKAN IJAZAH PADA / having fulfilled all the requirements and has been conferred the degree at</p>
-                                    <h4 class="graduation-date">{{ $exStudent->getFormattedGraduationDate() }}</h4>
-                                </div>
-
-                                <!-- Signatures and QR Codes -->
-                                <div class="certificate-footer">
-                                    <div class="row">
-                                        <div class="col-md-8">
-                                            <div class="signatures">
-                                                <div class="signature-item mb-3">
-                                                    <p class="signature-name">Assoc Prof Dr Mohd Kamil Yusoff</p>
-                                                    <p class="signature-title">Director, Olympia Education</p>
-                                                </div>
-                                                <div class="signature-item">
-                                                    <p class="signature-name">Brigadier General (R) Professor Dato Ts Dr. Hj. Shohaimi Abdullah</p>
-                                                    <p class="signature-title">Chairman, Olympia Academic Board</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="qr-codes text-center">
-                                                <div class="qr-code-item mb-3">
-                                                    <img src="{{ asset('storage/' . $qrCodePath1) }}" alt="QR Code 1" class="qr-img">
-                                                </div>
-                                                <div class="qr-code-item">
-                                                    <img src="{{ asset('storage/' . $qrCodePath2) }}" alt="QR Code 2" class="qr-img">
-                                                </div>
-                                                <p class="certificate-number">{{ $exStudent->certificate_number ?? 'CERT-' . time() }}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Accreditation Logos -->
-                                <div class="accreditation-logos text-center mt-4">
-                                    <div class="row justify-content-center">
-                                        <div class="col-auto">
-                                            <img src="/store/1/logo/MQA.png" alt="MQA" class="accreditation-logo">
-                                        </div>
-                                        <div class="col-auto">
-                                            <img src="/store/1/logo/CMI.png" alt="CMI" class="accreditation-logo">
-                                        </div>
-                                        <div class="col-auto">
-                                            <img src="/store/1/logo/CTH.png" alt="CTH" class="accreditation-logo">
-                                        </div>
-                                        <div class="col-auto">
-                                            <img src="/store/1/logo/Ministry.png" alt="Ministry" class="accreditation-logo">
-                                        </div>
-                                    </div>
+                                
+                <div class="pdf-viewer-container">
+                    <h3 class="mb-3">Certificate Preview</h3>
+                    
+                    <iframe
+                        src="{{ route('certificates.preview', $exStudent->student_id) }}"
+                        width="100%"
+                        height="600"
+                        style="border: 1px solid #ccc; border-radius: 10px;"
+                    ></iframe>
+                    
+                    <!-- Optional: Download button -->
+                    <div class="mt-3">
+                        <a href="{{ route('certificates.preview', $exStudent->student_id) }}" download class="btn btn-primary">
+                            <i class="fas fa-download"></i> Download Certificate
+                        </a>
+                    </div>
+                </div>
+                            </div>
+                            
+                            <div class="preview-error text-center py-5" id="previewError" style="display: none;">
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    <h5>Preview Generation Failed</h5>
+                                    <p id="errorMessage">Unable to generate certificate preview. Please try again.</p>
+                                    <button class="btn btn-primary" onclick="refreshPreview()">
+                                        <i class="fas fa-retry"></i> Try Again
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -312,60 +272,137 @@
         font-size: 1.2rem;
     }
 }
+
+/* PDF Viewer Styles */
+.certificate-preview-container {
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    padding: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.preview-loading {
+    padding: 3rem 0;
+}
+
+.preview-content {
+    position: relative;
+}
+
+.preview-actions {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+}
+
+.pdf-viewer-container {
+    position: relative;
+    width: 100%;
+    min-height: 800px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#pdfViewer {
+    width: 100%;
+    height: 800px;
+    border: none;
+    border-radius: 8px;
+    background: white;
+}
+
+.preview-error {
+    padding: 3rem 0;
+}
+
+.preview-error .alert {
+    border-radius: 10px;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.preview-error .alert h5 {
+    margin-bottom: 1rem;
+    color: #721c24;
+}
+
+.preview-error .alert i {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: #dc3545;
+}
+
+@media (max-width: 768px) {
+    .pdf-viewer-container {
+        min-height: 600px;
+    }
+    
+    #pdfViewer {
+        height: 600px;
+    }
+    
+    .preview-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .preview-actions .btn {
+        margin-bottom: 0.5rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .pdf-viewer-container {
+        min-height: 500px;
+    }
+    
+    #pdfViewer {
+        height: 500px;
+    }
+}
 </style>
 @endpush
 
 @push('scripts')
 <script>
-function generateWordCertificate() {
-    showLoading();
+// Load PDF preview when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    // Show content immediately since iframe loads directly
+    const loadingDiv = document.getElementById('previewLoading');
+    const contentDiv = document.getElementById('previewContent');
     
-    fetch('{{ route("certificate.generate.word") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            student_id: '{{ $exStudent->student_id }}'
-        })
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.blob();
-        }
-        throw new Error('Certificate generation failed');
-    })
-    .then(blob => {
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'Certificate_{{ $exStudent->name }}.docx';
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        document.body.removeChild(a);
-        hideLoading();
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to generate certificate: ' + error.message);
-        hideLoading();
-    });
+    loadingDiv.style.display = 'none';
+    contentDiv.style.display = 'block';
+});
+
+function refreshPreview() {
+    // Reload the iframe
+    const pdfViewer = document.getElementById('pdfViewer');
+    pdfViewer.src = pdfViewer.src;
+}
+
+function toggleFullscreen() {
+    const pdfViewer = document.getElementById('pdfViewer');
+    if (pdfViewer.requestFullscreen) {
+        pdfViewer.requestFullscreen();
+    } else if (pdfViewer.webkitRequestFullscreen) {
+        pdfViewer.webkitRequestFullscreen();
+    } else if (pdfViewer.msRequestFullscreen) {
+        pdfViewer.msRequestFullscreen();
+    }
 }
 
 function generatePdfCertificate() {
     showLoading();
     
-    fetch('{{ route("certificate.generate.pdf") }}', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': '{{ csrf_token() }}'
-        },
-        body: JSON.stringify({
-            student_id: '{{ $exStudent->student_id }}'
-        })
+    // Use the GET route with studentId in URL
+    const url = '{{ route("certificate.generate.pdf", ["studentId" => $exStudent->id]) }}';
+    
+    fetch(url, {
+        method: 'GET'
     })
     .then(response => {
         if (response.ok) {
@@ -374,13 +411,13 @@ function generatePdfCertificate() {
         throw new Error('Certificate generation failed');
     })
     .then(blob => {
-        const url = window.URL.createObjectURL(blob);
+        const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = downloadUrl;
         a.download = 'Certificate_{{ $exStudent->name }}.pdf';
         document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
+        window.URL.revokeObjectURL(downloadUrl);
         document.body.removeChild(a);
         hideLoading();
     })
@@ -392,7 +429,13 @@ function generatePdfCertificate() {
 }
 
 function printCertificate() {
-    window.print();
+    // Print the PDF preview
+    const pdfViewer = document.getElementById('pdfViewer');
+    if (pdfViewer.contentWindow) {
+        pdfViewer.contentWindow.print();
+    } else {
+        window.print();
+    }
 }
 
 function showLoading() {
