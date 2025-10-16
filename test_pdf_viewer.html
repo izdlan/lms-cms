@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate | Ahmad bin Abdullah | Olympia Education</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+            font-family: 'Times New Roman', serif;
+        }
+        
+        .certificate-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .certificate {
+            background: white;
+            border: 5px solid #2c3e50;
+            border-radius: 10px;
+            padding: 60px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            min-height: 600px;
+        }
+        
+        .certificate::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            pointer-events: none;
+        }
+        
+        .certificate-header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .university-logo {
+            width: 80px;
+            height: 80px;
+            background: #2c3e50;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        
+        .university-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #dc3545;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .university-subtitle {
+            font-size: 1.2rem;
+            color: #007bff;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            text-decoration: underline;
+        }
+        
+        .certificate-title {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .certificate-body {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .certificate-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            color: #495057;
+            margin-bottom: 30px;
+        }
+        
+        .student-name {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-decoration-thickness: 3px;
+            font-style: italic;
+        }
+        
+        .course-name {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 30px 0;
+            text-decoration: underline;
+            text-decoration-color: #667eea;
+            text-decoration-thickness: 3px;
+            font-style: italic;
+        }
+        
+        .graduation-date {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        
+        .certificate-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin: 40px 0;
+        }
+        
+        .detail-item {
+            text-align: left;
+        }
+        
+        .detail-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1rem;
+        }
+        
+        .detail-value {
+            color: #495057;
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+        
+        .certificate-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 60px;
+            padding-top: 30px;
+            border-top: 2px solid #e9ecef;
+        }
+        
+        .signature-section {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .signature-line {
+            border-bottom: 2px solid #2c3e50;
+            width: 200px;
+            margin: 0 auto 10px;
+            height: 50px;
+        }
+        
+        .signature-label {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        
+        .signature-subtitle {
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: 5px;
+        }
+        
+        .qr-section {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 10px;
+            background: white;
+        }
+        
+        .qr-text {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .verification-info {
+            background: #e8f4fd;
+            border: 1px solid #bee5eb;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .verification-info h6 {
+            color: #0c5460;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .verification-info p {
+            color: #0c5460;
+            margin: 5px 0;
+            font-size: 0.95rem;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+        
+        .pdf-preview-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .pdf-viewer-wrapper {
+            background: #2c3e50;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pdf-toolbar {
+            background: #34495e;
+            padding: 10px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2c3e50;
+        }
+        
+        .pdf-toolbar-left,
+        .pdf-toolbar-center,
+        .pdf-toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pdf-toolbar .btn {
+            background: #3498db;
+            border: 1px solid #2980b9;
+            color: white;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .pdf-toolbar .btn:hover {
+            background: #2980b9;
+            border-color: #1f4e79;
+        }
+        
+        .pdf-toolbar .btn-outline-primary {
+            background: transparent;
+            border-color: #3498db;
+            color: #3498db;
+        }
+        
+        .pdf-toolbar .btn-outline-primary:hover {
+            background: #3498db;
+            color: white;
+        }
+        
+        .pdf-toolbar .btn-outline-success {
+            background: transparent;
+            border-color: #27ae60;
+            color: #27ae60;
+        }
+        
+        .pdf-toolbar .btn-outline-success:hover {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .pdf-toolbar .btn-outline-secondary {
+            background: transparent;
+            border-color: #95a5a6;
+            color: #95a5a6;
+        }
+        
+        .pdf-toolbar .btn-outline-secondary:hover {
+            background: #95a5a6;
+            color: white;
+        }
+        
+        .page-info,
+        .zoom-level {
+            color: #ecf0f1;
+            font-size: 12px;
+            font-weight: 500;
+            margin: 0 5px;
+        }
+        
+        .pdf-content {
+            background: #ecf0f1;
+            padding: 20px;
+            text-align: center;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .pdf-canvas {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .certificate-info .card {
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .certificate-info .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+        }
+        
+        @media print {
+            .print-button,
+            .back-button {
+                display: none;
+            }
+            
+            .certificate-container {
+                padding: 0;
+            }
+            
+            .certificate {
+                box-shadow: none;
+                border: 5px solid #000;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .certificate {
+                padding: 30px;
+            }
+            
+            .university-name {
+                font-size: 1.8rem;
+            }
+            
+            .certificate-title {
+                font-size: 1.5rem;
+            }
+            
+            .student-name {
+                font-size: 1.8rem;
+            }
+            
+            .certificate-details {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .certificate-footer {
+                flex-direction: column;
+                gap: 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="certificate-container">
+        <!-- Action Buttons -->
+        <div class="print-button">
+            <button class="btn btn-success me-2" onclick="downloadWord()">
+                <i class="fas fa-download"></i> Download Word
+            </button>
+            <button class="btn btn-primary me-2" onclick="downloadPdf()">
+                <i class="fas fa-file-pdf"></i> Download PDF
+            </button>
+            <button class="btn btn-info" onclick="window.print()">
+                <i class="fas fa-print"></i> Print Preview
+            </button>
+        </div>
+        
+        <div class="back-button">
+            <a href="http://127.0.0.1:8000/ex-student/dashboard?student_id=670219-08-6113" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Dashboard
+            </a>
+            <a href="http://127.0.0.1:8000/ex-student/transcript1?student_id=670219-08-6113" class="btn btn-primary">
+                <i class="fas fa-file-alt"></i> View Transcript
+            </a>
+        </div>
+        
+        <!-- PDF Preview Notice -->
+        <div class="alert alert-info mb-4">
+            <h5><i class="fas fa-info-circle"></i> PDF Certificate Preview</h5>
+            <p class="mb-0">This shows a preview of your official PDF certificate. Click the buttons above to download the Word document or PDF version.</p>
+        </div>
+        
+        <!-- PDF Preview Container -->
+        <div class="pdf-preview-container mb-4">
+            <div class="text-center mb-3">
+                <button class="btn btn-primary btn-lg" onclick="showPdfPreview()">
+                    <i class="fas fa-eye"></i> View PDF Certificate
+                </button>
+                <p class="mt-2 text-muted">Click to view your official certificate with QR code</p>
+            </div>
+            
+            <!-- PDF Viewer Interface -->
+            <div id="pdfViewerContainer" style="display: none;" class="pdf-viewer-wrapper">
+                <div class="pdf-toolbar">
+                    <div class="pdf-toolbar-left">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="previousPage()" id="prevBtn">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="page-info" id="pageInfo">Page 1 of 1</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="nextPage()" id="nextBtn">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="pdf-toolbar-center">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="zoomOut()">
+                            <i class="fas fa-search-minus"></i>
+                        </button>
+                        <span class="zoom-level" id="zoomLevel">100%</span>
+                        <button class="btn btn-sm btn-outline-secondary" onclick="zoomIn()">
+                            <i class="fas fa-search-plus"></i>
+                        </button>
+                    </div>
+                    <div class="pdf-toolbar-right">
+                        <button class="btn btn-sm btn-outline-primary" onclick="downloadPdf()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="btn btn-sm btn-outline-success" onclick="downloadWord()">
+                            <i class="fas fa-file-word"></i> Word
+                        </button>
+                    </div>
+                </div>
+                <div class="pdf-content">
+                    <canvas id="pdfCanvas" class="pdf-canvas"></canvas>
+                </div>
+            </div>
+            
+            <div id="pdfLoading" class="text-center p-5" style="display: none;">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading PDF...</span>
+                </div>
+                <p class="text-muted">Loading PDF preview...</p>
+            </div>
+        </div>
+        
+        <!-- Certificate Information -->
+        <div class="certificate-info">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-user-graduate"></i> Student Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Name:</strong> Ahmad bin Abdullah</p>
+                            <p><strong>Student ID:</strong> 670219-08-6113</p>
+                            <p><strong>Program:</strong> Bachelor of Computer Science</p>
+                            <p><strong>Graduation Date:</strong> June 2023</p>
+                            <p><strong>CGPA:</strong> 3.75</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5><i class="fas fa-certificate"></i> Certificate Details</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Certificate Number:</strong> CERT-202510-5701</p>
+                            <p><strong>Issued Date:</strong> October 15, 2025</p>
+                            <p><strong>Status:</strong> <span class="badge bg-success">Verified and Authentic</span></p>
+                            <p><strong>QR Code:</strong> Included in official certificate for verification</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-success mt-4">
+            <h6><i class="fas fa-check-circle"></i> Official Certificate</h6>
+            <p class="mb-0">The PDF preview above shows your official certificate with the latest template design and QR code. Use the download buttons above to get the Word or PDF version.</p>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        
+        let pdfDoc = null;
+        let pageNum = 1;
+        let pageRendering = false;
+        let pageNumPending = null;
+        let scale = 1.0;
+        const canvas = document.getElementById('pdfCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // PDF Rendering functions
+        function renderPage(num) {
+            pageRendering = true;
+            pdfDoc.getPage(num).then(function(page) {
+                const viewport = page.getViewport({scale: scale});
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport
+                };
+                
+                const renderTask = page.render(renderContext);
+                renderTask.promise.then(function() {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+            
+            document.getElementById('pageInfo').textContent = `Page ${num} of ${pdfDoc.numPages}`;
+            document.getElementById('zoomLevel').textContent = `${Math.round(scale * 100)}%`;
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = (num <= 1);
+            document.getElementById('nextBtn').disabled = (num >= pdfDoc.numPages);
+        }
+        
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+        
+        function previousPage() {
+            if (pageNum <= 1) return;
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+        
+        function nextPage() {
+            if (pageNum >= pdfDoc.numPages) return;
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+        
+        function zoomIn() {
+            scale += 0.2;
+            queueRenderPage(pageNum);
+        }
+        
+        function zoomOut() {
+            if (scale > 0.4) {
+                scale -= 0.2;
+                queueRenderPage(pageNum);
+            }
+        }
+        
+        function showPdfPreview() {
+            document.getElementById('pdfLoading').style.display = 'block';
+            document.getElementById('pdfViewerContainer').style.display = 'none';
+            
+            // Load PDF using PDF.js
+            const pdfUrl = 'http://127.0.0.1:8000/certificates/preview/pdf/1';
+            
+            pdfjsLib.getDocument(pdfUrl).promise.then(function(pdf) {
+                pdfDoc = pdf;
+                document.getElementById('pdfLoading').style.display = 'none';
+                document.getElementById('pdfViewerContainer').style.display = 'block';
+                renderPage(pageNum);
+            }).catch(function(error) {
+                console.error('Error loading PDF:', error);
+                document.getElementById('pdfLoading').style.display = 'none';
+                alert('Error loading PDF: ' + error.message);
+            });
+        }
+        
+        function downloadWord() {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            
+            // Create a temporary link to download Word certificate
+            const link = document.createElement('a');
+            link.href = 'http://127.0.0.1:8000/certificates/generate/1';
+            link.download = 'certificate_670219-08-6113.docx';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Reset button after a delay
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 3000);
+        }
+        
+        function downloadPdf() {
+            // Show loading state
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+            btn.disabled = true;
+            
+            // Create a temporary link to download PDF certificate
+            const link = document.createElement('a');
+            link.href = 'http://127.0.0.1:8000/certificates/generate/pdf/1';
+            link.download = 'certificate_670219-08-6113.pdf';
+            link.target = '_blank';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Reset button after a delay
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 5000);
+        }
+        
+        // Initialize page - no auto-loading
+        document.addEventListener('DOMContentLoaded', function() {
+            // Page loads with preview button visible, no auto-download
+        });
+    </script>
+</body>
+</html>
