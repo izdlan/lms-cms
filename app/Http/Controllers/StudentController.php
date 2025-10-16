@@ -25,9 +25,11 @@ use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
 use App\Models\StudentBill;
 use App\Models\Payment;
+use App\Models\Receipt;
 use App\Models\ExamResult;
 use App\Models\StudentEnrollment;
 use App\Services\BillplzService;
+use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -773,13 +775,12 @@ class StudentController extends Controller
                 $payment = Payment::create([
                     'billplz_id' => $billplzData['id'],
                     'billplz_collection_id' => $billplzData['collection_id'],
-                    'user_id' => $user->id,
-                    'type' => Payment::TYPE_GENERAL_FEE,
-                    'reference_id' => $bill->id,
-                    'reference_type' => 'bill',
+                    'student_id' => $user->id,
+                    'student_bill_id' => $bill->id,
                     'amount' => $bill->amount,
+                    'payment_method' => 'online_banking',
                     'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
-                    'billplz_response' => $billplzData,
+                    'payment_details' => $billplzData,
                     'expires_at' => now()->addMinutes(config('billplz.timeout', 30)),
                 ]);
 
@@ -826,12 +827,12 @@ class StudentController extends Controller
         
         if ($paymentId) {
             $payment = Payment::where('id', $paymentId)
-                ->where('user_id', $user->id)
-                ->where('status', Payment::STATUS_PAID)
+                ->where('student_id', $user->id)
+                ->whereIn('status', [Payment::STATUS_PAID, Payment::STATUS_COMPLETED])
                 ->first();
                 
-            if ($payment && $payment->reference_type === 'bill') {
-                $bill = StudentBill::find($payment->reference_id);
+            if ($payment && $payment->student_bill_id) {
+                $bill = StudentBill::find($payment->student_bill_id);
             }
         }
         
@@ -1042,6 +1043,67 @@ class StudentController extends Controller
         }
 
         return $totalCredits > 0 ? round($totalGpa / $totalCredits, 2) : 0.00;
+    }
+
+    /**
+     * Show receipt details
+     */
+    public function showReceipt($id)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $receipt = Receipt::where('id', $id)
+            ->where('student_id', $user->id)
+            ->with(['payment', 'studentBill'])
+            ->firstOrFail();
+
+        return view('student.receipt-details', compact('receipt', 'user'));
+    }
+
+    /**
+     * Generate receipt PDF
+     */
+    public function generateReceiptPdf($id)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $receipt = Receipt::where('id', $id)
+            ->where('student_id', $user->id)
+            ->with(['payment', 'studentBill'])
+            ->firstOrFail();
+
+        $pdf = \PDF::loadView('receipts.pdf', compact('receipt', 'user'));
+        
+        return $pdf->download('receipt-' . $receipt->receipt_number . '.pdf');
+    }
+
+    /**
+     * View receipt PDF
+     */
+    public function viewReceiptPdf($id)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Please login to access this page.');
+        }
+
+        $receipt = Receipt::where('id', $id)
+            ->where('student_id', $user->id)
+            ->with(['payment', 'studentBill'])
+            ->firstOrFail();
+
+        $pdf = \PDF::loadView('receipts.pdf', compact('receipt', 'user'));
+        
+        return $pdf->stream('receipt-' . $receipt->receipt_number . '.pdf');
     }
 
     /**
