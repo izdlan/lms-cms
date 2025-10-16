@@ -1,21 +1,31 @@
 @php
-    $shouldShowUpmLogo = false;
+    $brand = null;
+    $subtitle = null;
     if (Auth::guard('student')->check()) {
         $student = Auth::guard('student')->user();
-        $shouldShowUpmLogo = ($student->source_sheet === 'UPM LMS') || ($student->student_id === 'AA0876231');
+        if (($student->source_sheet === 'UPM LMS') || ($student->student_id === 'AA0876231')) {
+            $brand = 'UPM';
+            $subtitle = 'Universiti Putra Malaysia • Berilmu Berbakti';
+        } elseif ($student->source_sheet === 'DRB LMS' || $student->source_sheet === 'DHU LMS') {
+            $brand = 'DRB';
+            $subtitle = 'DRB';
+        } elseif ($student->source_sheet === 'IUC LMS') {
+            $brand = 'IUC';
+            $subtitle = 'IUC';
+        }
     }
 @endphp
 
-@if($shouldShowUpmLogo)
+@if($brand)
     <div id="upmLogoOverlay" class="upm-logo-overlay" style="display:none;">
         <div class="upm-logo-container upm-hero">
             <div class="upm-logo-wrap">
-                <img src="/assets/UPM.png" alt="UPM" class="upm-logo" />
+                <img src="/assets/{{ $brand }}.png" alt="{{ $brand }}" class="upm-logo" />
                 <span class="upm-shine" aria-hidden="true"></span>
             </div>
             <div class="upm-taglines">
-                <h3 class="upm-heading">Proud to be UPM</h3>
-                <div class="upm-sub">Universiti Putra Malaysia • Berilmu Berbakti</div>
+                <h3 class="upm-heading">Proud to be {{ $brand }}</h3>
+                <div class="upm-sub">{{ $subtitle }}</div>
             </div>
         </div>
     </div>
