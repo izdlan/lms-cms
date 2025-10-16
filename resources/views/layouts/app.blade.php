@@ -1285,6 +1285,9 @@
         @if((request()->is('student/*') && auth('student')->check()) || (request()->is('staff/*') && auth()->check() && auth()->user()->role === 'staff'))
             @if(request()->is('student/*'))
                 @include('student.partials.student-navbar')
+                @if(request()->is('student/dashboard'))
+                    @include('student.partials.upm-logo-animation')
+                @endif
             @else
                 @include('staff.partials.staff-navbar')
             @endif
