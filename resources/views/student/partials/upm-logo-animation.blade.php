@@ -152,19 +152,11 @@
                     overlay.style.setProperty('visibility', 'visible', 'important');
                     overlay.classList.remove('show'); // prevent any bootstrap show-related styling
 
-                    // Click or ESC to dismiss immediately
+                    // Click anywhere on screen to dismiss
                     overlay.addEventListener('click', function() { safeHide(overlay); });
                     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') safeHide(overlay); });
 
-                    // Auto-hide after 5.0s
-                    setTimeout(function() { safeHide(overlay); }, 5000);
-                    // Hard hide at ~5.3s regardless of transition state
-                    setTimeout(function(){ try { overlay.style.setProperty('display','none','important'); } catch(_) {} }, 5300);
-
-                    // Safety auto-hide after 7s in case first timeout was blocked
-                    setTimeout(function() { safeHide(overlay); }, 7000);
-                    // Extreme safety: hard-remove after 9s regardless
-                    setTimeout(function(){ try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch(_) {} }, 9000);
+                    // No auto-hide - popup stays until user clicks or presses Escape
                 } catch (e) {
                     var ov = document.getElementById('upmLogoOverlay');
                     if (ov) { ov.style.display = 'none'; }
