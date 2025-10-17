@@ -127,14 +127,6 @@
                             <div class="col-md-3">
                                 <div class="card bg-light">
                                     <div class="card-body text-center">
-                                        <h6 class="card-title">Total Possible</h6>
-                                        <h4 class="text-primary" id="totalPossible">0</h4>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-md-3">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
                                         <h6 class="card-title">Total Obtained</h6>
                                         <h4 class="text-info" id="totalObtained">0</h4>
                                     </div>
@@ -153,6 +145,14 @@
                                     <div class="card-body text-center">
                                         <h6 class="card-title">Grade</h6>
                                         <h4 class="text-warning" id="finalGrade">F</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">Grade Value (GPA)</h6>
+                                        <h4 class="text-primary" id="finalGpa">0.00</h4>
                                     </div>
                                 </div>
                             </div>
@@ -315,6 +315,8 @@ function updateTable() {
             <td>${maxScore}</td>
             <td>${score}</td>
             <td><span class="badge ${percentage >= 50 ? 'bg-success' : 'bg-warning'}">${percentage}%</span></td>
+            <td>${calculateGrade(percentage)}</td>
+            <td>${calculateGpa(percentage).toFixed(2)}</td>
             <td>
                 <button type="button" class="btn btn-sm btn-danger" onclick="removeAssessmentByIndex(${index})">
                     <i class="fas fa-trash"></i>
@@ -349,6 +351,8 @@ function updateSummary() {
     
     const percentage = totalPossible > 0 ? ((totalObtained / totalPossible) * 100).toFixed(1) : 0;
     const grade = calculateGrade(percentage);
+    const gradePoint = calculateGpa(percentage).toFixed(2);
+    const gpa = calculateGpa(percentage).toFixed(2);
     
     // Add null checks to prevent errors
     const totalPossibleEl = document.getElementById('totalPossible');
@@ -360,21 +364,40 @@ function updateSummary() {
     if (totalObtainedEl) totalObtainedEl.textContent = totalObtained;
     if (totalPercentageEl) totalPercentageEl.textContent = percentage + '%';
     if (finalGradeEl) finalGradeEl.textContent = grade;
+    const finalGpaEl = document.getElementById('finalGpa');
+    if (finalGpaEl) finalGpaEl.textContent = gpa;
 }
 
 function calculateGrade(percentage) {
     if (percentage >= 90) return 'A+';
-    if (percentage >= 85) return 'A';
-    if (percentage >= 80) return 'A-';
-    if (percentage >= 75) return 'B+';
-    if (percentage >= 70) return 'B';
-    if (percentage >= 65) return 'B-';
-    if (percentage >= 60) return 'C+';
-    if (percentage >= 55) return 'C';
-    if (percentage >= 50) return 'C-';
-    if (percentage >= 45) return 'D+';
+    if (percentage >= 80) return 'A';
+    if (percentage >= 75) return 'A-';
+    if (percentage >= 70) return 'B+';
+    if (percentage >= 65) return 'B';
+    if (percentage >= 60) return 'B-';
+    if (percentage >= 55) return 'C+';
+    if (percentage >= 50) return 'C';
+    if (percentage >= 47) return 'C-';
+    if (percentage >= 44) return 'D+';
     if (percentage >= 40) return 'D';
+    if (percentage >= 30) return 'E';
     return 'F';
+}
+
+function calculateGpa(percentage) {
+    if (percentage >= 90) return 4.00; // A+
+    if (percentage >= 80) return 4.00; // A
+    if (percentage >= 75) return 3.67; // A-
+    if (percentage >= 70) return 3.33; // B+
+    if (percentage >= 65) return 3.00; // B
+    if (percentage >= 60) return 2.67; // B-
+    if (percentage >= 55) return 2.33; // C+
+    if (percentage >= 50) return 2.00; // C
+    if (percentage >= 47) return 1.67; // C-
+    if (percentage >= 44) return 1.33; // D+
+    if (percentage >= 40) return 1.00; // D
+    if (percentage >= 30) return 0.67; // E
+    return 0.00; // F
 }
 
 function previewResults() {
@@ -412,6 +435,8 @@ function previewResults() {
                             <th>Max Score</th>
                             <th>Score</th>
                             <th>Percentage</th>
+                            <th>Grade</th>
+                            <th>GPA</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -433,9 +458,6 @@ function previewResults() {
                 </table>
                 <div class="row mt-3">
                     <div class="col-md-3">
-                        <strong>Total Possible:</strong> ${totalPossible}
-                    </div>
-                    <div class="col-md-3">
                         <strong>Total Obtained:</strong> ${totalObtained}
                     </div>
                     <div class="col-md-3">
@@ -443,6 +465,9 @@ function previewResults() {
                     </div>
                     <div class="col-md-3">
                         <strong>Grade:</strong> <span class="badge bg-primary">${grade}</span>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>GPA:</strong> ${gradePoint}
                     </div>
                 </div>
             </div>
