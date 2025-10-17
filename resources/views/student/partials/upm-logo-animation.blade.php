@@ -156,15 +156,15 @@
                     overlay.addEventListener('click', function() { safeHide(overlay); });
                     document.addEventListener('keydown', function(e){ if (e.key === 'Escape') safeHide(overlay); });
 
-                    // Auto-hide after 3.0s
-                    setTimeout(function() { safeHide(overlay); }, 3000);
-                    // Hard hide at ~3.3s regardless of transition state
-                    setTimeout(function(){ try { overlay.style.setProperty('display','none','important'); } catch(_) {} }, 3300);
-
-                    // Safety auto-hide after 5s in case first timeout was blocked
+                    // Auto-hide after 5.0s
                     setTimeout(function() { safeHide(overlay); }, 5000);
-                    // Extreme safety: hard-remove after 7s regardless
-                    setTimeout(function(){ try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch(_) {} }, 7000);
+                    // Hard hide at ~5.3s regardless of transition state
+                    setTimeout(function(){ try { overlay.style.setProperty('display','none','important'); } catch(_) {} }, 5300);
+
+                    // Safety auto-hide after 7s in case first timeout was blocked
+                    setTimeout(function() { safeHide(overlay); }, 7000);
+                    // Extreme safety: hard-remove after 9s regardless
+                    setTimeout(function(){ try { overlay.parentNode && overlay.parentNode.removeChild(overlay); } catch(_) {} }, 9000);
                 } catch (e) {
                     var ov = document.getElementById('upmLogoOverlay');
                     if (ov) { ov.style.display = 'none'; }
