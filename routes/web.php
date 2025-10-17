@@ -650,6 +650,14 @@ Route::get('/test-payment-status/{paymentId}', function($paymentId) {
 Route::post('/payment/billplz/callback', [App\Http\Controllers\PaymentController::class, 'billplzCallback'])->name('billplz.callback');
 Route::get('/payment/billplz/redirect', [App\Http\Controllers\PaymentController::class, 'billplzRedirect'])->name('billplz.redirect');
 
+// Accounting integration API routes
+Route::prefix('api/accounting')->group(function () {
+    Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'getAccountingData'])->name('accounting.payments');
+    Route::get('/statistics', [App\Http\Controllers\PaymentController::class, 'getPaymentStatistics'])->name('accounting.statistics');
+    Route::post('/sync', [App\Http\Controllers\PaymentController::class, 'syncToAccounting'])->name('accounting.sync');
+    Route::get('/test-connection', [App\Http\Controllers\PaymentController::class, 'testAccountingConnection'])->name('accounting.test');
+});
+
 // Ex-Student QR Verification Routes
 Route::prefix('ex-student')->group(function () {
     Route::get('/login', [App\Http\Controllers\ExStudentController::class, 'login'])->name('ex-student.login');

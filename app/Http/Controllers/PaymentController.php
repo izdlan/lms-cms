@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Payment;
 use App\Models\User;
 use App\Services\BillplzService;
+use App\Services\AccountingIntegrationService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -13,10 +14,12 @@ use Illuminate\Support\Facades\Validator;
 class PaymentController extends Controller
 {
     protected $billplzService;
+    protected $accountingService;
 
-    public function __construct(BillplzService $billplzService)
+    public function __construct(BillplzService $billplzService, AccountingIntegrationService $accountingService)
     {
         $this->billplzService = $billplzService;
+        $this->accountingService = $accountingService;
     }
 
     /**
@@ -289,6 +292,11 @@ class PaymentController extends Controller
                     }
                 }
                 
+                // Send payment data to accounting system
+                if (config('accounting.auto_sync', true)) {
+                    $this->accountingService->sendPaymentData($payment);
+                }
+                
                 Log::info('Payment marked as paid', [
                     'payment_id' => $payment->id,
                     'billplz_id' => $billId,
@@ -381,5 +389,150 @@ class PaymentController extends Controller
     public function paymentPending()
     {
         return view('student.payment-pending');
+    }
+
+    /**
+     * Get payment data for accounting system (API endpoint)
+     */
+    public function getAccountingData(Request $request)
+    {
+        // Validate API key or implement proper authentication
+        $apiKey = $request->header('X-API-Key');
+        if (!$apiKey || $apiKey !== config('accounting.api_key')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $filters = $request->only(['from_date', 'to_date', 'payment_type', 'accounting_synced']);
+            $paymentData = $this->accountingService->getPaymentData($filters);
+
+            return response()->json([
+                'success' => true,
+                'data' => $paymentData,
+                'count' => $paymentData->count(),
+                'filters' => $filters
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get accounting data failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve payment data'
+            ], 500);
+        }
+    }
+
+    /**
+     * Test accounting system connection
+     */
+    public function testAccountingConnection()
+    {
+        try {
+            $result = $this->accountingService->testConnection();
+            
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Connection test failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Sync payments to accounting system
+     */
+    public function syncToAccounting(Request $request)
+    {
+        $request->validate([
+            'payment_ids' => 'nullable|array',
+            'payment_ids.*' => 'integer|exists:payments,id'
+        ]);
+
+        try {
+            $paymentIds = $request->get('payment_ids', []);
+            
+            if (empty($paymentIds)) {
+                // Sync all unsynced payments
+                $paymentIds = Payment::where('status', Payment::STATUS_PAID)
+                    ->where('accounting_synced', false)
+                    ->pluck('id')
+                    ->toArray();
+            }
+
+            $result = $this->accountingService->sendBatchPayments($paymentIds);
+
+            return response()->json([
+                'success' => $result,
+                'message' => $result ? 'Payments synced successfully' : 'Failed to sync payments',
+                'synced_count' => count($paymentIds)
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Sync to accounting failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Sync failed: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get payment statistics for accounting
+     */
+    public function getPaymentStatistics(Request $request)
+    {
+        // Validate API key
+        $apiKey = $request->header('X-API-Key');
+        if (!$apiKey || $apiKey !== config('accounting.api_key')) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+
+        try {
+            $fromDate = $request->get('from_date', now()->startOfMonth());
+            $toDate = $request->get('to_date', now()->endOfMonth());
+
+            $stats = Payment::where('status', Payment::STATUS_PAID)
+                ->whereBetween('paid_at', [$fromDate, $toDate])
+                ->selectRaw('
+                    COUNT(*) as total_payments,
+                    SUM(amount) as total_amount,
+                    AVG(amount) as average_amount,
+                    COUNT(CASE WHEN accounting_synced = 1 THEN 1 END) as synced_count,
+                    COUNT(CASE WHEN accounting_synced = 0 THEN 1 END) as unsynced_count
+                ')
+                ->first();
+
+            $paymentTypes = Payment::where('status', Payment::STATUS_PAID)
+                ->whereBetween('paid_at', [$fromDate, $toDate])
+                ->selectRaw('type, COUNT(*) as count, SUM(amount) as total')
+                ->groupBy('type')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'statistics' => $stats,
+                    'payment_types' => $paymentTypes,
+                    'period' => [
+                        'from' => $fromDate,
+                        'to' => $toDate
+                    ]
+                ]
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Get payment statistics failed', [
+                'error' => $e->getMessage()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve statistics'
+            ], 500);
+        }
     }
 }

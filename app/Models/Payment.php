@@ -46,12 +46,16 @@ class Payment extends Model
         'billplz_response',
         'paid_at',
         'expires_at',
+        'accounting_synced',
+        'accounting_synced_at',
+        'accounting_sync_error',
     ];
 
     protected $casts = [
         'amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'expires_at' => 'datetime',
+        'accounting_synced_at' => 'datetime',
         'payment_details' => 'array',
         'billplz_response' => 'array',
     ];
