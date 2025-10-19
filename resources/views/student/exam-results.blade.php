@@ -83,45 +83,39 @@
                     </div>
                     <div class="card-body">
                         @if($result && $assessments)
-                            <!-- Assessment Results: cards for each assessment within the subject -->
-                            <div class="row mb-4">
+                            <!-- Assessment Results: compact table -->
+                            <div class="row mb-3">
                                 <div class="col-12">
-                                    <h6 class="mb-3">Assessment Results</h6>
-                                    <div class="row">
-                                        @foreach($assessments as $assessment)
-                                            <div class="col-md-4 mb-3">
-                                                <div class="card border-0 bg-light">
-                                                    <div class="card-body text-center">
-                                                        <h6 class="card-title text-dark">{{ $assessment['name'] ?? 'Assessment' }}</h6>
-                                                        <div class="d-flex justify-content-between align-items-center">
-                                                            <span class="badge bg-dark fs-6">
-                                                                {{ $assessment['score'] ?? '-' }} / {{ $assessment['max_score'] ?? '-' }}
-                                                            </span>
-                                                            <small class="text-muted">
-                                                                {{ isset($assessment['percentage']) ? number_format($assessment['percentage'], 1) . '%' : '' }}
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        @endforeach
+                                    <h6 class="mb-2">Assessment Results</h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-striped align-middle compact-table mb-0">
+                                            <thead>
+                                                <tr>
+                                                    <th>Assessment</th>
+                                                    <th class="text-center">Score</th>
+                                                    <th class="text-center">Percentage</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                @foreach($assessments as $assessment)
+                                                    <tr>
+                                                        <td class="text-truncate" style="max-width: 340px;">{{ $assessment['name'] ?? 'Assessment' }}</td>
+                                                        <td class="text-center"><span class="badge bg-dark">{{ $assessment['score'] ?? '-' }} / {{ $assessment['max_score'] ?? '-' }}</span></td>
+                                                        <td class="text-center">{{ isset($assessment['percentage']) ? number_format($assessment['percentage'], 1) . '%' : '-' }}</td>
+                                                    </tr>
+                                                @endforeach
+                                            </tbody>
+                                        </table>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Summary Results: totals and grade/GPA summary for the subject -->
-                            <div class="row">
+                            <div class="row g-3">
+                                
                                 <div class="col-md-3">
-                                    <div class="card border-0 bg-light">
-                                        <div class="card-body text-center">
-                                            <h6 class="card-title text-muted">Total Marks</h6>
-                                            <h4 class="text-dark fw-bold">{{ $result->total_marks ?? '-' }}</h4>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-3">
-                                    <div class="card border-0 bg-light">
-                                        <div class="card-body text-center">
+                                    <div class="card border-0 bg-light summary-card">
+                                        <div class="card-body text-center p-3">
                                             <h6 class="card-title text-muted">Percentage</h6>
                                             <h4 class="text-dark fw-bold">
                                                 {{ number_format($result->percentage, 1) }}%
@@ -130,16 +124,16 @@
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="card border-0 bg-light">
-                                        <div class="card-body text-center">
+                                    <div class="card border-0 bg-light summary-card">
+                                        <div class="card-body text-center p-3">
                                             <h6 class="card-title text-muted">Grade</h6>
                                             <h4><span class="badge bg-dark fs-6">{{ $result->grade ?? '-' }}</span></h4>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="col-md-3">
-                                    <div class="card border-0 bg-light">
-                                        <div class="card-body text-center">
+                                    <div class="card border-0 bg-light summary-card">
+                                        <div class="card-body text-center p-3">
                                             <h6 class="card-title text-muted">GPA</h6>
                                             <h4 class="text-dark fw-bold">{{ number_format($result->gpa, 2) }}</h4>
                                         </div>
@@ -285,6 +279,21 @@
     font-size: 0.875rem !important;
     text-transform: uppercase !important;
     letter-spacing: 0.5px !important;
+}
+
+.exam-results-page .compact-table th,
+.exam-results-page .compact-table td {
+    padding: 0.5rem 0.75rem !important;
+}
+
+.exam-results-page .summary-card h6.card-title {
+    margin-bottom: 0.25rem !important;
+    font-size: 0.85rem !important;
+}
+
+.exam-results-page .summary-card h4 {
+    margin: 0 !important;
+    font-size: 1.35rem !important;
 }
 
 .exam-results-page .table td {
