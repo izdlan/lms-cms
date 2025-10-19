@@ -37,25 +37,21 @@
     
     <!-- Action Buttons -->
     <div id="actionButtons" class="action-buttons" style="display: none;">
-        <a href="/maintenance" class="action-btn primary">
+        <a href="{{ route('staff.contents') }}" class="action-btn primary">
             <i class="fas fa-plus"></i>
             Add Content
         </a>
-        <a href="/maintenance" class="action-btn success">
+        <a href="{{ route('staff.announcements') }}" class="action-btn success">
             <i class="fas fa-bullhorn"></i>
             Add Announcement
         </a>
-        <a href="/maintenance" class="action-btn warning">
+        <a href="{{ route('staff.assignments') }}" class="action-btn warning">
             <i class="fas fa-clipboard"></i>
             Create Assignment
         </a>
-        <a href="/maintenance" class="action-btn info">
+        <a href="#" class="action-btn info" onclick="showStudentList()">
             <i class="fas fa-users"></i>
             View Students
-        </a>
-        <a href="/maintenance" class="action-btn danger">
-            <i class="fas fa-chart-bar"></i>
-            View Analytics
         </a>
     </div>
 </div>

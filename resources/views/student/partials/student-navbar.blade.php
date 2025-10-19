@@ -20,34 +20,19 @@
         <!-- Right Side -->
         <div class="navbar-nav-right">
             @auth('student')
-                <!-- My Program Dropdown -->
+                <!-- My Subjects Dropdown -->
                 <div class="dropdown courses-dropdown-right d-none d-md-block">
                     <button class="btn btn-outline-success dropdown-toggle courses-dropdown-btn" type="button" id="coursesDropdown" aria-expanded="false" onclick="window.toggleDropdown && window.toggleDropdown(); return false;">
-                        <i class="fas fa-graduation-cap"></i>
-                        <span class="d-none d-lg-inline">My Program</span>
+                        <i class="fas fa-book"></i>
+                        <span class="d-none d-lg-inline">My Subjects</span>
                     </button>
                     <ul class="dropdown-menu courses-dropdown-menu" aria-labelledby="coursesDropdown">
                         <li class="dropdown-header">
-                            <i class="fas fa-graduation-cap"></i>
-                            My Program
+                            <i class="fas fa-book"></i>
+                            My Subjects
                         </li>
                         <li><hr class="dropdown-divider"></li>
-                        @php
-                            // Get EMBA program from database
-                            $embaProgram = \App\Models\Program::where('code', 'EMBA')->first();
-                        @endphp
-                        @if($embaProgram)
-                            <!-- Program Header -->
-                            <div class="program-header">
-                                <a class="dropdown-item program-item" href="{{ route('student.courses') }}">
-                                    <div class="program-info">
-                                        <div class="program-code">{{ $embaProgram->code }}</div>
-                                        <div class="program-name">{{ $embaProgram->name }}</div>
-                                    </div>
-                                </a>
-                            </div>
-                            
-                            @if(isset($enrolledSubjects) && $enrolledSubjects && $enrolledSubjects->count() > 0)
+                        @if(isset($enrolledSubjects) && $enrolledSubjects && $enrolledSubjects->count() > 0)
                                 <!-- Subjects Header -->
                                 <div class="subjects-header">
                                     <i class="fas fa-book"></i>
@@ -81,19 +66,6 @@
                                     <p>No subjects enrolled yet</p>
                                 </div>
                             @endif
-                        @else
-                            <div class="program-header">
-                                <div class="text-center text-white">
-                                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                                    <p class="mb-0">No program available</p>
-                                </div>
-                            </div>
-                        @endif
-                        
-                        <!-- View All Button -->
-                        <a class="view-all-btn" href="{{ route('student.courses') }}">
-                            <i class="fas fa-eye"></i> View All Subjects
-                        </a>
                     </ul>
                 </div>
 

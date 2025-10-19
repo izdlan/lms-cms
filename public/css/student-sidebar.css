@@ -245,27 +245,17 @@
     background: #a8a8a8;
 }
 
-/* Program Header Section */
+/* Program Header Section - Simplified */
 .program-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-    color: white !important;
-    padding: 1.25rem 1.5rem !important;
-    border-radius: 16px 16px 0 0 !important;
+    background: #f8f9fa !important;
+    color: #495057 !important;
+    padding: 0.75rem 1rem !important;
+    border-radius: 0 !important;
     position: relative !important;
     overflow: hidden !important;
     margin: 0 !important;
     border: none !important;
-}
-
-.program-header::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-    opacity: 0.3;
+    border-bottom: 1px solid #e9ecef !important;
 }
 
 .program-item {
@@ -279,19 +269,7 @@
 }
 
 .program-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(255, 255, 255, 0.15);
-    border: 2px solid rgba(255, 255, 255, 0.25);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 1rem;
-    color: white;
-    font-size: 1.2rem;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    display: none;
 }
 
 .program-info {
@@ -299,30 +277,29 @@
 }
 
 .program-code {
-    font-weight: 700;
-    color: white;
-    font-size: 1.4rem;
-    letter-spacing: 1px;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 0.3rem;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.2rem;
 }
 
 .program-name {
-    color: rgba(255, 255, 255, 0.9);
-    font-size: 0.85rem;
-    font-weight: 500;
+    color: #6c757d;
+    font-size: 0.8rem;
+    font-weight: 400;
     line-height: 1.3;
 }
 
-/* Subjects Header */
+/* Subjects Header - Simplified */
 .subjects-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 1rem 1.5rem;
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.75rem 1rem;
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     position: relative;
 }
 
