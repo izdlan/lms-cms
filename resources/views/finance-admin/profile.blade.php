@@ -19,9 +19,22 @@
 
     <div class="card">
         <div class="card-body">
-            <form method="POST" action="{{ route('finance-admin.profile.update') }}">
+            <form method="POST" action="{{ route('finance-admin.profile.update') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Profile Picture</label>
+                        <input type="file" name="profile_picture" class="form-control" accept="image/*">
+                        <div class="form-text">PNG/JPG up to 2MB.</div>
+                        @if($user->profile_picture)
+                            <div class="mt-2">
+                                <img src="{{ asset('storage/' . $user->profile_picture) }}" alt="Profile" style="height:64px; width:64px; object-fit:cover; border-radius:8px;">
+                            </div>
+                        @endif
+                        @error('profile_picture')
+                            <div class="text-danger small">{{ $message }}</div>
+                        @enderror
+                    </div>
                     <div class="col-md-6">
                         <label class="form-label">Name</label>
                         <input type="text" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>

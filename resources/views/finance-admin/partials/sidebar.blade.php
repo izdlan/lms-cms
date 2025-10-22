@@ -55,7 +55,7 @@
         
         <hr class="sidebar-divider">
         
-        <a href="#" class="nav-link">
+        <a href="{{ route('finance-admin.profile') }}" class="nav-link {{ request()->routeIs('finance-admin.profile') ? 'active' : '' }}">
             <i class="bi bi-person"></i>
             My Profile
         </a>

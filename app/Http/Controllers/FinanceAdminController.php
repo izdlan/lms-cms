@@ -284,6 +284,7 @@ class FinanceAdminController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
+            'profile_picture' => 'nullable|image|max:2048'
         ]);
 
         $data = [
@@ -293,6 +294,12 @@ class FinanceAdminController extends Controller
         if ($request->filled('password')) {
             $data['password'] = Hash::make($request->password);
             $data['must_reset_password'] = false;
+        }
+
+        // Handle profile picture upload
+        if ($request->hasFile('profile_picture')) {
+            $path = $request->file('profile_picture')->store('profile-pictures', 'public');
+            $data['profile_picture'] = $path;
         }
 
         $user->update($data);
