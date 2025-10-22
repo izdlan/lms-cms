@@ -20,6 +20,10 @@
             <i class="bi bi-mortarboard-fill"></i>
             Ex-Students
         </a>
+        <a href="{{ route('admin.student-certificates.index') }}" class="nav-link {{ request()->routeIs('admin.student-certificates*') ? 'active' : '' }}">
+            <i class="bi bi-award-fill"></i>
+            Student Certificates
+        </a>
         <a href="{{ route('admin.import') }}" class="nav-link {{ request()->routeIs('admin.import*') ? 'active' : '' }}">
             <i class="bi bi-upload"></i>
             Import Students
