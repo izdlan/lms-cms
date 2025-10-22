@@ -831,6 +831,9 @@ Route::prefix('certificates')->group(function () {
     // Generate PDF certificate
     Route::get('/generate/pdf/{studentId}', [CertificateController::class, 'generatePdfCertificate'])->name('certificate.generate.pdf');
     
+    // Generate PDF certificate (cPanel compatible)
+    Route::get('/generate/pdf-cpanel/{studentId}', [CertificateController::class, 'generatePdfCertificateCpanel'])->name('certificate.generate.pdf.cpanel');
+    
     // Generate PDF preview (for preview page)
     Route::post('/preview/pdf', [CertificateController::class, 'generatePdfPreview'])->name('certificate.preview.pdf');
     
@@ -860,7 +863,7 @@ Route::prefix('certificates')->group(function () {
     
     // Ex-students certificate routes
     Route::get('/', [CertificateController::class, 'index'])->name('certificate.index');
-    Route::get('/generate/{studentId}', [CertificateController::class, 'generateCertificate'])->name('certificate.generate');
+    Route::get('/generate/{studentId}', [CertificateController::class, 'generatePdfCertificateCpanel'])->name('certificate.generate');
     Route::get('/download/{studentId}', [CertificateController::class, 'download'])->name('certificate.download');
     Route::get('/verify/{certificateNumber}', [CertificateController::class, 'verifyCertificate'])->name('certificate.verify');
     

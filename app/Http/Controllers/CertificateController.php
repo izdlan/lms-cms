@@ -13,11 +13,12 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpWord\Settings;
 use App\Services\CustomTemplateProcessor;
+use App\Services\CpanelCertificateService;
 
 class CertificateController extends Controller
 {
     /**
-     * Generate certificate for ex-student
+     * Generate certificate for ex-student (cPanel compatible)
      */
     public function generateCertificate($studentId)
     {
@@ -138,6 +139,36 @@ class CertificateController extends Controller
     public function download($studentId)
     {
         return $this->generateCertificate($studentId);
+    }
+
+    /**
+     * Generate PDF certificate for ex-student (cPanel compatible)
+     */
+    public function generatePdfCertificateCpanel($studentId)
+    {
+        try {
+            // Get ex-student data
+            $exStudent = \App\Models\ExStudent::find($studentId);
+            
+            if (!$exStudent) {
+                return response()->json(['error' => 'Ex-student not found'], 404);
+            }
+
+            // Use cPanel-compatible service
+            $cpanelService = new CpanelCertificateService();
+            return $cpanelService->generatePdfCertificate($exStudent);
+
+        } catch (\Exception $e) {
+            Log::error('cPanel PDF certificate generation failed', [
+                'error' => $e->getMessage(),
+                'student_id' => $studentId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'PDF Certificate generation failed: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
