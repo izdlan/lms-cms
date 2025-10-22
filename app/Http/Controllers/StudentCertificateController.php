@@ -300,17 +300,24 @@ class StudentCertificateController extends Controller
     {
         $request->validate([
             'certificate_ids' => 'required|array',
-            'certificate_ids.*' => 'exists:student_certificates,id'
+            'certificate_ids.*' => 'exists:student_certificates,id',
+            'format' => 'required|in:word,pdf'
         ]);
 
+        // Allow longer execution for large batches
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(300);
+        }
+
         $certificates = StudentCertificate::whereIn('id', $request->certificate_ids)->get();
+        $format = $request->input('format', 'word');
         
         if ($certificates->isEmpty()) {
             return back()->with('error', 'No certificates selected.');
         }
 
         // Create a zip file
-        $zipFileName = 'certificates_' . now()->format('Y-m-d_H-i-s') . '.zip';
+        $zipFileName = 'certificates_' . now()->format('Y-m-d_H-i-s') . '_' . strtoupper($format) . '.zip';
         $zipPath = storage_path('app/temp/' . $zipFileName);
         
         // Ensure temp directory exists
@@ -324,13 +331,67 @@ class StudentCertificateController extends Controller
         }
 
         $addedFiles = 0;
-        foreach ($certificates as $certificate) {
-            if ($certificate->file_path && File::exists(storage_path('app/public/' . $certificate->file_path))) {
-                $zip->addFile(
-                    storage_path('app/public/' . $certificate->file_path),
-                    $certificate->student_name . '_certificate.docx'
+
+        if ($format === 'pdf') {
+            // Batch convert all Word files in a single LibreOffice call to avoid repeated cold starts
+            $libreOfficePath = 'C:\\Program Files\\LibreOffice\\program\\soffice.exe';
+            $outputDir = storage_path('app/temp');
+            if (!File::exists($outputDir)) {
+                File::makeDirectory($outputDir, 0755, true);
+            }
+
+            $sourceFiles = [];
+            foreach ($certificates as $certificate) {
+                if ($certificate->file_path && File::exists(storage_path('app/public/' . $certificate->file_path))) {
+                    $sourceFiles[] = storage_path('app/public/' . $certificate->file_path);
+                }
+            }
+
+            if (!empty($sourceFiles)) {
+                // Build a single command: soffice --headless --convert-to pdf --outdir "outputDir" "file1" "file2" ...
+                $quotedFiles = array_map(function ($p) { return '"' . $p . '"'; }, $sourceFiles);
+                $command = sprintf(
+                    '"%s" --headless --convert-to pdf --outdir "%s" %s',
+                    $libreOfficePath,
+                    $outputDir,
+                    implode(' ', $quotedFiles)
                 );
-                $addedFiles++;
+
+                $output = [];
+                $returnCode = 0;
+                exec($command, $output, $returnCode);
+
+                // After batch conversion, add PDFs to the zip
+                foreach ($certificates as $certificate) {
+                    if (!$certificate->file_path) { continue; }
+                    $sourcePath = storage_path('app/public/' . $certificate->file_path);
+                    $expectedPdf = $outputDir . DIRECTORY_SEPARATOR . pathinfo($sourcePath, PATHINFO_FILENAME) . '.pdf';
+                    $fileName = $certificate->student_name . '_certificate.pdf';
+
+                    if (File::exists($expectedPdf)) {
+                        $zip->addFile($expectedPdf, $fileName);
+                        $addedFiles++;
+                    } else {
+                        // Fallback: try to locate by pattern
+                        $pattern = $outputDir . DIRECTORY_SEPARATOR . pathinfo($sourcePath, PATHINFO_FILENAME) . '*.pdf';
+                        $candidates = glob($pattern);
+                        if (!empty($candidates)) {
+                            usort($candidates, function($a, $b) { return filemtime($b) <=> filemtime($a); });
+                            $zip->addFile($candidates[0], $fileName);
+                            $addedFiles++;
+                        }
+                    }
+                }
+            }
+        } else {
+            // Word format: just add the docx files
+            foreach ($certificates as $certificate) {
+                if ($certificate->file_path && File::exists(storage_path('app/public/' . $certificate->file_path))) {
+                    $sourcePath = storage_path('app/public/' . $certificate->file_path);
+                    $fileName = $certificate->student_name . '_certificate.docx';
+                    $zip->addFile($sourcePath, $fileName);
+                    $addedFiles++;
+                }
             }
         }
 
@@ -346,6 +407,92 @@ class StudentCertificateController extends Controller
         });
 
         return response()->download($zipPath, $zipFileName)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * Convert Word document to PDF using LibreOffice
+     */
+    private function convertWordToPdf($wordPath, $studentName)
+    {
+        try {
+            // LibreOffice writes the PDF using the source DOCX base name
+            // into the provided output directory. We therefore compute the
+            // expected path from the input Word file name rather than a
+            // random name here.
+            $outputDir = storage_path('app/temp');
+            $expectedPdfName = pathinfo($wordPath, PATHINFO_FILENAME) . '.pdf';
+            $expectedPdfPath = $outputDir . DIRECTORY_SEPARATOR . $expectedPdfName;
+            
+            // Ensure temp directory exists
+            if (!File::exists($outputDir)) {
+                File::makeDirectory($outputDir, 0755, true);
+            }
+
+            // LibreOffice executable path
+            $libreOfficePath = 'C:\Program Files\LibreOffice\program\soffice.exe';
+            
+            // Check if LibreOffice exists
+            if (!file_exists($libreOfficePath)) {
+                Log::error('LibreOffice not found at expected path', [
+                    'expected_path' => $libreOfficePath,
+                    'word_path' => $wordPath,
+                    'student_name' => $studentName
+                ]);
+                return null;
+            }
+
+            // Prepare the command
+            $command = sprintf(
+                '"%s" --headless --convert-to pdf --outdir "%s" "%s"',
+                $libreOfficePath,
+                $outputDir,
+                $wordPath
+            );
+
+            // Execute the conversion command
+            $output = [];
+            $returnCode = 0;
+            exec($command, $output, $returnCode);
+
+            // Check if conversion was successful
+            if ($returnCode === 0 && file_exists($expectedPdfPath)) {
+                Log::info('Word to PDF conversion successful', [
+                    'word_path' => $wordPath,
+                    'pdf_path' => $expectedPdfPath,
+                    'student_name' => $studentName
+                ]);
+                
+                return $expectedPdfPath;
+            } else {
+                // Fallback: try to find a freshly created PDF in the output directory
+                $pattern = $outputDir . DIRECTORY_SEPARATOR . pathinfo($wordPath, PATHINFO_FILENAME) . '*.pdf';
+                $candidates = glob($pattern);
+                if (!empty($candidates)) {
+                    // Pick the most recent candidate
+                    usort($candidates, function($a, $b) { return filemtime($b) <=> filemtime($a); });
+                    return $candidates[0];
+                }
+                Log::error('Word to PDF conversion failed', [
+                    'command' => $command,
+                    'return_code' => $returnCode,
+                    'output' => $output,
+                    'word_path' => $wordPath,
+                    'student_name' => $studentName
+                ]);
+                
+                return null;
+            }
+            
+        } catch (\Exception $e) {
+            Log::error('Word to PDF conversion exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'word_path' => $wordPath,
+                'student_name' => $studentName
+            ]);
+            
+            return null;
+        }
     }
 
     /**

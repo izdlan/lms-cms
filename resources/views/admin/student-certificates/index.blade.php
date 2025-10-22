@@ -156,6 +156,10 @@
                                 <span id="selectedCount" class="ml-2 text-muted">0 selected</span>
                             </div>
 
+                        <div class="d-flex justify-content-center mt-4">
+                            {{ $certificates->links('pagination.no-arrows') }}
+                        </div>
+
                     @else
                         <div class="text-center py-5">
                             <i class="fas fa-certificate fa-3x text-muted mb-3"></i>
@@ -168,6 +172,43 @@
                         </div>
                     @endif
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Download Format Selection Modal -->
+<div class="modal fade" id="downloadFormatModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Choose Download Format</h5>
+                <button type="button" class="close" data-dismiss="modal">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Please select the format for downloading the selected certificates:</p>
+                <div class="form-group">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="downloadFormat" id="formatWord" value="word" checked>
+                        <label class="form-check-label" for="formatWord">
+                            <i class="fas fa-file-word text-primary"></i> Word Document (.docx)
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="downloadFormat" id="formatPdf" value="pdf">
+                        <label class="form-check-label" for="formatPdf">
+                            <i class="fas fa-file-pdf text-danger"></i> PDF Document (.pdf)
+                        </label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" id="confirmDownload">
+                    <i class="fas fa-download"></i> Download
+                </button>
             </div>
         </div>
     </div>
@@ -257,17 +298,31 @@ $(document).ready(function() {
         const selectedIds = getAllSelectedIds();
         
         if (selectedIds.length > 0) {
-            // Clear any existing hidden inputs
-            $('#bulkDownloadForm').find('input[name="certificate_ids[]"]').remove();
-            
-            // Create hidden inputs for the IDs
-            selectedIds.forEach(function(id) {
-                $('#bulkDownloadForm').append('<input type="hidden" name="certificate_ids[]" value="' + id + '">');
-            });
-            
-            // Submit the form
-            $('#bulkDownloadForm').submit();
+            // Show format selection modal
+            $('#downloadFormatModal').modal('show');
         }
+    });
+
+    // Handle download format confirmation
+    $('#confirmDownload').click(function() {
+        const selectedIds = getAllSelectedIds();
+        const format = $('input[name="downloadFormat"]:checked').val();
+        
+        // Clear any existing hidden inputs
+        $('#bulkDownloadForm').find('input[name="certificate_ids[]"]').remove();
+        $('#bulkDownloadForm').find('input[name="format"]').remove();
+        
+        // Create hidden inputs for the IDs
+        selectedIds.forEach(function(id) {
+            $('#bulkDownloadForm').append('<input type="hidden" name="certificate_ids[]" value="' + id + '">');
+        });
+        
+        // Add format input
+        $('#bulkDownloadForm').append('<input type="hidden" name="format" value="' + format + '">');
+        
+        // Close modal and submit form
+        $('#downloadFormatModal').modal('hide');
+        $('#bulkDownloadForm').submit();
     });
 
     // Bulk delete
