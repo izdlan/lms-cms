@@ -383,6 +383,16 @@ Route::prefix('admin')->group(function () {
             }
         })->name('admin.debug.test-edit');
         
+        // Student Certificate Management Routes
+        Route::get('/student-certificates', [App\Http\Controllers\StudentCertificateController::class, 'index'])->name('admin.student-certificates.index');
+        Route::get('/student-certificates/create', [App\Http\Controllers\StudentCertificateController::class, 'create'])->name('admin.student-certificates.create');
+        Route::post('/student-certificates/generate', [App\Http\Controllers\StudentCertificateController::class, 'generateFromExcel'])->name('admin.student-certificates.generate');
+        Route::get('/student-certificates/{id}/download', [App\Http\Controllers\StudentCertificateController::class, 'download'])->name('admin.student-certificates.download');
+        Route::get('/student-certificates/{id}/view', [App\Http\Controllers\StudentCertificateController::class, 'view'])->name('admin.student-certificates.view');
+        Route::delete('/student-certificates/{id}', [App\Http\Controllers\StudentCertificateController::class, 'destroy'])->name('admin.student-certificates.destroy');
+        Route::post('/student-certificates/bulk-download', [App\Http\Controllers\StudentCertificateController::class, 'bulkDownload'])->name('admin.student-certificates.bulk-download');
+        Route::post('/student-certificates/bulk-delete', [App\Http\Controllers\StudentCertificateController::class, 'bulkDelete'])->name('admin.student-certificates.bulk-delete');
+        
         // Password change route
         Route::get('/password/change', function() {
             return view('admin.password-change');
@@ -618,6 +628,30 @@ Route::post('/api/import-excel-data', [App\Http\Controllers\ExcelDataImportContr
 // Simple test route (no middleware)
 Route::get('/test-cron', function() {
     return response()->json(['success' => true, 'message' => 'Cron test endpoint works']);
+});
+
+// Test file upload route
+Route::post('/test-upload', function(Request $request) {
+    try {
+        $file = $request->file('excel_file');
+        if (!$file) {
+            return response()->json(['error' => 'No file uploaded']);
+        }
+        
+        $filePath = $file->store('temp', 'local');
+        $fullPath = storage_path('app' . DIRECTORY_SEPARATOR . $filePath);
+        
+        return response()->json([
+            'success' => true,
+            'original_name' => $file->getClientOriginalName(),
+            'stored_path' => $filePath,
+            'full_path' => $fullPath,
+            'file_exists' => file_exists($fullPath),
+            'file_size' => file_exists($fullPath) ? filesize($fullPath) : 0
+        ]);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
 });
 
 // Test route for checking payment status (for local development)
