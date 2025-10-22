@@ -67,7 +67,7 @@
             @if($invoices->count() > 0)
                 <div class="table-responsive">
                     <table class="table table-hover table-striped">
-                        <thead class="table-dark">
+                        <thead class="bg-light text-dark" style="position: sticky; top: 0; z-index: 1;">
                             <tr>
                                 <th><i class="fas fa-hashtag me-1"></i> Invoice #</th>
                                 <th><i class="fas fa-user me-1"></i> Student</th>

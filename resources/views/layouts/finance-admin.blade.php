@@ -505,9 +505,9 @@
             background: #f8f9fa !important;
         }
         
-        /* Fix any visual artifacts that might look like brackets */
-        .finance-admin-dashboard *::before,
-        .finance-admin-dashboard *::after {
+        /* Fix artifacts without breaking icon fonts (Font Awesome/Bootstrap Icons) */
+        .finance-admin-dashboard *:not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-light):not(.fa-brands):not(.bi)::before,
+        .finance-admin-dashboard *:not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-light):not(.fa-brands):not(.bi)::after {
             content: none !important;
         }
         

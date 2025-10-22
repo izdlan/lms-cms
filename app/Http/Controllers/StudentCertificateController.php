@@ -223,7 +223,7 @@ class StudentCertificateController extends Controller
      */
     private function findNameColumn($header)
     {
-        $nameColumns = ['name', 'student_name', 'student name', 'full_name', 'full name', 'nama', 'nama pelajar'];
+        $nameColumns = ['nama penuh','name', 'student_name', 'student name', 'full_name', 'full name', 'nama', 'nama pelajar'];
         
         foreach ($header as $index => $column) {
             $columnLower = strtolower(trim($column));
