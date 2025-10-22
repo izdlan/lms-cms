@@ -38,10 +38,22 @@
     
     <!-- Custom Optima Font Override -->
     <style>
-        /* Override any existing font definitions with Optima */
+        /* Override any existing font definitions with Optima (but not icon fonts) */
         * {
             font-family: 'Optima', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
         }
+        /* Restore correct font-family for Font Awesome and Bootstrap Icons */
+        .fa, .fas, .far, .fal, .fab, .fa-solid, .fa-regular, .fa-light, .fa-brands {
+            font-family: "Font Awesome 6 Free" !important;
+        }
+        .fab, .fa-brands {
+            font-family: "Font Awesome 6 Brands" !important;
+            font-weight: 400 !important;
+        }
+        .far, .fa-regular { font-weight: 400 !important; }
+        .fas, .fa-solid { font-weight: 900 !important; }
+        .fal, .fa-light { font-weight: 300 !important; }
+        .bi { font-family: "bootstrap-icons" !important; }
         
         /* Finance Admin specific styles */
         body {
@@ -500,14 +512,65 @@
             border-bottom: 1px solid #f1f3f4 !important;
             vertical-align: middle !important;
         }
+
+        /* Improve contrast on success (light green) badges */
+        .finance-admin-dashboard .badge.bg-success,
+        .finance-admin-dashboard .text-bg-success {
+            color: #000 !important; /* black text for readability */
+        }
+        .finance-admin-dashboard .badge.bg-success i,
+        .finance-admin-dashboard .text-bg-success i {
+            color: #000 !important; /* icons also black */
+        }
+        /* Also cover the subtle variant often used for "Active" chips */
+        .finance-admin-dashboard .badge.bg-success-subtle,
+        .finance-admin-dashboard .bg-success-subtle,
+        .finance-admin-dashboard .badge.text-success-emphasis,
+        .finance-admin-dashboard .status-badge.bg-success-subtle {
+            color: #000 !important;
+        }
+        .finance-admin-dashboard .bg-success-subtle i,
+        .finance-admin-dashboard .badge.bg-success-subtle i {
+            color: #000 !important;
+        }
+
+        /* Make text/icons black on success-styled buttons (including disabled) */
+        .finance-admin-dashboard .btn-success,
+        .finance-admin-dashboard .btn-success:disabled,
+        .finance-admin-dashboard .btn-outline-success:disabled,
+        .finance-admin-dashboard .bg-success-subtle,
+        .finance-admin-dashboard .btn-success .fa,
+        .finance-admin-dashboard .btn-success i,
+        .finance-admin-dashboard .btn-outline-success:disabled .fa,
+        .finance-admin-dashboard .btn-outline-success:disabled i {
+            color: #000 !important;
+        }
+
+        /* Make outline-success action buttons show black icons/text for clarity */
+        .finance-admin-dashboard .btn-outline-success,
+        .finance-admin-dashboard .btn-outline-success i,
+        .finance-admin-dashboard .btn-outline-success .fa,
+        .finance-admin-dashboard .btn-outline-success .bi {
+            color: #000 !important;
+            border-color: #0f5132 !important; /* darker green border for contrast */
+        }
+        .finance-admin-dashboard .btn-outline-success:hover,
+        .finance-admin-dashboard .btn-outline-success:focus {
+            background-color: #d1e7dd !important; /* success-subtle background */
+            color: #000 !important;
+            border-color: #0f5132 !important;
+        }
         
         .finance-admin-dashboard .table tbody tr:hover {
             background: #f8f9fa !important;
         }
         
-        /* Fix artifacts without breaking icon fonts (Font Awesome/Bootstrap Icons) */
-        .finance-admin-dashboard *:not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-light):not(.fa-brands):not(.bi)::before,
-        .finance-admin-dashboard *:not(.fa):not(.fas):not(.far):not(.fal):not(.fab):not(.fa-solid):not(.fa-regular):not(.fa-light):not(.fa-brands):not(.bi)::after {
+        /* Do NOT globally remove ::before/::after; this breaks icons */
+        /* Only hide pseudo-elements for known wrappers that produced artifacts */
+        .finance-admin-dashboard .page-header::before,
+        .finance-admin-dashboard .page-header::after,
+        .finance-admin-dashboard .card-header::before,
+        .finance-admin-dashboard .card-header::after {
             content: none !important;
         }
         

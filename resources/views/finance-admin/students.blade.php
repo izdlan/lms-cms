@@ -154,7 +154,7 @@
 
                                 <!-- Pagination -->
                                 <div class="d-flex justify-content-center mt-4">
-                                    {{ $students->appends(request()->query())->links() }}
+                                    {{ $students->appends(request()->query())->links('pagination.no-arrows') }}
                                 </div>
                             @else
                                 <div class="text-center py-5">

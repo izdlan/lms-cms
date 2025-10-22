@@ -13,7 +13,6 @@
             </div>
             <div class="profile-info">
                 <h5 class="profile-name">{{ auth()->user()->name ?? 'User' }}</h5>
-                <span class="profile-role">Finance Admin</span>
             </div>
         </div>
     </div>
