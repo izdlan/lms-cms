@@ -8,7 +8,7 @@
         <div class="row min-vh-100 align-items-center">
             <div class="col-lg-6">
                 <div class="login-image-section text-center">
-                    <img src="https://lms.olympia-education.com/store/1/default_images/front_login.jpg" 
+                    <img src="store/1/default_images/front_login.jpg" 
                          alt="Login Image" 
                          class="img-fluid rounded login-image">
                     <p class="mt-3 text-muted">LMS Olympia Portal</p>
