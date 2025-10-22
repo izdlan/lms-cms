@@ -234,6 +234,8 @@ Route::prefix('finance-admin')->middleware(['auth'])->group(function () {
     Route::get('/reports', function() { return view('finance-admin.reports'); })->name('finance-admin.reports');
     Route::get('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'changePassword'])->name('finance-admin.password.change');
     Route::post('/password/change', [App\Http\Controllers\FinanceAdminController::class, 'updatePassword'])->name('finance-admin.password.update');
+    Route::get('/profile', [App\Http\Controllers\FinanceAdminController::class, 'profile'])->name('finance-admin.profile');
+    Route::post('/profile', [App\Http\Controllers\FinanceAdminController::class, 'updateProfile'])->name('finance-admin.profile.update');
     
     // Invoice Management Routes
     Route::get('/invoices', [App\Http\Controllers\FinanceAdminController::class, 'invoices'])->name('finance-admin.invoices');

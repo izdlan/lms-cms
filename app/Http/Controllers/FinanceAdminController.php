@@ -269,6 +269,37 @@ class FinanceAdminController extends Controller
     }
 
     /**
+     * Show and update Finance Admin profile
+     */
+    public function profile()
+    {
+        $user = Auth::user();
+        return view('finance-admin.profile', compact('user'));
+    }
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:8|confirmed',
+        ]);
+
+        $data = [
+            'name' => $request->name,
+            'email' => $request->email,
+        ];
+        if ($request->filled('password')) {
+            $data['password'] = Hash::make($request->password);
+            $data['must_reset_password'] = false;
+        }
+
+        $user->update($data);
+        return redirect()->route('finance-admin.profile')->with('success', 'Profile updated successfully.');
+    }
+
+    /**
      * Show create invoice form
      */
     public function createInvoice($studentId)

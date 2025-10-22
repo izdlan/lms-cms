@@ -47,6 +47,11 @@
                         </li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
+                            <a class="dropdown-item" href="{{ route('finance-admin.profile') }}">
+                                <i class="bi bi-person-circle"></i> My Profile
+                            </a>
+                        </li>
+                        <li>
                             <a class="dropdown-item" href="{{ route('finance-admin.password.change') }}">
                                 <i class="bi bi-key"></i> Change Password
                             </a>
