@@ -3,6 +3,42 @@
 @section('title', 'Bills | Student | Olympia Education')
 
 @section('content')
+<style>
+/* Make action button icons more visible */
+.btn-group .btn i {
+    font-size: 16px !important;
+    font-weight: bold !important;
+    color: white !important;
+}
+
+.btn-group .btn {
+    min-width: 40px !important;
+    height: 32px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+.btn-group .btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.btn-group .btn-info {
+    background-color: #17a2b8 !important;
+    border-color: #17a2b8 !important;
+}
+
+.btn-group .btn-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.btn-group .btn-warning i {
+    color: #212529 !important;
+}
+</style>
 <div class="student-dashboard">
     <div class="container-fluid">
         <div class="row">
@@ -126,26 +162,26 @@
                                         <td>
                                             <div class="btn-group" role="group">
                                                 <a href="{{ route('student.invoice.view', $bill->id) }}" 
-                                                   class="btn btn-sm btn-outline-primary" 
+                                                   class="btn btn-sm btn-primary" 
                                                    title="View Invoice">
-                                                    <i class="fas fa-eye"></i>
+                                                    <i class="bi bi-eye"></i>
                                                 </a>
                                                 <a href="{{ route('student.invoice.download', $bill->id) }}" 
-                                                   class="btn btn-sm btn-outline-success" 
+                                                   class="btn btn-sm btn-success" 
                                                    title="Download PDF">
-                                                    <i class="fas fa-download"></i>
+                                                    <i class="bi bi-download"></i>
                                                 </a>
                                                 @if($bill->isPaid())
                                                     <a href="{{ route('student.receipt') }}?payment_id={{ $bill->payment_id }}" 
-                                                       class="btn btn-sm btn-outline-info" 
+                                                       class="btn btn-sm btn-info" 
                                                        title="View Receipt">
-                                                        <i class="fas fa-receipt"></i>
+                                                        <i class="bi bi-receipt"></i>
                                                     </a>
                                                 @else
                                                     <a href="{{ route('student.payment') }}?bill_id={{ $bill->id }}" 
-                                                       class="btn btn-sm btn-outline-warning" 
+                                                       class="btn btn-sm btn-warning" 
                                                        title="Make Payment">
-                                                        <i class="fas fa-credit-card"></i>
+                                                        <i class="bi bi-credit-card"></i>
                                                     </a>
                                                 @endif
                                             </div>

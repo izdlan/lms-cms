@@ -56,6 +56,31 @@
     <link rel="stylesheet" href="{{ asset('css/student-sidebar.css') }}?v=1.3">
     <link rel="stylesheet" href="{{ asset('css/home-spacing-fix.css') }}?v=1.0">
     
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <!-- FontAwesome Icon Fix -->
+    <style>
+        /* Ensure FontAwesome icons display properly */
+        .fa, .fas, .far, .fal, .fab, .fa-* {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+        
+        .fa:before, .fas:before, .far:before, .fal:before, .fab:before {
+            content: attr(data-icon) !important;
+        }
+        
+        /* Force icon display */
+        i[class*="fa-"]:before {
+            font-family: "Font Awesome 6 Free" !important;
+            font-weight: 900 !important;
+        }
+    </style>
+    
     <!-- Student Sidebar Override Styles -->
     <style>
         .student-dashboard .sidebar {
