@@ -123,7 +123,7 @@
                             </div>
 
                             <div class="text-center">
-                                <a href="{{ route('student.password.reset') }}" class="forgot-password-link" id="forgotPasswordLink">
+                                <a href="{{ route('forgot-password') }}" class="forgot-password-link" id="forgotPasswordLink">
                                     Forgot your password?
                                 </a>
                             </div>
@@ -401,7 +401,7 @@ function toggleLoginType() {
         studentFields.style.display = 'block';
         staffFields.style.display = 'none';
         loginButton.textContent = 'Login as Student';
-        forgotPasswordLink.href = '{{ route("student.password.reset") }}';
+        forgotPasswordLink.href = '{{ route("forgot-password") }}';
         icField.required = true;
         staffEmailField.required = false;
         // Disable hidden email fields

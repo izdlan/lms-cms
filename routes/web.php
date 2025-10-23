@@ -75,6 +75,13 @@ Route::get('/login', [App\Http\Controllers\Auth\StudentLecturerAuthController::c
 Route::post('/login', [App\Http\Controllers\Auth\StudentLecturerAuthController::class, 'login']);
 Route::post('/student-lecturer-logout', [App\Http\Controllers\Auth\StudentLecturerAuthController::class, 'logout'])->name('student-lecturer.logout');
 
+// Forgot Password routes
+Route::get('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showForgotPasswordForm'])->name('forgot-password');
+Route::post('/forgot-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetCode'])->name('forgot-password.send');
+Route::get('/reset-password/{token}', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'showResetPasswordForm'])->name('reset-password');
+Route::post('/reset-password', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'resetPassword'])->name('reset-password.post');
+
+
 // Admin & Finance Admin login system
 Route::get('/admin-login', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'showLoginForm'])->name('admin-finance.login');
 Route::post('/admin-login', [App\Http\Controllers\Auth\AdminFinanceAuthController::class, 'login']);
