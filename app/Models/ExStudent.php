@@ -60,7 +60,7 @@ class ExStudent extends Model
      */
     public function getVerificationUrl(): string
     {
-        return route('ex-student.certificate', ['student_id' => $this->student_id]);
+        return url('/certificates/verify/' . $this->certificate_number);
     }
 
     /**

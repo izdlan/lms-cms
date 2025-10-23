@@ -872,7 +872,7 @@ Route::prefix('certificates')->group(function () {
     
     // Ex-students certificate routes
     Route::get('/', [CertificateController::class, 'index'])->name('certificate.index');
-    Route::get('/generate/{studentId}', [CertificateController::class, 'generatePdfCertificateCpanel'])->name('certificate.generate');
+    Route::get('/generate/{studentId}', [CertificateController::class, 'generateCertificate'])->name('certificate.generate');
     Route::get('/download/{studentId}', [CertificateController::class, 'download'])->name('certificate.download');
     Route::get('/verify/{certificateNumber}', [CertificateController::class, 'verifyCertificate'])->name('certificate.verify');
     

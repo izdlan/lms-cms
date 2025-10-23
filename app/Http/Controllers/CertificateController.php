@@ -30,7 +30,7 @@ class CertificateController extends Controller
                 return response()->json(['error' => 'Ex-student not found'], 404);
             }
 
-            // Generate QR Code data for verification (compatible with verification system)
+            // Generate QR Code data for verification
             $qrCodeData = [
                 'student_id' => $exStudent->student_id,
                 'student_name' => $exStudent->name,
@@ -38,33 +38,28 @@ class CertificateController extends Controller
                 'course' => $exStudent->program ?? 'Not Specified',
                 'graduation_date' => $exStudent->graduation_date,
                 'verification_url' => url('/certificates/verify/' . $exStudent->certificate_number),
-                'certificate_download_url' => url('/certificates/generate/' . $exStudent->id),
                 'generated_at' => now()->toISOString()
             ];
 
-            // Generate QR Code (try PNG first, fallback to SVG)
-            // Encode data as base64 JSON for verification system compatibility
+            // Generate QR Code as base64 (no file operations)
             $encodedQrData = base64_encode(json_encode($qrCodeData));
             
             try {
                 $qrCode = QrCode::format('png')
-                    ->size(600)
-                    ->margin(12)
+                    ->size(200)
+                    ->margin(2)
                     ->generate($encodedQrData);
+                $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCode);
             } catch (\Exception $e) {
-                // Fallback to SVG if PNG fails (no ImageMagick)
+                // Fallback to SVG
                 $qrCode = QrCode::format('svg')
-                    ->size(600)
-                    ->margin(12)
+                    ->size(200)
+                    ->margin(2)
                     ->generate($encodedQrData);
+                $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCode);
             }
 
-            // Save QR Code temporarily
-            $qrCodeExtension = strpos($qrCode, '<svg') !== false ? 'svg' : 'png';
-            $qrCodePath = 'temp/qr_' . $exStudent->id . '_' . time() . '.' . $qrCodeExtension;
-            Storage::disk('public')->put($qrCodePath, $qrCode);
-
-            // Check if template exists (use original template)
+            // Check if template exists
             $templatePath = storage_path('app/templates/certificate_template.docx');
             if (!File::exists($templatePath)) {
                 return response()->json(['error' => 'Certificate template not found. Please upload the template to storage/app/templates/certificate_template.docx'], 404);
@@ -73,39 +68,68 @@ class CertificateController extends Controller
             // Process Word template
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Replace placeholders
+            // Replace placeholders - FIXED: Use correct placeholder format
             $templateProcessor->setValue('STUDENT_NAME', $exStudent->name);
             $templateProcessor->setValue('COURSE_NAME', $exStudent->program ?? 'Not Specified');
             $templateProcessor->setValue('GRADUATION_DATE', $exStudent->graduation_date);
             $templateProcessor->setValue('CERTIFICATE_NUMBER', $exStudent->certificate_number);
+            $templateProcessor->setValue('STUDENT_ID', $exStudent->student_id);
 
-            // Replace QR Code image
-            $templateProcessor->setImageValue('QR_CODE', [
-                'path' => storage_path('app/public/' . $qrCodePath),
-                'width' => 100,
-                'height' => 100
-            ]);
+            // Save QR code as temporary file for Word template
+            $tempDir = storage_path('app/temp');
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+            
+            $qrCodePath = $tempDir . '/qr_' . $exStudent->id . '_' . time() . '.png';
+            
+            // Extract image data from base64
+            if (strpos($qrCodeBase64, 'data:image/png;base64,') === 0) {
+                $imageData = base64_decode(substr($qrCodeBase64, 22));
+                file_put_contents($qrCodePath, $imageData);
+            } elseif (strpos($qrCodeBase64, 'data:image/svg+xml;base64,') === 0) {
+                $imageData = base64_decode(substr($qrCodeBase64, 26));
+                $qrCodePath = str_replace('.png', '.svg', $qrCodePath);
+                file_put_contents($qrCodePath, $imageData);
+            }
+
+            // Replace QR Code image in Word template
+            if (file_exists($qrCodePath)) {
+                $templateProcessor->setImageValue('QR_CODE', [
+                    'path' => $qrCodePath,
+                    'width' => 100,
+                    'height' => 100
+                ]);
+            }
 
             // Generate final certificate
             $certificateFileName = 'certificate_' . $exStudent->student_id . '_' . time() . '.docx';
-            $certificatePath = 'certificates/' . $certificateFileName;
-            $fullCertificatePath = storage_path('app/public/' . $certificatePath);
+            $certificatePath = storage_path('app/certificates/' . $certificateFileName);
             
             // Ensure certificates directory exists
-            if (!File::exists(dirname($fullCertificatePath))) {
-                File::makeDirectory(dirname($fullCertificatePath), 0755, true);
+            if (!is_dir(dirname($certificatePath))) {
+                mkdir(dirname($certificatePath), 0755, true);
             }
-
-            $templateProcessor->saveAs($fullCertificatePath);
+            
+            $templateProcessor->saveAs($certificatePath);
 
             // Clean up temporary QR code
-            Storage::disk('public')->delete($qrCodePath);
+            if (file_exists($qrCodePath)) {
+                unlink($qrCodePath);
+            }
 
-            return response()->download($fullCertificatePath, $certificateFileName);
+            return response()->download($certificatePath, $certificateFileName);
 
         } catch (\Exception $e) {
-            Log::error('Certificate generation failed: ' . $e->getMessage());
-            return response()->json(['error' => 'Certificate generation failed: ' . $e->getMessage()], 500);
+            Log::error('Certificate generation failed', [
+                'error' => $e->getMessage(),
+                'student_id' => $studentId,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Certificate generation failed: ' . $e->getMessage()
+            ], 500);
         }
     }
 
@@ -196,26 +220,41 @@ class CertificateController extends Controller
                 'generated_at' => now()->toISOString()
             ];
 
-            // Generate QR Code (try PNG first, fallback to SVG)
+            // Generate QR Code as base64 (no file operations)
             $encodedQrData = base64_encode(json_encode($qrCodeData));
             
             try {
                 $qrCode = QrCode::format('png')
-                    ->size(600)
-                    ->margin(12)
+                    ->size(200)
+                    ->margin(2)
                     ->generate($encodedQrData);
+                $qrCodeBase64 = 'data:image/png;base64,' . base64_encode($qrCode);
             } catch (\Exception $e) {
-                // Fallback to SVG if PNG fails (no ImageMagick)
+                // Fallback to SVG
                 $qrCode = QrCode::format('svg')
-                    ->size(600)
-                    ->margin(12)
+                    ->size(200)
+                    ->margin(2)
                     ->generate($encodedQrData);
+                $qrCodeBase64 = 'data:image/svg+xml;base64,' . base64_encode($qrCode);
             }
 
-            // Save QR Code temporarily
-            $qrCodeExtension = strpos($qrCode, '<svg') !== false ? 'svg' : 'png';
-            $qrCodePath = 'temp/qr_' . $exStudent->id . '_' . time() . '.' . $qrCodeExtension;
-            Storage::disk('public')->put($qrCodePath, $qrCode);
+            // Save QR code as temporary file for Word template
+            $tempDir = storage_path('app/temp');
+            if (!is_dir($tempDir)) {
+                mkdir($tempDir, 0755, true);
+            }
+            
+            $qrCodePath = $tempDir . '/qr_' . $exStudent->id . '_' . time() . '.png';
+            
+            // Extract image data from base64
+            if (strpos($qrCodeBase64, 'data:image/png;base64,') === 0) {
+                $imageData = base64_decode(substr($qrCodeBase64, 22));
+                file_put_contents($qrCodePath, $imageData);
+            } elseif (strpos($qrCodeBase64, 'data:image/svg+xml;base64,') === 0) {
+                $imageData = base64_decode(substr($qrCodeBase64, 26));
+                $qrCodePath = str_replace('.png', '.svg', $qrCodePath);
+                file_put_contents($qrCodePath, $imageData);
+            }
 
             // Check if template exists (use original template)
             $templatePath = storage_path('app/templates/certificate_template.docx');
@@ -884,6 +923,72 @@ class CertificateController extends Controller
 
         } catch (\Exception $e) {
             Log::error('Alternative Word to PDF conversion failed: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Convert Word document to PDF using cPanel-compatible method
+     */
+    private function convertWordToPdfCpanel($wordPath, $exStudent)
+    {
+        try {
+            $pdfPath = str_replace('.docx', '.pdf', $wordPath);
+
+            // Method 1: Try PhpWord PDF writer (most compatible with cPanel)
+            try {
+                \PhpOffice\PhpWord\Settings::setPdfRendererName(\PhpOffice\PhpWord\Settings::PDF_RENDERER_DOMPDF);
+                \PhpOffice\PhpWord\Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
+                
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($wordPath);
+                $pdfWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'PDF');
+                $pdfWriter->save($pdfPath);
+                
+                if (file_exists($pdfPath) && filesize($pdfPath) > 10000) {
+                    Log::info('PDF generated successfully using PhpWord');
+                    return $pdfPath;
+                }
+            } catch (\Exception $e) {
+                Log::warning('PhpWord PDF conversion failed: ' . $e->getMessage());
+            }
+
+            // Method 2: Convert to HTML then to PDF (fallback)
+            try {
+                $phpWord = \PhpOffice\PhpWord\IOFactory::load($wordPath);
+                $htmlWriter = new \PhpOffice\PhpWord\Writer\HTML($phpWord);
+                
+                $htmlPath = str_replace('.docx', '.html', $wordPath);
+                $htmlWriter->save($htmlPath);
+                
+                // Convert HTML to PDF
+                $pdf = PDF::loadFile($htmlPath);
+                $pdf->setPaper('A4', 'portrait');
+                $pdf->setOptions([
+                    'isHtml5ParserEnabled' => true,
+                    'isRemoteEnabled' => false,
+                    'defaultFont' => 'DejaVu Sans'
+                ]);
+                
+                $pdf->save($pdfPath);
+                
+                // Clean up HTML file
+                if (file_exists($htmlPath)) {
+                    unlink($htmlPath);
+                }
+                
+                if (file_exists($pdfPath) && filesize($pdfPath) > 10000) {
+                    Log::info('PDF generated successfully using HTML conversion');
+                    return $pdfPath;
+                }
+            } catch (\Exception $e) {
+                Log::warning('HTML to PDF conversion failed: ' . $e->getMessage());
+            }
+
+            Log::error('All Word to PDF conversion methods failed');
+            return null;
+
+        } catch (\Exception $e) {
+            Log::error('Word to PDF conversion failed: ' . $e->getMessage());
             return null;
         }
     }
