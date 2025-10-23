@@ -510,6 +510,11 @@ class StaffController extends Controller
             return response()->json(['error' => 'Submission not found'], 404);
         }
 
+        // Check if already graded
+        if ($submission->status === 'graded' && $submission->graded_at) {
+            return response()->json(['error' => 'This assignment has already been graded and cannot be re-graded'], 400);
+        }
+
         $submission->update([
             'marks_obtained' => $request->marks_obtained,
             'feedback' => $request->feedback,

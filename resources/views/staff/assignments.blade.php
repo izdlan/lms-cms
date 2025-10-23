@@ -412,9 +412,14 @@ function displaySubmissions(assignment, submissions) {
                             <button class="btn btn-sm btn-outline-primary" title="View PDF Files" onclick="viewSubmissionFiles(${submission.id})">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-primary" title="Grade Assignment" onclick="gradeSubmission(${submission.id})">
-                                <i class="fas fa-edit"></i>
-                            </button>
+                            ${submission.status === 'graded' ? 
+                                `<button class="btn btn-sm btn-success" title="Already Graded" disabled>
+                                    <i class="fas fa-check"></i>
+                                </button>` :
+                                `<button class="btn btn-sm btn-primary" title="Grade Assignment" onclick="gradeSubmission(${submission.id})">
+                                    <i class="fas fa-edit"></i>
+                                </button>`
+                            }
                         </div>
                     </td>
                 </tr>
@@ -504,9 +509,14 @@ function showSubmissionFilesModal(submission) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="button" class="btn btn-primary grade-submission-modal-btn" data-submission-id="${submission.id}">
-                            <i class="fas fa-edit"></i> Grade This Submission
-                        </button>
+                        ${submission.status === 'graded' ? 
+                            `<button type="button" class="btn btn-success" disabled>
+                                <i class="fas fa-check"></i> Already Graded
+                            </button>` :
+                            `<button type="button" class="btn btn-primary grade-submission-modal-btn" data-submission-id="${submission.id}">
+                                <i class="fas fa-edit"></i> Grade This Submission
+                            </button>`
+                        }
                     </div>
                                 </div>
                             </div>

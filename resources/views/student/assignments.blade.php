@@ -52,7 +52,7 @@
                     @php
                         $submission = $submissions->get($assignment->id);
                         $isOverdue = $assignment->due_date < now() && !$submission;
-                        $isSubmitted = $submission && $submission->status === 'submitted';
+                        $isSubmitted = $submission && in_array($submission->status, ['submitted', 'graded']);
                         $isGraded = $submission && $submission->status === 'graded';
                         $isAvailable = $assignment->isAvailableForSubmission();
                         $isNotYetAvailable = $assignment->available_from > now();
@@ -60,9 +60,18 @@
                         
                         // Debug info (remove in production)
                         echo "<!-- Debug for {$assignment->title}: submission=" . ($submission ? $submission->status : 'none') . ", isGraded=" . ($isGraded ? 'true' : 'false') . ", isSubmitted=" . ($isSubmitted ? 'true' : 'false') . ", isAvailable=" . ($isAvailable ? 'true' : 'false') . " -->";
+                        
+                        // Additional debug for graded assignments
+                        if ($submission && $submission->status === 'graded') {
+                            echo "<!-- GRADED ASSIGNMENT DETECTED: {$assignment->title} -->";
+                        }
+                        
+                        // Force debug output to see what's happening
+                        echo "<!-- FORCE DEBUG: Assignment {$assignment->id} - Submission Status: " . ($submission ? $submission->status : 'NULL') . " -->";
                     @endphp
                     
                     <div class="col-md-6 mb-4 assignment-card" 
+                         data-assignment-id="{{ $assignment->id }}"
                          data-status="{{ $isGraded ? 'graded' : ($isSubmitted ? 'submitted' : ($isOverdue ? 'overdue' : ($isNotYetAvailable ? 'not_yet_available' : 'available'))) }}"
                          data-subject="{{ $assignment->subject_code }}">
                         <div class="card h-100 {{ $isOverdue ? 'border-danger' : ($isGraded ? 'border-success' : '') }}">
@@ -145,12 +154,28 @@
                                         </small>
                                     </div>
                                     
+                                    @if($isSubmitted && !$isGraded)
+                                        <div class="alert alert-warning mb-2">
+                                            <small>
+                                                <i class="fas fa-clock"></i> 
+                                                <strong>Assignment submitted - Waiting for grading (No resubmission allowed)</strong>
+                                            </small>
+                                        </div>
+                                    @endif
+                                    
                                     @if($isGraded)
                                         <div class="alert alert-success mb-2">
                                             <small>
                                                 <i class="fas fa-trophy"></i> 
                                                 Grade: {{ $submission->marks_obtained }}/{{ $assignment->total_marks }}
                                                 ({{ number_format(($submission->marks_obtained / $assignment->total_marks) * 100, 1) }}%)
+                                            </small>
+                                        </div>
+                                        
+                                        <div class="alert alert-warning mb-2">
+                                            <small>
+                                                <i class="fas fa-lock"></i> 
+                                                <strong>Assignment has been graded - No resubmission allowed</strong>
                                             </small>
                                         </div>
                                         
@@ -175,26 +200,26 @@
                                         <button class="btn btn-sm btn-outline-secondary" disabled>
                                             <i class="fas fa-clock"></i> Not Yet Available
                                         </button>
-                                    @if($isGraded)
+                                    @elseif($submission && $submission->status === 'graded')
+                                        {{-- GRADED: Only show view buttons, NO submit button --}}
                                         <button class="btn btn-sm btn-success view-assignment-btn" data-assignment-id="{{ $assignment->id }}">
-                                            <i class="fas fa-eye"></i> View Grade
+                                            <i class="fas fa-trophy"></i> View Grade
                                         </button>
                                         <button class="btn btn-sm btn-outline-info view-submission-btn" data-assignment-id="{{ $assignment->id }}">
                                             <i class="fas fa-file-pdf"></i> View Submission
                                         </button>
-                                    @elseif($isSubmitted)
+                                    @elseif($submission && $submission->status === 'submitted')
+                                        {{-- SUBMITTED: Only show view button, NO submit button --}}
                                         <button class="btn btn-sm btn-outline-info view-submission-btn" data-assignment-id="{{ $assignment->id }}">
                                             <i class="fas fa-file-pdf"></i> View Submission
                                         </button>
-                                        <button class="btn btn-sm btn-secondary" disabled>
-                                            <i class="fas fa-clock"></i> Submitted
-                                        </button>
-                                    @elseif($isAvailable)
-                                        <button class="btn btn-sm btn-primary submit-assignment-btn" data-assignment-id="{{ $assignment->id }}">
+                                    @elseif($isAvailable && !$submission)
+                                        {{-- AVAILABLE: Show submit button --}}
+                                        <button class="btn btn-sm btn-primary submit-assignment-btn" data-assignment-id="{{ $assignment->id }}" data-status="available">
                                             <i class="fas fa-upload"></i> Submit
                                         </button>
                                     @elseif($isPastDue)
-                                        <button class="btn btn-sm btn-outline-danger" disabled>
+                                        <button class="btn btn-sm btn-outline-danger" disabled title="Assignment deadline has passed">
                                             <i class="fas fa-times"></i> Past Due
                                         </button>
                                     @else
@@ -294,12 +319,22 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Submit assignment buttons
-    document.querySelectorAll('.submit-assignment-btn').forEach(button => {
-        button.addEventListener('click', function() {
-            const assignmentId = this.getAttribute('data-assignment-id');
+    // Submit assignment buttons - use event delegation
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.submit-assignment-btn')) {
+            const button = e.target.closest('.submit-assignment-btn');
+            
+            // Check if button is disabled or not available for submission
+            if (button.disabled || button.getAttribute('data-status') !== 'available') {
+                e.preventDefault();
+                e.stopPropagation();
+                alert('This assignment cannot be submitted at this time.');
+                return;
+            }
+            
+            const assignmentId = button.getAttribute('data-assignment-id');
             submitAssignment(assignmentId);
-        });
+        }
     });
     
     // View submission buttons
@@ -473,6 +508,16 @@ function displayAssignmentDetails(assignment, submission) {
 
 // Submit assignment
 function submitAssignment(assignmentId) {
+    // Check if assignment is already graded or submitted
+    const assignmentCard = document.querySelector(`[data-assignment-id="${assignmentId}"]`);
+    if (assignmentCard) {
+        const status = assignmentCard.getAttribute('data-status');
+        if (status === 'graded' || status === 'submitted') {
+            alert('This assignment has already been submitted and cannot be resubmitted.');
+            return;
+        }
+    }
+    
     document.getElementById('assignmentId').value = assignmentId;
     new bootstrap.Modal(document.getElementById('submissionModal')).show();
 }
