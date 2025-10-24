@@ -188,10 +188,10 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'ic' => 'required|string|unique:users,ic',
-            'email' => 'required|email|unique:users,email',
+            'email' => 'nullable|email|unique:users,email',
+            'student_email' => 'nullable|email|unique:users,student_email',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
-            'previous_university' => 'nullable|string',
             'col_ref_no' => 'nullable|string',
             'student_id' => 'nullable|string',
             'courses' => 'nullable|string',
@@ -202,13 +202,16 @@ class AdminController extends Controller
             $courses = array_map('trim', explode(',', $request->courses));
         }
 
+        // Use student_email as fallback if email is empty
+        $email = $request->email ?: $request->student_email;
+
         User::create([
             'name' => $request->name,
             'ic' => $request->ic,
-            'email' => $request->email,
+            'email' => $email,
+            'student_email' => $request->student_email,
             'phone' => $request->phone,
             'address' => $request->address,
-            'previous_university' => $request->previous_university,
             'col_ref_no' => $request->col_ref_no,
             'student_id' => $request->student_id,
             'password' => Hash::make($request->ic), // Use IC as password
@@ -283,10 +286,13 @@ class AdminController extends Controller
             $courses = array_map('trim', explode(',', $request->courses));
         }
 
+        // Use student_email as fallback if email is empty
+        $email = $request->email ?: $request->student_email;
+        
         $student->update([
             'name' => $request->name,
             'ic' => $request->ic,
-            'email' => $request->email,
+            'email' => $email,
             'student_email' => $request->student_email,
             'phone' => $request->phone,
             'address' => $request->address,
