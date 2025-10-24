@@ -8,11 +8,17 @@ use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AutomationController;
 use App\Http\Controllers\CertificateController;
+use App\Http\Controllers\MaintenanceController;
 
-// Maintenance route - direct access
-Route::get('/maintenance', function () {
-    return view('maintenance');
-})->name('maintenance');
+// Maintenance routes
+Route::get('/maintenance', [MaintenanceController::class, 'index'])->name('maintenance');
+Route::post('/maintenance/enable', [MaintenanceController::class, 'enable'])->name('maintenance.enable');
+Route::post('/maintenance/disable', [MaintenanceController::class, 'disable'])->name('maintenance.disable');
+
+// System-wide maintenance mode (uncomment to enable)
+// Route::get('/{any}', function () {
+//     return view('maintenance');
+// })->where('any', '.*');
 
 // Main routes - show home page
 Route::get('/', function () {
@@ -127,7 +133,10 @@ Route::prefix('student')->group(function () {
         Route::get('/stats', [App\Http\Controllers\StudentController::class, 'getStats'])->name('student.stats');
         Route::get('/bills', [App\Http\Controllers\StudentController::class, 'bills'])->name('student.bills');
         Route::get('/payment', [App\Http\Controllers\StudentController::class, 'payment'])->name('student.payment');
-        Route::get('/exam-results', [App\Http\Controllers\StudentController::class, 'examResults'])->name('student.exam-results');
+        // Exam results temporarily closed for maintenance
+        Route::get('/exam-results', function () {
+            return redirect()->route('maintenance');
+        })->name('student.exam-results');
         Route::post('/payment/process', [App\Http\Controllers\StudentController::class, 'processPayment'])->name('student.payment.process');
         Route::get('/receipt', [App\Http\Controllers\StudentController::class, 'receipt'])->name('student.receipt');
         Route::get('/materials/download/{id}', [App\Http\Controllers\StudentController::class, 'downloadMaterial'])->name('student.materials.download');
