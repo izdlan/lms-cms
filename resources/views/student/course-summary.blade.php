@@ -88,18 +88,40 @@
                         <h3>Program Synopsis</h3>
                     </div>
                     <div class="card-body">
-                        <h4 class="mb-3">Executive Master in Business Administration (EMBA)</h4>
+                        <h4 class="mb-3">{{ $program->name }}</h4>
                         <p class="lead">
-                            The Executive Master in Business Administration (EMBA) is designed for senior executives and professionals who aspire to deepen their strategic thinking, leadership, and business acumen. This programme integrates advanced postgraduate-level modules that deliver both academic excellence and practical career advancement opportunities. Each module is developed to reflect the evolving demands of global business, equipping learners with the knowledge and tools to lead effectively in complex, fast-paced environments.
+                            @if(strpos($user->programme_name, 'EBBA') !== false)
+                                The Executive Bachelor in Business Administration (EBBA) is designed for working professionals seeking to enhance their business knowledge and leadership skills. This comprehensive undergraduate program provides a solid foundation in business principles, management practices, and strategic thinking. The program is tailored for individuals who want to advance their careers while gaining essential business competencies.
+                            @elseif(strpos($user->programme_name, 'EMBA') !== false)
+                                The Executive Master in Business Administration (EMBA) is designed for senior executives and professionals who aspire to deepen their strategic thinking, leadership, and business acumen. This programme integrates advanced postgraduate-level modules that deliver both academic excellence and practical career advancement opportunities. Each module is developed to reflect the evolving demands of global business, equipping learners with the knowledge and tools to lead effectively in complex, fast-paced environments.
+                            @else
+                                This program is designed to provide comprehensive business education and professional development opportunities. The curriculum is structured to meet the evolving demands of the business world and equip learners with essential knowledge and skills for career advancement.
+                            @endif
                         </p>
                         <p>
-                            The EMBA is delivered by a team of highly qualified academics and accomplished business practitioners, ensuring a rich, diverse, and engaging learning experience across multiple instructional methodologies.
+                            @if(strpos($user->programme_name, 'EBBA') !== false)
+                                The EBBA is delivered by experienced academics and industry practitioners, ensuring a practical and engaging learning experience that bridges theory with real-world application.
+                            @elseif(strpos($user->programme_name, 'EMBA') !== false)
+                                The EMBA is delivered by a team of highly qualified academics and accomplished business practitioners, ensuring a rich, diverse, and engaging learning experience across multiple instructional methodologies.
+                            @else
+                                The program is delivered by qualified academics and industry professionals, ensuring a comprehensive and practical learning experience.
+                            @endif
                         </p>
                         <p>
-                            This programme is a Triple Award pathway, including the prestigious Level 7 – Professional Diploma in Business Administration awarded by the Chartered Management Institute (CMI), UK. Upon successful completion, graduates are eligible to receive the Chartered Manager (ChMgr) designation—recognised as the gold standard for professional managers in the UK and internationally.
+                            @if(strpos($user->programme_name, 'EMBA') !== false)
+                                This programme is a Triple Award pathway, including the prestigious Level 7 – Professional Diploma in Business Administration awarded by the Chartered Management Institute (CMI), UK. Upon successful completion, graduates are eligible to receive the Chartered Manager (ChMgr) designation—recognised as the gold standard for professional managers in the UK and internationally.
+                            @else
+                                Upon successful completion, graduates will receive a recognized qualification that enhances their professional credentials and career prospects.
+                            @endif
                         </p>
                         <p>
-                            The EMBA offers a flexible, accessible format designed to accommodate demanding professional schedules, enabling participants to study at their own pace, from anywhere in the world.
+                            @if(strpos($user->programme_name, 'EBBA') !== false)
+                                The EBBA offers a flexible, accessible format designed to accommodate working professionals' schedules, enabling participants to study at their own pace while maintaining their career commitments.
+                            @elseif(strpos($user->programme_name, 'EMBA') !== false)
+                                The EMBA offers a flexible, accessible format designed to accommodate demanding professional schedules, enabling participants to study at their own pace, from anywhere in the world.
+                            @else
+                                The program offers a flexible, accessible format designed to accommodate professional schedules, enabling participants to study at their own pace.
+                            @endif
                         </p>
                     </div>
                 </div>

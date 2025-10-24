@@ -16,7 +16,7 @@
             <div class="main-content">
                 <div class="courses-header">
                     <h1>My Program</h1>
-                    <p>View your Executive Master in Business Administration program</p>
+                    <p>View your {{ auth()->user()->programme_name ?? 'program' }} program</p>
                     @if(request()->has('course'))
                         <div class="alert alert-info">
                             <i class="fas fa-info-circle"></i>

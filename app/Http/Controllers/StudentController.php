@@ -123,8 +123,13 @@ class StudentController extends Controller
             ->where('status', 'enrolled')
             ->get();
 
-        // Get all EMBA subjects from database (compulsory for all EMBA students)
-        $subjects = Subject::where('program_code', 'EMBA')
+        // Get subjects for the student's actual program
+        $programCode = $user->programme_name ? 
+            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
+             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
+             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
+        
+        $subjects = Subject::where('program_code', $programCode)
             ->where('is_active', true)
             ->orderBy('code')
             ->get()
