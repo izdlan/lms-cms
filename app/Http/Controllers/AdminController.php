@@ -460,24 +460,24 @@ class AdminController extends Controller
                 'time_limit' => ini_get('time_limit')
             ]);
             
-            $googleDriveService = new \App\Services\GoogleDriveImportService();
+            $googleSheetsService = new \App\Services\GoogleSheetsImportService();
             
             // Skip connection test and go straight to import to avoid double download
-            Log::info('Starting Google Drive import from admin panel');
+            Log::info('Starting Google Sheets import from admin panel');
             
-            $result = $googleDriveService->importFromGoogleDrive();
+            $result = $googleSheetsService->importFromGoogleSheets();
             
-            Log::info('Google Drive import completed', $result);
+            Log::info('Google Sheets import completed', $result);
             
             if ($result['success']) {
                 // Update cache with results
-                cache()->put('last_google_drive_import_time', now(), now()->addDays(30));
-                cache()->put('last_google_drive_import_results', $result, now()->addDays(30));
-                cache()->put('last_google_drive_sync', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_time', now(), now()->addDays(30));
+                cache()->put('last_google_sheets_import_results', $result, now()->addDays(30));
+                cache()->put('last_google_sheets_sync', now(), now()->addDays(30));
                 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Google Drive import completed successfully!',
+                    'message' => 'Google Sheets import completed successfully!',
                     'created' => $result['created'],
                     'updated' => $result['updated'],
                     'errors' => $result['errors'],
@@ -1344,8 +1344,8 @@ class AdminController extends Controller
         set_time_limit(300); // 5 minutes
         
         try {
-            $syncService = new \App\Services\GoogleDriveImportService();
-            $result = $syncService->importFromGoogleDrive();
+            $syncService = new \App\Services\GoogleSheetsImportService();
+            $result = $syncService->importFromGoogleSheets();
             
             return response()->json([
                 'success' => $result['success'],
@@ -1373,8 +1373,8 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         // Clear sync cache to effectively "stop" auto-sync
-        \Illuminate\Support\Facades\Cache::forget('last_google_drive_sync');
-        \Illuminate\Support\Facades\Cache::forget('last_google_drive_file_hash');
+        \Illuminate\Support\Facades\Cache::forget('last_google_sheets_sync');
+        \Illuminate\Support\Facades\Cache::forget('last_google_sheets_file_hash');
         
         return response()->json([
             'success' => true,
@@ -1388,13 +1388,13 @@ class AdminController extends Controller
         
         try {
             Log::info('Getting auto-sync status');
-            // For Google Drive, we'll return a simple status since we don't have a dedicated sync service
-            $lastSync = \Illuminate\Support\Facades\Cache::get('last_google_drive_sync');
+            // For Google Sheets, we'll return a simple status since we don't have a dedicated sync service
+            $lastSync = \Illuminate\Support\Facades\Cache::get('last_google_sheets_sync');
             $status = [
                 'is_running' => false,
                 'last_sync' => $lastSync ? $lastSync->format('Y-m-d H:i:s') : 'Never',
                 'next_sync' => 'Manual only',
-                'file_hash' => 'Google Drive file',
+                'file_hash' => 'Google Sheets file',
                 'sync_interval' => 5
             ];
             
@@ -1425,8 +1425,8 @@ class AdminController extends Controller
         set_time_limit(300); // 5 minutes
         
         try {
-            $syncService = new \App\Services\GoogleDriveImportService();
-            $result = $syncService->importFromGoogleDrive();
+            $syncService = new \App\Services\GoogleSheetsImportService();
+            $result = $syncService->importFromGoogleSheets();
             
             return response()->json([
                 'success' => $result['success'],
@@ -1486,8 +1486,8 @@ class AdminController extends Controller
             Log::info('HTTP Cron: Starting Google Drive import');
             
             // Use the new Google Drive import service
-            $googleDriveService = new \App\Services\GoogleDriveImportService();
-            $result = $googleDriveService->importFromGoogleDrive();
+            $googleSheetsService = new \App\Services\GoogleSheetsImportService();
+            $result = $googleSheetsService->importFromGoogleSheets();
             
             Log::info('HTTP Cron: Import completed', $result);
             

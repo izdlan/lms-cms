@@ -5,7 +5,7 @@ echo ========================================
 echo.
 
 echo Testing auto-sync command...
-cd /d "C:\xampp\htdocs\LMS_Olympia"
+cd /d "C:\xampp\htdocs\lms-cms"
 php artisan auto-sync:run
 
 if %errorlevel% neq 0 (

@@ -1,33 +1,26 @@
 @echo off
-title Auto-Sync Service
-color 0A
-
 echo ========================================
 echo    LMS Auto-Sync Service
 echo ========================================
 echo.
-echo Starting continuous auto-sync...
-echo This service will:
-echo - Run auto-sync every 5 minutes
-echo - Restart automatically on errors
-echo - Log all activities
+echo Starting auto-sync service...
+echo This will run every 5 minutes to check for updates.
 echo.
-echo Press Ctrl+C to stop the service
+echo To stop this service, close this window or press Ctrl+C
 echo.
 
-cd /d "C:\xampp\htdocs\LMS_Olympia"
-
-:start_service
-echo [%date% %time%] Starting auto-sync service...
-php artisan auto-sync:run --continuous
+:loop
+echo [%date% %time%] Checking for Google Sheets updates...
+cd /d "C:\xampp\htdocs\lms-cms"
+php artisan auto-sync:run
 
 if %errorlevel% neq 0 (
-    echo [%date% %time%] Auto-sync service encountered an error.
-    echo [%date% %time%] Restarting in 30 seconds...
-    timeout /t 30 /nobreak >nul
-    echo [%date% %time%] Restarting service...
+    echo [%date% %time%] ERROR: Auto-sync check failed!
+) else (
+    echo [%date% %time%] Auto-sync check completed successfully.
 )
 
-goto start_service
-
-
+echo.
+echo Waiting 5 minutes before next check...
+timeout /t 300 /nobreak >nul
+goto loop
