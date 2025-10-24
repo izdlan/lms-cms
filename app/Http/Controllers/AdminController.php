@@ -1316,7 +1316,7 @@ class AdminController extends Controller
             
             return response()->json([
                 'success' => $result['success'],
-                'message' => $result['message'],
+                'message' => $result['success'] ? 'Google Sheets import completed successfully!' : 'Google Sheets import failed!',
                 'error' => $result['error'] ?? null,
                 'onedrive_url' => config('google_sheets.onedrive_url'),
                 'env_url' => env('ONEDRIVE_EXCEL_URL'),
@@ -1349,7 +1349,7 @@ class AdminController extends Controller
             
             return response()->json([
                 'success' => $result['success'],
-                'message' => $result['message'],
+                'message' => $result['success'] ? 'Google Sheets import completed successfully!' : 'Google Sheets import failed!',
                 'new_students' => $result['new_students'] ?? 0,
                 'created' => $result['created'] ?? 0,
                 'updated' => $result['updated'] ?? 0,
@@ -1430,7 +1430,7 @@ class AdminController extends Controller
             
             return response()->json([
                 'success' => $result['success'],
-                'message' => $result['message'],
+                'message' => $result['success'] ? 'Google Sheets import completed successfully!' : 'Google Sheets import failed!',
                 'new_students' => $result['new_students'] ?? 0,
                 'created' => $result['created'] ?? 0,
                 'updated' => $result['updated'] ?? 0,
@@ -1493,7 +1493,7 @@ class AdminController extends Controller
             
             return response()->json([
                 'success' => $result['success'],
-                'message' => $result['message'],
+                'message' => $result['success'] ? 'Google Sheets import completed successfully!' : 'Google Sheets import failed!',
                 'timestamp' => now()->toISOString(),
                 'new_students' => $result['new_students'] ?? 0,
                 'created' => $result['created'] ?? 0,
