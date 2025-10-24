@@ -251,12 +251,30 @@ class AdminController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'ic' => 'required|string|unique:users,ic,' . $student->id,
-            'email' => 'required|email|unique:users,email,' . $student->id,
+            'email' => 'nullable|email|unique:users,email,' . $student->id,
+            'student_email' => 'nullable|email|unique:users,student_email,' . $student->id,
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
-            'previous_university' => 'nullable|string',
-            'col_ref_no' => 'nullable|string',
+            'status' => 'nullable|string',
+            'category' => 'nullable|string',
+            'contact_no' => 'nullable|string',
+            'programme_name' => 'nullable|string',
+            'programme_code' => 'nullable|string',
             'student_id' => 'nullable|string',
+            'col_ref_no' => 'nullable|string',
+            'student_portal' => 'nullable|string',
+            'semester_entry' => 'nullable|string',
+            'research_title' => 'nullable|string',
+            'supervisor' => 'nullable|string',
+            'external_examiner' => 'nullable|string',
+            'internal_examiner' => 'nullable|string',
+            'col_date' => 'nullable|date',
+            'programme_intake' => 'nullable|string',
+            'date_of_commencement' => 'nullable|date',
+            'total_fees' => 'nullable|numeric',
+            'transaction_month' => 'nullable|string',
+            'remarks' => 'nullable|string',
+            'pic' => 'nullable|string',
             'courses' => 'nullable|string',
         ]);
 
@@ -269,11 +287,29 @@ class AdminController extends Controller
             'name' => $request->name,
             'ic' => $request->ic,
             'email' => $request->email,
+            'student_email' => $request->student_email,
             'phone' => $request->phone,
             'address' => $request->address,
-            'previous_university' => $request->previous_university,
-            'col_ref_no' => $request->col_ref_no,
+            'status' => $request->status,
+            'category' => $request->category,
+            'contact_no' => $request->contact_no,
+            'programme_name' => $request->programme_name,
+            'programme_code' => $request->programme_code,
             'student_id' => $request->student_id,
+            'col_ref_no' => $request->col_ref_no,
+            'student_portal' => $request->student_portal,
+            'semester_entry' => $request->semester_entry,
+            'research_title' => $request->research_title,
+            'supervisor' => $request->supervisor,
+            'external_examiner' => $request->external_examiner,
+            'internal_examiner' => $request->internal_examiner,
+            'col_date' => $request->col_date,
+            'programme_intake' => $request->programme_intake,
+            'date_of_commencement' => $request->date_of_commencement,
+            'total_fees' => $request->total_fees,
+            'transaction_month' => $request->transaction_month,
+            'remarks' => $request->remarks,
+            'pic' => $request->pic,
             'courses' => $courses,
         ]);
 
@@ -503,7 +539,7 @@ class AdminController extends Controller
         $recentLogs = $this->getRecentGoogleSheetsLogs();
         
         // Google Sheets specific data
-        $googleSheetsUrl = 'https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true';
+        $googleSheetsUrl = 'https://docs.google.com/spreadsheets/d/1MnAeovkeOM_pZGx6DqS7hMvJQyaQDEu8/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true';
         $sheetsStatus = $this->checkGoogleSheetsStatus();
         
         // Run automation check if it's running and enough time has passed
@@ -531,7 +567,7 @@ class AdminController extends Controller
         }
         
         return [
-            'google_sheets_url' => 'https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true',
+            'google_sheets_url' => 'https://docs.google.com/spreadsheets/d/1MnAeovkeOM_pZGx6DqS7hMvJQyaQDEu8/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true',
             'notification_email' => 'ikramalif.roslee@gmail.com',
             'import_frequency' => 'every-5-minutes',
             'status' => 'Enabled',
@@ -547,7 +583,7 @@ class AdminController extends Controller
         // Only check if cache is older than 5 minutes
         if (!$cachedStatus || now()->diffInMinutes($cachedStatus['last_check']) > 5) {
             try {
-                $response = \Illuminate\Support\Facades\Http::timeout(5)->get('https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/export?format=csv');
+                $response = \Illuminate\Support\Facades\Http::timeout(5)->get('https://docs.google.com/spreadsheets/d/1MnAeovkeOM_pZGx6DqS7hMvJQyaQDEu8/export?format=csv');
                 
                 $status = [
                     'status' => $response->successful() ? 'Connected' : 'Connection Failed',

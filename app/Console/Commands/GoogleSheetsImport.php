@@ -21,7 +21,7 @@ class GoogleSheetsImport extends Command
         $notifyEmail = $this->option('email');
 
         $this->info('Starting Google Sheets student import...');
-        $this->info("Google Sheets URL: https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk");
+        $this->info("Google Sheets URL: https://docs.google.com/spreadsheets/d/1MnAeovkeOM_pZGx6DqS7hMvJQyaQDEu8");
 
         $googleSheetsService = new GoogleSheetsImportService();
 

@@ -65,16 +65,29 @@
                             </div>
 
                             <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control @error('email') is-invalid @enderror" 
-                                               id="email" name="email" value="{{ old('email', $student->email) }}" required>
-                                        @error('email')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-                                </div>
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="email" class="form-label">Email Address</label>
+                                         <input type="email" class="form-control @error('email') is-invalid @enderror" 
+                                                id="email" name="email" value="{{ old('email', $student->email) }}">
+                                         @error('email')
+                                             <div class="invalid-feedback">{{ $message }}</div>
+                                         @enderror
+                                     </div>
+                                 </div>
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="student_email" class="form-label">Student Email</label>
+                                         <input type="email" class="form-control @error('student_email') is-invalid @enderror" 
+                                                id="student_email" name="student_email" value="{{ old('student_email', $student->student_email) }}">
+                                         @error('student_email')
+                                             <div class="invalid-feedback">{{ $message }}</div>
+                                         @enderror
+                                     </div>
+                                 </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="phone" class="form-label">Phone Number</label>
@@ -97,18 +110,79 @@
                                 @enderror
                             </div>
 
+                            <!-- New Spreadsheet Fields -->
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
-                                        <label for="previous_university" class="form-label">Previous University</label>
-                                        <input type="text" class="form-control @error('previous_university') is-invalid @enderror" 
-                                               id="previous_university" name="previous_university" value="{{ old('previous_university', $student->previous_university) }}" 
-                                               placeholder="Enter previous university">
-                                        @error('previous_university')
+                                        <label for="status" class="form-label">Status</label>
+                                        <select class="form-control @error('status') is-invalid @enderror" 
+                                                id="status" name="status">
+                                            <option value="">Select Status</option>
+                                            <option value="In progress" {{ old('status', $student->status) == 'In progress' ? 'selected' : '' }}>In progress</option>
+                                            <option value="Withdrawn" {{ old('status', $student->status) == 'Withdrawn' ? 'selected' : '' }}>Withdrawn</option>
+                                            <option value="Completed" {{ old('status', $student->status) == 'Completed' ? 'selected' : '' }}>Completed</option>
+                                        </select>
+                                        @error('status')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="category" class="form-label">Category</label>
+                                        <select class="form-control @error('category') is-invalid @enderror" 
+                                                id="category" name="category">
+                                            <option value="">Select Category</option>
+                                            <option value="LOCAL" {{ old('category', $student->category) == 'LOCAL' ? 'selected' : '' }}>LOCAL</option>
+                                            <option value="INTERNATIONAL" {{ old('category', $student->category) == 'INTERNATIONAL' ? 'selected' : '' }}>INTERNATIONAL</option>
+                                        </select>
+                                        @error('category')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                             <div class="row">
+                                 <div class="col-md-6">
+                                     <div class="mb-3">
+                                         <label for="contact_no" class="form-label">Contact Number</label>
+                                         <input type="text" class="form-control @error('contact_no') is-invalid @enderror" 
+                                                id="contact_no" name="contact_no" value="{{ old('contact_no', $student->contact_no) }}" 
+                                                placeholder="Enter contact number">
+                                         @error('contact_no')
+                                             <div class="invalid-feedback">{{ $message }}</div>
+                                         @enderror
+                                     </div>
+                                 </div>
+                             </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="programme_name" class="form-label">Programme Name</label>
+                                        <input type="text" class="form-control @error('programme_name') is-invalid @enderror" 
+                                               id="programme_name" name="programme_name" value="{{ old('programme_name', $student->programme_name) }}" 
+                                               placeholder="Enter programme name">
+                                        @error('programme_name')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="programme_code" class="form-label">Programme Code</label>
+                                        <input type="text" class="form-control @error('programme_code') is-invalid @enderror" 
+                                               id="programme_code" name="programme_code" value="{{ old('programme_code', $student->programme_code) }}" 
+                                               placeholder="Enter programme code">
+                                        @error('programme_code')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
                                 <div class="col-md-6">
                                     <div class="mb-3">
                                         <label for="student_id" class="form-label">Student ID</label>
@@ -120,14 +194,166 @@
                                         @enderror
                                     </div>
                                 </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="col_ref_no" class="form-label">College Reference Number</label>
+                                        <input type="text" class="form-control @error('col_ref_no') is-invalid @enderror" 
+                                               id="col_ref_no" name="col_ref_no" value="{{ old('col_ref_no', $student->col_ref_no) }}" 
+                                               placeholder="Enter college reference number">
+                                        @error('col_ref_no')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="student_portal" class="form-label">Student Portal</label>
+                                        <input type="text" class="form-control @error('student_portal') is-invalid @enderror" 
+                                               id="student_portal" name="student_portal" value="{{ old('student_portal', $student->student_portal) }}" 
+                                               placeholder="Enter student portal information">
+                                        @error('student_portal')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="semester_entry" class="form-label">Semester Entry</label>
+                                        <input type="text" class="form-control @error('semester_entry') is-invalid @enderror" 
+                                               id="semester_entry" name="semester_entry" value="{{ old('semester_entry', $student->semester_entry) }}" 
+                                               placeholder="Enter semester entry">
+                                        @error('semester_entry')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="mb-3">
-                                <label for="col_ref_no" class="form-label">College Reference Number</label>
-                                <input type="text" class="form-control @error('col_ref_no') is-invalid @enderror" 
-                                       id="col_ref_no" name="col_ref_no" value="{{ old('col_ref_no', $student->col_ref_no) }}" 
-                                       placeholder="Enter college reference number">
-                                @error('col_ref_no')
+                                <label for="research_title" class="form-label">Research Title</label>
+                                <textarea class="form-control @error('research_title') is-invalid @enderror" 
+                                          id="research_title" name="research_title" rows="3" 
+                                          placeholder="Enter research title">{{ old('research_title', $student->research_title) }}</textarea>
+                                @error('research_title')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="supervisor" class="form-label">Supervisor</label>
+                                        <input type="text" class="form-control @error('supervisor') is-invalid @enderror" 
+                                               id="supervisor" name="supervisor" value="{{ old('supervisor', $student->supervisor) }}" 
+                                               placeholder="Enter supervisor name">
+                                        @error('supervisor')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="external_examiner" class="form-label">External Examiner</label>
+                                        <input type="text" class="form-control @error('external_examiner') is-invalid @enderror" 
+                                               id="external_examiner" name="external_examiner" value="{{ old('external_examiner', $student->external_examiner) }}" 
+                                               placeholder="Enter external examiner">
+                                        @error('external_examiner')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="internal_examiner" class="form-label">Internal Examiner</label>
+                                        <input type="text" class="form-control @error('internal_examiner') is-invalid @enderror" 
+                                               id="internal_examiner" name="internal_examiner" value="{{ old('internal_examiner', $student->internal_examiner) }}" 
+                                               placeholder="Enter internal examiner">
+                                        @error('internal_examiner')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="col_date" class="form-label">COL Date</label>
+                                        <input type="date" class="form-control @error('col_date') is-invalid @enderror" 
+                                               id="col_date" name="col_date" value="{{ old('col_date', $student->col_date) }}">
+                                        @error('col_date')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="programme_intake" class="form-label">Programme Intake</label>
+                                        <input type="text" class="form-control @error('programme_intake') is-invalid @enderror" 
+                                               id="programme_intake" name="programme_intake" value="{{ old('programme_intake', $student->programme_intake) }}" 
+                                               placeholder="Enter programme intake">
+                                        @error('programme_intake')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="date_of_commencement" class="form-label">Date of Commencement</label>
+                                        <input type="date" class="form-control @error('date_of_commencement') is-invalid @enderror" 
+                                               id="date_of_commencement" name="date_of_commencement" value="{{ old('date_of_commencement', $student->date_of_commencement) }}">
+                                        @error('date_of_commencement')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="total_fees" class="form-label">Total Fees</label>
+                                        <input type="number" class="form-control @error('total_fees') is-invalid @enderror" 
+                                               id="total_fees" name="total_fees" value="{{ old('total_fees', $student->total_fees) }}" 
+                                               step="0.01" placeholder="Enter total fees">
+                                        @error('total_fees')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="transaction_month" class="form-label">Transaction Month</label>
+                                        <input type="text" class="form-control @error('transaction_month') is-invalid @enderror" 
+                                               id="transaction_month" name="transaction_month" value="{{ old('transaction_month', $student->transaction_month) }}" 
+                                               placeholder="Enter transaction month">
+                                        @error('transaction_month')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="mb-3">
+                                        <label for="pic" class="form-label">PIC</label>
+                                        <input type="text" class="form-control @error('pic') is-invalid @enderror" 
+                                               id="pic" name="pic" value="{{ old('pic', $student->pic) }}" 
+                                               placeholder="Enter PIC">
+                                        @error('pic')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <textarea class="form-control @error('remarks') is-invalid @enderror" 
+                                          id="remarks" name="remarks" rows="3" 
+                                          placeholder="Enter remarks">{{ old('remarks', $student->remarks) }}</textarea>
+                                @error('remarks')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>

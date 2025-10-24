@@ -26,7 +26,7 @@ class GoogleSheetsAutomation
     {
         $this->googleSheetsService = new GoogleSheetsImportService();
         $this->config = [
-            'google_sheets_url' => 'https://docs.google.com/spreadsheets/d/1pacM1tauMvbQEWb9cNH8VaeRz0q44CSk/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true',
+            'google_sheets_url' => 'https://docs.google.com/spreadsheets/d/1MnAeovkeOM_pZGx6DqS7hMvJQyaQDEu8/edit?usp=sharing&ouid=117738643589016699947&rtpof=true&sd=true',
             'check_interval' => 300, // 5 minutes
             'log_file' => __DIR__ . '/../logs/google_sheets_automation.log',
             'max_retries' => 3,

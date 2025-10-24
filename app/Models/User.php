@@ -20,6 +20,7 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'student_email',
         'password',
         'profile_picture',
         'ic',
@@ -53,6 +54,15 @@ class User extends Authenticatable
         'student_portal_password',
         // Additional Dates
         'col_date',
+        // New Spreadsheet Fields
+        'status',
+        'ic_passport',
+        'contact_no',
+        'student_portal',
+        'total_fees',
+        'transaction_month',
+        'remarks',
+        'pic',
     ];
 
     /**

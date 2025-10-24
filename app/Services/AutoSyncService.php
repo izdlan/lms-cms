@@ -8,12 +8,12 @@ use Illuminate\Support\Facades\Cache;
 
 class AutoSyncService
 {
-    protected $googleDriveService;
+    protected $googleSheetsService;
     protected $syncIntervalMinutes;
     
     public function __construct()
     {
-        $this->googleDriveService = new GoogleDriveImportService();
+        $this->googleSheetsService = new GoogleSheetsImportService();
         $this->syncIntervalMinutes = 5; // Default 5 minutes
     }
     
@@ -22,7 +22,7 @@ class AutoSyncService
      */
     public function shouldRunSync()
     {
-        $lastSync = Cache::get('last_google_drive_sync');
+        $lastSync = Cache::get('last_google_sheets_sync');
         
         if (!$lastSync) {
             Log::info('Auto-sync: No previous sync found, running first sync');
@@ -55,15 +55,15 @@ class AutoSyncService
             ];
         }
         
-        Log::info('Auto-sync: Starting automatic Google Drive import');
+        Log::info('Auto-sync: Starting automatic Google Sheets import');
         
         try {
-            $result = $this->googleDriveService->importFromGoogleDrive();
+            $result = $this->googleSheetsService->importFromGoogleSheets();
             
             // Update cache with new sync time
-            Cache::put('last_google_drive_sync', now(), now()->addDays(30));
-            Cache::put('last_google_drive_import_time', now(), now()->addDays(30));
-            Cache::put('last_google_drive_import_results', $result, now()->addDays(30));
+            Cache::put('last_google_sheets_sync', now(), now()->addDays(30));
+            Cache::put('last_google_sheets_import_time', now(), now()->addDays(30));
+            Cache::put('last_google_sheets_import_results', $result, now()->addDays(30));
             
             Log::info('Auto-sync: Completed successfully', $result);
             
@@ -85,7 +85,7 @@ class AutoSyncService
                 'created' => 0,
                 'updated' => 0,
                 'errors' => 1,
-                'source' => 'google_drive'
+                'source' => 'google_sheets'
             ]);
             
             return [
@@ -105,12 +105,12 @@ class AutoSyncService
         Log::info('Auto-sync: Force sync requested');
         
         try {
-            $result = $this->googleDriveService->importFromGoogleDrive();
+            $result = $this->googleSheetsService->importFromGoogleSheets();
             
             // Update cache with new sync time
-            Cache::put('last_google_drive_sync', now(), now()->addDays(30));
-            Cache::put('last_google_drive_import_time', now(), now()->addDays(30));
-            Cache::put('last_google_drive_import_results', $result, now()->addDays(30));
+            Cache::put('last_google_sheets_sync', now(), now()->addDays(30));
+            Cache::put('last_google_sheets_import_time', now(), now()->addDays(30));
+            Cache::put('last_google_sheets_import_results', $result, now()->addDays(30));
             
             Log::info('Auto-sync: Force sync completed', $result);
             
@@ -139,9 +139,9 @@ class AutoSyncService
      */
     public function getSyncStatus()
     {
-        $lastSync = Cache::get('last_google_drive_sync');
-        $lastImportTime = Cache::get('last_google_drive_import_time');
-        $lastImportResults = Cache::get('last_google_drive_import_results');
+        $lastSync = Cache::get('last_google_sheets_sync');
+        $lastImportTime = Cache::get('last_google_sheets_import_time');
+        $lastImportResults = Cache::get('last_google_sheets_import_results');
         
         $lastSyncFormatted = 'Never';
         if ($lastSync) {
@@ -150,9 +150,9 @@ class AutoSyncService
             $lastSyncFormatted = $lastImportTime->format('Y-m-d H:i:s');
         }
         
-        $fileHash = 'Google Drive file';
+        $fileHash = 'Google Sheets file';
         if ($lastImportResults && isset($lastImportResults['processed_sheets'])) {
-            $fileHash = 'Google Drive (' . count($lastImportResults['processed_sheets']) . ' sheets)';
+            $fileHash = 'Google Sheets (' . count($lastImportResults['processed_sheets']) . ' sheets)';
         }
         
         $nextSyncIn = 0;
@@ -167,7 +167,7 @@ class AutoSyncService
             'next_sync_in_minutes' => $nextSyncIn,
             'file_hash' => $fileHash,
             'sync_interval_minutes' => $this->syncIntervalMinutes,
-            'is_configured' => !empty(env('GOOGLE_DRIVE_EXCEL_URL'))
+            'is_configured' => !empty(env('GOOGLE_SHEETS_URL'))
         ];
     }
     

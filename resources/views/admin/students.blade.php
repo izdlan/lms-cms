@@ -77,6 +77,7 @@
                                             <th>Name</th>
                                             <th>IC/Passport</th>
                                             <th>Email</th>
+                                            <th>Student Email</th>
                                             <th>Phone</th>
                                             <th>Student ID</th>
                                             <th>Source Sheet</th>
@@ -107,6 +108,9 @@
                                                 </td>
                                                 <td>
                                                     <span class="text-muted">{{ $student->email }}</span>
+                                                </td>
+                                                <td>
+                                                    <span class="text-muted">{{ $student->student_email ?? 'N/A' }}</span>
                                                 </td>
                                                 <td>
                                                     <span class="text-muted">{{ $student->phone ?? 'N/A' }}</span>
@@ -423,8 +427,13 @@ function bulkDeleteStudents() {
     let studentListHtml = '<ul class="list-group">';
     checkedBoxes.forEach(checkbox => {
         const row = checkbox.closest('tr');
-        const name = row.querySelector('td:nth-child(2) strong').textContent;
-        const email = row.querySelector('td:nth-child(4)').textContent;
+        const nameElement = row.querySelector('td:nth-child(2) .fw-semibold');
+        const emailElement = row.querySelector('td:nth-child(4) span');
+        
+        // Add null checks to prevent errors
+        const name = nameElement ? nameElement.textContent : 'Unknown';
+        const email = emailElement ? emailElement.textContent : 'Unknown';
+        
         studentListHtml += `<li class="list-group-item">${name} - ${email}</li>`;
     });
     studentListHtml += '</ul>';

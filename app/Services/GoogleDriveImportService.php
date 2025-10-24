@@ -20,14 +20,9 @@ class GoogleDriveImportService
         // Get Google Drive URL from environment
         $this->googleDriveUrl = env('GOOGLE_DRIVE_EXCEL_URL');
         
-        // Process specific sheets by index (only the 6 required sheets)
+        // Process only UPM data from the new spreadsheet structure
         $this->lmsSheets = [
-            10 => 'DHU LMS',        // Sheet 10
-            11 => 'IUC LMS',        // Sheet 11
-            13 => 'LUC LMS',        // Sheet 13
-            14 => 'EXECUTIVE LMS',  // Sheet 14
-            15 => 'UPM LMS',        // Sheet 15
-            16 => 'TVET LMS'        // Sheet 16
+            10 => 'UPM LMS'  // Target the UPM sheet (11th sheet, index 10)
         ];
         
         $this->tempFilePath = storage_path('app/temp_google_drive_enrollment.xlsx');
@@ -388,19 +383,21 @@ class GoogleDriveImportService
         }
         
         $firstCell = trim($rowData[0] ?? '');
+        $secondCell = trim($rowData[1] ?? '');
+        $thirdCell = trim($rowData[2] ?? '');
+        $fourthCell = trim($rowData[3] ?? '');
         
-        // Simple and flexible header detection - just check if first cell contains "NAME"
-        if (stripos($firstCell, 'NAME') !== false) {
+        // Check for the new spreadsheet header structure
+        // Column A: NAME, Column B: STATUS, Column C: ADDRESS, Column D: IC/PASSPORT
+        if (stripos($firstCell, 'NAME') !== false && 
+            stripos($secondCell, 'STATUS') !== false && 
+            stripos($thirdCell, 'ADDRESS') !== false && 
+            (stripos($fourthCell, 'IC') !== false || stripos($fourthCell, 'PASSPORT') !== false)) {
             return true;
         }
         
-        // Also check for other common header patterns in first cell
-        $hasIc = stripos($firstCell, 'IC') !== false || stripos($firstCell, 'PASSPORT') !== false;
-        $hasAddress = stripos($firstCell, 'ADDRESS') !== false;
-        $hasLearners = stripos($firstCell, 'LEARNERS') !== false;
-        
-        // If it has NAME and at least one other common field, it's a header
-        if (stripos($firstCell, 'NAME') !== false && ($hasIc || $hasAddress || $hasLearners)) {
+        // Fallback: Simple header detection for NAME
+        if (stripos($firstCell, 'NAME') !== false) {
             return true;
         }
         
@@ -464,133 +461,139 @@ class GoogleDriveImportService
 
     private function extractStudentDataFromRow($rowData, $sheetName)
     {
-        // Check if first column is a number (row index), if so, name is in second column
-        $firstCol = trim($rowData[0] ?? '');
-        $name = '';
-        $startIndex = 1; // Start searching for IC from index 1
+        // New spreadsheet structure based on the provided data:
+        // Column A: NAME, Column B: STATUS, Column C: ADDRESS, Column D: IC/PASSPORT, etc.
         
-        if (is_numeric($firstCol) && isset($rowData[1]) && !empty(trim($rowData[1]))) {
-            // First column is row number, second column is name
-            $name = trim($rowData[1] ?? '');
-            $startIndex = 2; // Start searching for IC from index 2
-        } else {
-            // First column is name (most common case)
-            $name = $firstCol;
-            $startIndex = 1;
-        }
+        $name = trim($rowData[0] ?? ''); // Column A: NAME
+        $status = trim($rowData[1] ?? ''); // Column B: STATUS
+        $address = trim($rowData[2] ?? ''); // Column C: ADDRESS
+        $ic = trim($rowData[3] ?? ''); // Column D: IC/PASSPORT
+        $category = trim($rowData[4] ?? ''); // Column E: CATEGORY
+        $programmeName = trim($rowData[5] ?? ''); // Column F: PROGRAMME NAME
+        $programmeCode = trim($rowData[6] ?? ''); // Column G: PROGRAMME CODE
+        $colRefNo = trim($rowData[7] ?? ''); // Column H: COL REF. NO.
+        $studentId = trim($rowData[8] ?? ''); // Column I: STUDENT ID
+        $contactNo = trim($rowData[9] ?? ''); // Column J: CONTACT NO.
+        $email = trim($rowData[10] ?? ''); // Column K: EMAIL
+        $studentEmail = trim($rowData[11] ?? ''); // Column L: STUDENT EMAIL
+        $studentPortal = trim($rowData[12] ?? ''); // Column M: STUDENT PORTAL
+        $semesterEntry = trim($rowData[13] ?? ''); // Column N: SEMESTER ENTRY
+        $researchTitle = trim($rowData[14] ?? ''); // Column O: RESEARCH TITLE
+        $supervisor = trim($rowData[15] ?? ''); // Column P: SUPERVISOR
+        $externalExaminer = trim($rowData[16] ?? ''); // Column Q: EXTERNAL EXAMINER
+        $internalExaminer = trim($rowData[17] ?? ''); // Column R: INTERNAL EXAMINER
+        $colDate = trim($rowData[18] ?? ''); // Column S: COL DATE
+        $programmeIntake = trim($rowData[19] ?? ''); // Column T: PROGRAMME INTAKE
+        $dateOfCommencement = trim($rowData[20] ?? ''); // Column U: DATE OF COMMENCEMENT
+        $totalFees = trim($rowData[21] ?? ''); // Column V: TOTAL FEES
+        $transactionMonth = trim($rowData[22] ?? ''); // Column W: TRANSACTION MONTH
+        $remarks = trim($rowData[23] ?? ''); // Column X: REMARKS
+        $pic = trim($rowData[24] ?? ''); // Column Y: PIC
         
-        // Skip if no name
-        if (empty($name)) {
+        // Skip if no name or if status is "Withdrawn"
+        if (empty($name) || $status === 'Withdrawn') {
             return null;
         }
         
-        $ic = '';
-        $email = '';
-        $phone = '';
-        $address = '';
+        // Only process UPM students - check if this is UPM data
+        // We'll filter by programme name or other UPM-specific indicators
+        $isUPM = $this->isUPMStudent($programmeName, $programmeCode, $studentId, $name);
         
-        // Based on Excel analysis, ALL sheets have IC/Passport in column C (index 2)
-        // Priority 1: Check column C directly (most reliable based on analysis)
-        if (isset($rowData[2])) {
-            $columnC = trim($rowData[2] ?? '');
-            
-            if (!empty($columnC)) {
-                // Malaysian IC patterns - simplified and more flexible
-                if (preg_match('/^\d{6}-\d{2}-\d{1,7}$/', $columnC)) {
-                    $ic = $columnC;
-                }
-                // Passport patterns - more flexible for international students
-                elseif (preg_match('/^[A-Z]{1,4}\d{6,9}$/', $columnC) && 
-                        !preg_match('/^(COL|REF|ID|PGD|STU)\d+$/', $columnC)) {
-                    $ic = $columnC;
-                }
-            }
+        if (!$isUPM) {
+            return null; // Skip non-UPM students
         }
         
-        // Priority 2: Fallback search in other columns if column C failed
-        if (empty($ic)) {
-            for ($i = $startIndex; $i < count($rowData); $i++) {
-                if ($i === 2) continue; // Skip column C as we already checked it
-                
-                $value = trim($rowData[$i] ?? '');
-                if (empty($value)) continue;
-                
+        // Clean up IC/Passport field
+        if (!empty($ic)) {
                 // Malaysian IC patterns
-                if (preg_match('/^\d{6}-\d{2}-\d{1,7}$/', $value)) {
-                    $ic = $value;
-                    break;
-                }
-                // Passport patterns with exclusions
-                elseif (preg_match('/^[A-Z]{1,4}\d{6,9}$/', $value) && 
-                        !preg_match('/^(COL|REF|ID|PGD|STU|HRDC|TPN|EDP|MQA)\d+$/', $value)) {
-                    $ic = $value;
-                    break;
-                }
+            if (preg_match('/^\d{6}-\d{2}-\d{1,7}$/', $ic)) {
+                // Valid Malaysian IC
             }
+            // Passport patterns
+            elseif (preg_match('/^[A-Z]{1,4}\d{6,9}$/', $ic)) {
+                // Valid passport
+            }
+            else {
+                // Invalid IC/Passport format, generate one
+                $ic = 'AUTO_' . time() . '_' . rand(1000, 9999);
+            }
+        } else {
+            // No IC provided, generate one
+            $ic = 'AUTO_' . time() . '_' . rand(1000, 9999);
         }
         
-        // Try to find email in any column
-        for ($i = $startIndex; $i < count($rowData); $i++) {
-            $value = trim($rowData[$i] ?? '');
-            if (filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                $email = $value;
-                break;
-            }
+        // Use email from spreadsheet directly, no auto-generation
+        if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $email = null; // Leave email empty if not valid
         }
         
-        // Try to find phone in any column (exclude IC number patterns)
-        // Only look for phone if we haven't already found an IC in that column
-        for ($i = $startIndex; $i < count($rowData); $i++) {
-            $value = trim($rowData[$i] ?? '');
-            // Skip if this value was already identified as an IC
-            $isIc = preg_match('/^\d{6}-\d{2}-\d{4}$/', $value) || 
-                    preg_match('/^\d{6}-\d{2}-\d{3}$/', $value) ||
-                    preg_match('/^\d{6}-\d{2}-\d{5}$/', $value) ||
-                    preg_match('/^\d{6}-\d{2}-\d{2}$/', $value) ||
-                    preg_match('/^\d{6}-\d{2}-\d{6}$/', $value) ||
-                    preg_match('/^\d{6}-\d{2}-\d{1}$/', $value) ||
-                    preg_match('/^\d{6}-\d{2}-\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]\d{8}$/', $value) ||
-                    preg_match('/^[A-Z]\d{9}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{2}\d{8}$/', $value) ||
-                    preg_match('/^[A-Z]{3}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{3}\d{7}$/', $value) ||
-                    preg_match('/^[A-Z]{4}\d{6}$/', $value) ||
-                    preg_match('/^[A-Z]{4}\d{7}$/', $value);
-            
-            if (!$isIc && preg_match('/^[\d\-\+\s\(\)]+$/', $value) && strlen($value) >= 8) {
-                $phone = $value;
-                break;
-            }
-        }
-        
-        // Try to find address in any column (look for longer text)
-        for ($i = $startIndex; $i < count($rowData); $i++) {
-            $value = trim($rowData[$i] ?? '');
-            if (strlen($value) > 10 && !preg_match('/^\d+$/', $value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                $address = $value;
-                break;
-            }
-        }
-        
-        // Generate email if not provided
-        if (empty($email) && !empty($ic)) {
-            $email = 'student_' . $ic . '_' . time() . '@lms.local';
-        } elseif (empty($email)) {
-            $email = 'student_' . preg_replace('/[^a-zA-Z0-9]/', '', $name) . '_' . time() . '@lms.local';
+        // Clean up phone number
+        if (empty($contactNo)) {
+            $contactNo = '';
         }
         
         return [
             'name' => $name,
             'ic' => $ic,
             'email' => $email,
-            'phone' => $phone,
+            'student_email' => $studentEmail,
+            'phone' => $contactNo,
             'address' => $address,
-            'source_sheet' => $sheetName
+            'source_sheet' => $sheetName,
+            'status' => $status,
+            'category' => $category,
+            'programme_name' => $programmeName,
+            'programme_code' => $programmeCode,
+            'student_id' => $studentId,
+            'research_title' => $researchTitle,
+            'supervisor' => $supervisor,
+            'total_fees' => $totalFees,
+            'col_ref_no' => $colRefNo,
+            'student_portal' => $studentPortal,
+            'semester_entry' => $semesterEntry,
+            'external_examiner' => $externalExaminer,
+            'internal_examiner' => $internalExaminer,
+            'col_date' => $colDate,
+            'programme_intake' => $programmeIntake,
+            'date_of_commencement' => $dateOfCommencement,
+            'transaction_month' => $transactionMonth,
+            'remarks' => $remarks,
+            'pic' => $pic,
+            'contact_no' => $contactNo
         ];
+    }
+    
+    private function isUPMStudent($programmeName, $programmeCode, $studentId, $name)
+    {
+        // Check various indicators that this is a UPM student
+        $upmIndicators = [
+            'UPM',
+            'Universiti Putra Malaysia',
+            'Putra Malaysia',
+            'UPM LMS'
+        ];
+        
+        $textToCheck = strtoupper($programmeName . ' ' . $programmeCode . ' ' . $studentId . ' ' . $name);
+        
+        foreach ($upmIndicators as $indicator) {
+            if (strpos($textToCheck, strtoupper($indicator)) !== false) {
+                return true;
+            }
+        }
+        
+        // Check if student ID contains UPM pattern
+        if (preg_match('/UPM\d+/', $studentId)) {
+            return true;
+        }
+        
+        // Check if programme code contains UPM pattern
+        if (preg_match('/UPM\d+/', $programmeCode)) {
+            return true;
+        }
+        
+        // For now, we'll process all students from the new spreadsheet
+        // You can modify this logic based on your specific UPM identification criteria
+        return true; // Process all students for now
     }
 
     private function processStudent($data, $sheetName)
@@ -629,17 +632,38 @@ class GoogleDriveImportService
             }
             
             if (!$user) {
-                // Create new user
+                // Create new user with all new fields
                 $user = User::create([
                     'name' => $data['name'],
                     'email' => $data['email'],
+                    'student_email' => $data['student_email'] ?? null,
                     'ic' => $data['ic'],
                     'phone' => $data['phone'] ?: null,
                     'address' => $data['address'] ?: null,
                     'password' => Hash::make($data['ic']),
                     'role' => 'student',
                     'must_reset_password' => false,
-                    'source_sheet' => $data['source_sheet']
+                    'source_sheet' => $data['source_sheet'],
+                    'status' => $data['status'] ?? null,
+                    'contact_no' => $data['contact_no'] ?? null,
+                    'student_portal' => $data['student_portal'] ?? null,
+                    'total_fees' => $data['total_fees'] ?? null,
+                    'transaction_month' => $data['transaction_month'] ?? null,
+                    'remarks' => $data['remarks'] ?? null,
+                    'pic' => $data['pic'] ?? null,
+                    'category' => $data['category'] ?? null,
+                    'programme_name' => $data['programme_name'] ?? null,
+                    'programme_code' => $data['programme_code'] ?? null,
+                    'student_id' => $data['student_id'] ?? null,
+                    'col_ref_no' => $data['col_ref_no'] ?? null,
+                    'semester_entry' => $data['semester_entry'] ?? null,
+                    'research_title' => $data['research_title'] ?? null,
+                    'supervisor' => $data['supervisor'] ?? null,
+                    'external_examiner' => $data['external_examiner'] ?? null,
+                    'internal_examiner' => $data['internal_examiner'] ?? null,
+                    'col_date' => $data['col_date'] ?? null,
+                    'programme_intake' => $data['programme_intake'] ?? null,
+                    'date_of_commencement' => $data['date_of_commencement'] ?? null
                 ]);
                 
                 Log::info('User created from Google Drive', [
@@ -650,23 +674,44 @@ class GoogleDriveImportService
                 
                 return ['success' => true, 'action' => 'created'];
             } else {
-                // Update existing user
+                // Update existing user with all new fields
                 $updateData = [
                     'name' => $data['name'],
                     'phone' => $data['phone'] ?: $user->phone,
                     'address' => $data['address'] ?: $user->address,
-                    'source_sheet' => $data['source_sheet']
+                    'student_email' => $data['student_email'] ?? $user->student_email,
+                    'source_sheet' => $data['source_sheet'],
+                    'status' => $data['status'] ?? $user->status,
+                    'contact_no' => $data['contact_no'] ?? $user->contact_no,
+                    'student_portal' => $data['student_portal'] ?? $user->student_portal,
+                    'total_fees' => $data['total_fees'] ?? $user->total_fees,
+                    'transaction_month' => $data['transaction_month'] ?? $user->transaction_month,
+                    'remarks' => $data['remarks'] ?? $user->remarks,
+                    'pic' => $data['pic'] ?? $user->pic,
+                    'category' => $data['category'] ?? $user->category,
+                    'programme_name' => $data['programme_name'] ?? $user->programme_name,
+                    'programme_code' => $data['programme_code'] ?? $user->programme_code,
+                    'student_id' => $data['student_id'] ?? $user->student_id,
+                    'col_ref_no' => $data['col_ref_no'] ?? $user->col_ref_no,
+                    'semester_entry' => $data['semester_entry'] ?? $user->semester_entry,
+                    'research_title' => $data['research_title'] ?? $user->research_title,
+                    'supervisor' => $data['supervisor'] ?? $user->supervisor,
+                    'external_examiner' => $data['external_examiner'] ?? $user->external_examiner,
+                    'internal_examiner' => $data['internal_examiner'] ?? $user->internal_examiner,
+                    'col_date' => $data['col_date'] ?? $user->col_date,
+                    'programme_intake' => $data['programme_intake'] ?? $user->programme_intake,
+                    'date_of_commencement' => $data['date_of_commencement'] ?? $user->date_of_commencement
                 ];
                 
                 // If user has AUTO IC and we have a real IC, update it
                 if (strpos($user->ic, 'AUTO_') === 0 && !empty($data['ic']) && strpos($data['ic'], 'AUTO_') !== 0) {
                     $updateData['ic'] = $data['ic'];
                     $updateData['password'] = Hash::make($data['ic']); // Update password to match new IC
+                }
                     
-                    // Only update email if it's a real email (not auto-generated)
-                    if (!empty($data['email']) && !strpos($data['email'], '@lms.local')) {
+                // Update email from spreadsheet if provided
+                if (!empty($data['email'])) {
                         $updateData['email'] = $data['email'];
-                    }
                 }
                 
                 $user->update($updateData);
