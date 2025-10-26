@@ -168,7 +168,7 @@ class ProgramManagementController extends Controller
     }
 
     /**
-     * Store PLO for a program
+     * Store PLO for a program based on academic level
      */
     public function storePlo(Request $request, Program $program)
     {
@@ -181,10 +181,32 @@ class ProgramManagementController extends Controller
             'sort_order' => 'integer'
         ]);
 
-        $program->programLearningOutcomes()->create($request->all());
-
-        return redirect()->route('admin.programs.plos', $program)
-            ->with('success', 'PLO created successfully.');
+        // Store PLO based on program level
+        switch (strtolower($program->level)) {
+            case 'diploma':
+                $program->diplomaLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.diploma-plos', $program)
+                    ->with('success', 'Diploma PLO created successfully.');
+            case 'degree':
+            case 'bachelor':
+                $program->degreeLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.degree-plos', $program)
+                    ->with('success', 'Degree PLO created successfully.');
+            case 'master':
+            case 'masters':
+                $program->masterLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.master-plos', $program)
+                    ->with('success', 'Master PLO created successfully.');
+            case 'phd':
+            case 'doctorate':
+                $program->phdLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.phd-plos', $program)
+                    ->with('success', 'PhD PLO created successfully.');
+            default:
+                $program->programLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.plos', $program)
+                    ->with('success', 'PLO created successfully.');
+        }
     }
 
     /**
