@@ -135,27 +135,7 @@ class StudentController extends Controller
             ->where('status', 'enrolled')
             ->get();
 
-        // Get subjects for the student's actual program
-        $programCode = $user->programme_name ? 
-            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
-             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
-             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
-        
-        $subjects = Subject::where('program_code', $programCode)
-            ->where('is_active', true)
-            ->orderBy('code')
-            ->get()
-            ->map(function($subject) {
-                return [
-                    'code' => $subject->code,
-                    'name' => $subject->name,
-                    'classification' => $subject->classification,
-                    'credit' => $subject->credit_hours
-                ];
-            })
-            ->toArray();
-
-        return view('student.course-summary', compact('user', 'program', 'subjects', 'enrolledSubjects'));
+        return view('student.course-summary', compact('user', 'program', 'enrolledSubjects'));
     }
 
     /**
