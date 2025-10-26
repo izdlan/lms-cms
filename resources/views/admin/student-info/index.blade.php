@@ -15,9 +15,13 @@
                         <button type="button" class="btn btn-primary" id="downloadSelectedBtn" disabled>
                             <i class="fas fa-download"></i> Download Selected PDFs
                         </button>
-                        <button type="button" class="btn btn-success" id="downloadAllBtn">
-                            <i class="fas fa-download"></i> Download All PDFs
-                        </button>
+                        <form method="POST" action="{{ route('admin.student-info.bulk-pdf') }}" style="display: inline;">
+                            @csrf
+                            <input type="hidden" name="download_all" value="true">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-download"></i> Download All PDFs
+                            </button>
+                        </form>
                     </div>
                 </div>
                 
@@ -140,125 +144,10 @@
 
 @section('scripts')
 <script>
-$(document).ready(function() {
-    let selectedStudents = new Set();
-    
-    // Select All functionality
-    $('#selectAll, #selectAllHeader').change(function() {
-        const isChecked = $(this).is(':checked');
-        $('.student-checkbox').prop('checked', isChecked);
-        
-        if (isChecked) {
-            $('.student-checkbox').each(function() {
-                selectedStudents.add($(this).val());
-            });
-        } else {
-            selectedStudents.clear();
-        }
-        
-        updateUI();
-    });
-    
-    // Individual checkbox change
-    $('.student-checkbox').change(function() {
-        const studentId = $(this).val();
-        
-        if ($(this).is(':checked')) {
-            selectedStudents.add(studentId);
-        } else {
-            selectedStudents.delete(studentId);
-        }
-        
-        updateUI();
-    });
-    
-    // Clear selection
-    $('#clearSelection').click(function() {
-        selectedStudents.clear();
-        $('.student-checkbox, #selectAll, #selectAllHeader').prop('checked', false);
-        updateUI();
-    });
-    
-    // Download selected
-    $('#downloadSelectedBtn').click(function() {
-        if (selectedStudents.size === 0) {
-            alert('Please select at least one student.');
-            return;
-        }
-        
-        $('#modalStudentCount').text(selectedStudents.size);
-        $('#bulkDownloadModal').modal('show');
-    });
-    
-    // Download all
-    $('#downloadAllBtn').click(function() {
-        const totalStudents = {{ $students->total() }};
-        $('#modalStudentCount').text(totalStudents);
-        $('#bulkDownloadModal').modal('show');
-    });
-    
-    // Confirm bulk download
-    $('#confirmBulkDownload').click(function() {
-        const form = $('<form>', {
-            'method': 'POST',
-            'action': '{{ route("admin.student-info.bulk-pdf") }}'
-        });
-        
-        // Add CSRF token
-        form.append($('<input>', {
-            'type': 'hidden',
-            'name': '_token',
-            'value': '{{ csrf_token() }}'
-        }));
-        
-        // Add student IDs
-        if (selectedStudents.size > 0) {
-            // Download selected
-            selectedStudents.forEach(function(studentId) {
-                form.append($('<input>', {
-                    'type': 'hidden',
-                    'name': 'student_ids[]',
-                    'value': studentId
-                }));
-            });
-        } else {
-            // Download all - add all student IDs from current page
-            $('.student-checkbox').each(function() {
-                form.append($('<input>', {
-                    'type': 'hidden',
-                    'name': 'student_ids[]',
-                    'value': $(this).val()
-                }));
-            });
-        }
-        
-        $('body').append(form);
-        form.submit();
-        form.remove();
-        
-        $('#bulkDownloadModal').modal('hide');
-    });
-    
-    function updateUI() {
-        const count = selectedStudents.size;
-        $('#selectedCount').text(count + ' selected');
-        $('#downloadSelectedBtn').prop('disabled', count === 0);
-        
-        // Update select all checkbox state
-        const totalCheckboxes = $('.student-checkbox').length;
-        const checkedCheckboxes = $('.student-checkbox:checked').length;
-        
-        if (checkedCheckboxes === 0) {
-            $('#selectAll, #selectAllHeader').prop('checked', false).prop('indeterminate', false);
-        } else if (checkedCheckboxes === totalCheckboxes) {
-            $('#selectAll, #selectAllHeader').prop('checked', true).prop('indeterminate', false);
-        } else {
-            $('#selectAll, #selectAllHeader').prop('checked', false).prop('indeterminate', true);
-        }
-    }
-    
-    // Initialize UI
-    updateUI();
+// Simple test to confirm page loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Student Info page loaded successfully');
+    console.log('Download All button is now a direct form - no JavaScript needed');
 });
 </script>
 @endsection

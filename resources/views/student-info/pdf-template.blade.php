@@ -161,8 +161,93 @@
             padding-left: 15px;
         }
         
-        .important-notice li {
+        .page-break {
+            page-break-before: always;
+        }
+        
+        .webmail-section {
+            background: #f0f8ff;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 10px;
+            border: 2px solid #4a90e2;
+        }
+        
+        .webmail-section h2 {
+            color: #2c5aa0;
+            margin-top: 0;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        .webmail-item {
+            background: white;
+            padding: 8px;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #b3d9ff;
+        }
+        
+        .webmail-label {
+            font-weight: bold;
+            color: #2c5aa0;
+            font-size: 11px;
+            margin-bottom: 3px;
+        }
+        
+        .webmail-value {
+            color: #333;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 4px;
+            border-radius: 3px;
+            word-break: break-all;
+        }
+        
+        .instructions-section {
+            background: #fff8e1;
+            border: 1px solid #ffcc02;
+            color: #e65100;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .instructions-section h3 {
+            margin: 0 0 5px 0;
+            color: #e65100;
+            font-size: 14px;
+        }
+        
+        .instructions-section ol {
+            margin: 5px 0;
+            padding-left: 15px;
+        }
+        
+        .instructions-section li {
             margin: 2px 0;
+            font-size: 11px;
+        }
+        
+        .roundcube-info {
+            background: #e8f5e8;
+            border: 1px solid #4caf50;
+            color: #2e7d32;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            text-align: center;
+        }
+        
+        .roundcube-info h4 {
+            margin: 0 0 5px 0;
+            color: #2e7d32;
+            font-size: 13px;
+        }
+        
+        .roundcube-info p {
+            margin: 0;
             font-size: 11px;
         }
     </style>
@@ -237,6 +322,78 @@
         <div class="footer">
             <p>Generated on {{ date('F j, Y \a\t g:i A') }} | Olympia Education LMS</p>
             <p>For support, contact: support@olympia-education.com</p>
+        </div>
+    </div>
+    
+    <!-- Page Break for Second Page -->
+    <div class="page-break"></div>
+    
+    <!-- Second Page: Webmail Information -->
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Webmail Access Information</h1>
+            <p>Olympia Education - Email System</p>
+        </div>
+        
+        <!-- Content -->
+        <div class="content">
+            <!-- Webmail Access Information -->
+            <div class="webmail-section">
+                <h2>📧 Webmail Access Information</h2>
+                
+                <div class="webmail-item">
+                    <div class="webmail-label">Webmail Link</div>
+                    <div class="webmail-value">https://olympia-education.com/webmail</div>
+                </div>
+                
+                <div class="webmail-item">
+                    <div class="webmail-label">Email Address</div>
+                    <div class="webmail-value">{{ $webmail_email }}</div>
+                </div>
+                
+                <div class="webmail-item">
+                    <div class="webmail-label">Password</div>
+                    <div class="webmail-value">{{ $username }}</div>
+                </div>
+            </div>
+            
+            <!-- Login Instructions -->
+            <div class="instructions-section">
+                <h3>📋 Login Instructions</h3>
+                <ol>
+                    <li>Open your web browser and go to the webmail link above</li>
+                    <li>Enter your email address and password as shown above</li>
+                    <li>Click "Login" to access your email account</li>
+                    <li>Look for the <strong>"Open" button below the Roundcube picture</strong></li>
+                    <li>You will see the Roundcube webmail interface</li>
+                    <li>Click the "Open" button to access the mail main page</li>
+                </ol>
+            </div>
+            
+            <!-- Roundcube Information -->
+            <div class="roundcube-info">
+                <h4>🔵 Roundcube Webmail</h4>
+                <p>After logging in, you will see the Roundcube interface. Look for the "Open" button below the Roundcube picture to access your main email page.</p>
+            </div>
+            
+            <!-- Password Change Instructions -->
+            <div class="important-notice">
+                <h3>🔐 Password Security</h3>
+                <ul>
+                    <li>You can change your webmail password after logging in</li>
+                    <li>Go to Settings → Password to change your password</li>
+                    <li>Use a strong password for better security</li>
+                    <li>Keep your login credentials secure and private</li>
+                    <li>Contact IT support if you have login issues</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p>Generated on {{ date('F j, Y \a\t g:i A') }} | Olympia Education Webmail</p>
+            <p>For webmail support, contact: it-support@olympia-education.com</p>
         </div>
     </div>
 </body>

@@ -35,6 +35,7 @@ class StudentInfoController extends Controller
                 'lms_link' => 'https://lms.olympia-education.com',
                 'username' => $student->ic_passport ?? $student->ic ?? 'Not Available',
                 'password' => $student->ic_passport ?? $student->ic ?? 'Not Available',
+                'webmail_email' => $student->student_email ?? $student->email ?? 'Not Available',
             ];
 
             // Generate PDF
@@ -74,23 +75,31 @@ class StudentInfoController extends Controller
     {
         try {
             $studentIds = $request->input('student_ids', []);
+            $downloadAll = $request->input('download_all', false);
             
-            if (empty($studentIds)) {
-                return response()->json(['error' => 'No students selected'], 400);
+            // If download_all is true or no specific IDs provided, get all students
+            if ($downloadAll || empty($studentIds)) {
+                $students = User::where('role', 'student')
+                              ->orderBy('student_id')
+                              ->get();
+                Log::info('Generating PDFs for ALL students', [
+                    'count' => $students->count()
+                ]);
+            } else {
+                $students = User::where('role', 'student')
+                              ->whereIn('student_id', $studentIds)
+                              ->orderBy('student_id')
+                              ->get();
+                
+                if ($students->isEmpty()) {
+                    return response()->json(['error' => 'No students found'], 404);
+                }
+                
+                Log::info('Generating bulk student info PDFs', [
+                    'count' => $students->count(),
+                    'student_ids' => $studentIds
+                ]);
             }
-
-            $students = User::where('role', 'student')
-                          ->whereIn('student_id', $studentIds)
-                          ->get();
-
-            if ($students->isEmpty()) {
-                return response()->json(['error' => 'No students found'], 404);
-            }
-
-            Log::info('Generating bulk student info PDFs', [
-                'count' => $students->count(),
-                'student_ids' => $studentIds
-            ]);
 
             // Create temporary directory for individual PDFs
             $tempDir = storage_path('app/temp/student_info_' . time());
@@ -107,6 +116,7 @@ class StudentInfoController extends Controller
                     'lms_link' => 'https://lms.olympia-education.com',
                     'username' => $student->ic_passport ?? $student->ic ?? 'Not Available',
                     'password' => $student->ic_passport ?? $student->ic ?? 'Not Available',
+                    'webmail_email' => $student->student_email ?? $student->email ?? 'Not Available',
                 ];
 
                 $pdf = Pdf::loadView('student-info.pdf-template', $data);
@@ -168,7 +178,7 @@ class StudentInfoController extends Controller
     public function index()
     {
         $students = User::where('role', 'student')
-                       ->orderBy('name')
+                       ->orderBy('student_id')
                        ->paginate(20);
 
         return view('admin.student-info.index', compact('students'));
@@ -192,6 +202,7 @@ class StudentInfoController extends Controller
             'lms_link' => 'https://lms.olympia-education.com',
             'username' => $student->ic_passport ?? $student->ic ?? 'Not Available',
             'password' => $student->ic_passport ?? $student->ic ?? 'Not Available',
+            'webmail_email' => $student->student_email ?? $student->email ?? 'Not Available',
         ];
 
         return view('student-info.pdf-template', $data);
