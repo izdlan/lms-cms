@@ -331,6 +331,39 @@ Route::prefix('admin')->group(function () {
         Route::get('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'subjects'])->name('admin.programs.subjects');
         Route::post('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeSubject'])->name('admin.programs.store-subject');
         Route::post('/programs/{program}/extract', [App\Http\Controllers\Admin\ProgramManagementController::class, 'extractFromDocument'])->name('admin.programs.extract');
+
+        // Academic Level Specific Management Routes
+        // Diploma Management Routes
+        Route::get('/diploma', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'index'])->name('admin.diploma.index');
+        Route::get('/diploma/{program}/plos', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'plos'])->name('admin.diploma.plos');
+        Route::post('/diploma/{program}/plos', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'storePlo'])->name('admin.diploma.store-plo');
+        Route::put('/diploma/plos/{plo}', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'updatePlo'])->name('admin.diploma.update-plo');
+        Route::delete('/diploma/plos/{plo}', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'destroyPlo'])->name('admin.diploma.destroy-plo');
+        Route::post('/diploma/{program}/extract', [App\Http\Controllers\Admin\DiplomaManagementController::class, 'extractFromDocument'])->name('admin.diploma.extract');
+
+        // Degree Management Routes
+        Route::get('/degree', [App\Http\Controllers\Admin\DegreeManagementController::class, 'index'])->name('admin.degree.index');
+        Route::get('/degree/{program}/plos', [App\Http\Controllers\Admin\DegreeManagementController::class, 'plos'])->name('admin.degree.plos');
+        Route::post('/degree/{program}/plos', [App\Http\Controllers\Admin\DegreeManagementController::class, 'storePlo'])->name('admin.degree.store-plo');
+        Route::put('/degree/plos/{plo}', [App\Http\Controllers\Admin\DegreeManagementController::class, 'updatePlo'])->name('admin.degree.update-plo');
+        Route::delete('/degree/plos/{plo}', [App\Http\Controllers\Admin\DegreeManagementController::class, 'destroyPlo'])->name('admin.degree.destroy-plo');
+        Route::post('/degree/{program}/extract', [App\Http\Controllers\Admin\DegreeManagementController::class, 'extractFromDocument'])->name('admin.degree.extract');
+
+        // Master Management Routes
+        Route::get('/master', [App\Http\Controllers\Admin\MasterManagementController::class, 'index'])->name('admin.master.index');
+        Route::get('/master/{program}/plos', [App\Http\Controllers\Admin\MasterManagementController::class, 'plos'])->name('admin.master.plos');
+        Route::post('/master/{program}/plos', [App\Http\Controllers\Admin\MasterManagementController::class, 'storePlo'])->name('admin.master.store-plo');
+        Route::put('/master/plos/{plo}', [App\Http\Controllers\Admin\MasterManagementController::class, 'updatePlo'])->name('admin.master.update-plo');
+        Route::delete('/master/plos/{plo}', [App\Http\Controllers\Admin\MasterManagementController::class, 'destroyPlo'])->name('admin.master.destroy-plo');
+        Route::post('/master/{program}/extract', [App\Http\Controllers\Admin\MasterManagementController::class, 'extractFromDocument'])->name('admin.master.extract');
+
+        // PhD Management Routes
+        Route::get('/phd', [App\Http\Controllers\Admin\PhdManagementController::class, 'index'])->name('admin.phd.index');
+        Route::get('/phd/{program}/plos', [App\Http\Controllers\Admin\PhdManagementController::class, 'plos'])->name('admin.phd.plos');
+        Route::post('/phd/{program}/plos', [App\Http\Controllers\Admin\PhdManagementController::class, 'storePlo'])->name('admin.phd.store-plo');
+        Route::put('/phd/plos/{plo}', [App\Http\Controllers\Admin\PhdManagementController::class, 'updatePlo'])->name('admin.phd.update-plo');
+        Route::delete('/phd/plos/{plo}', [App\Http\Controllers\Admin\PhdManagementController::class, 'destroyPlo'])->name('admin.phd.destroy-plo');
+        Route::post('/phd/{program}/extract', [App\Http\Controllers\Admin\PhdManagementController::class, 'extractFromDocument'])->name('admin.phd.extract');
         
         // Google Sheets automation routes
         Route::post('/automation/google-sheets/start', [AdminController::class, 'startGoogleSheetsAutomation'])->name('admin.automation.google-sheets.start');
