@@ -24,27 +24,6 @@
             <i class="bi bi-book-fill"></i>
             Program Management
         </a>
-        
-        <!-- Academic Level Management -->
-        <div class="nav-section">
-            <h6 class="nav-section-title">Academic Levels</h6>
-            <a href="{{ route('admin.diploma.index') }}" class="nav-link {{ request()->routeIs('admin.diploma*') ? 'active' : '' }}">
-                <i class="bi bi-mortarboard"></i>
-                Diploma Programs
-            </a>
-            <a href="{{ route('admin.degree.index') }}" class="nav-link {{ request()->routeIs('admin.degree*') ? 'active' : '' }}">
-                <i class="bi bi-graduation-cap"></i>
-                Degree Programs
-            </a>
-            <a href="{{ route('admin.master.index') }}" class="nav-link {{ request()->routeIs('admin.master*') ? 'active' : '' }}">
-                <i class="bi bi-award"></i>
-                Master Programs
-            </a>
-            <a href="{{ route('admin.phd.index') }}" class="nav-link {{ request()->routeIs('admin.phd*') ? 'active' : '' }}">
-                <i class="bi bi-trophy"></i>
-                PhD Programs
-            </a>
-        </div>
         <a href="{{ route('admin.student-certificates.index') }}" class="nav-link {{ request()->routeIs('admin.student-certificates*') ? 'active' : '' }}">
             <i class="bi bi-award-fill"></i>
             Student Certificates
