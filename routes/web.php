@@ -314,6 +314,24 @@ Route::prefix('admin')->group(function () {
         Route::post('/automation/check-file', [AdminController::class, 'checkFileStatus'])->name('admin.automation.check-file');
         Route::post('/automation/run-check', [AdminController::class, 'runAutomationCheck'])->name('admin.automation.run-check');
         
+        // Program Management Routes
+        Route::get('/programs', [App\Http\Controllers\Admin\ProgramManagementController::class, 'index'])->name('admin.programs.index');
+        Route::get('/programs/create', [App\Http\Controllers\Admin\ProgramManagementController::class, 'create'])->name('admin.programs.create');
+        Route::post('/programs', [App\Http\Controllers\Admin\ProgramManagementController::class, 'store'])->name('admin.programs.store');
+        Route::get('/programs/{program}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'show'])->name('admin.programs.show');
+        Route::get('/programs/{program}/edit', [App\Http\Controllers\Admin\ProgramManagementController::class, 'edit'])->name('admin.programs.edit');
+        Route::put('/programs/{program}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'update'])->name('admin.programs.update');
+        Route::delete('/programs/{program}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'destroy'])->name('admin.programs.destroy');
+        Route::get('/programs/{program}/plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'plos'])->name('admin.programs.plos');
+        Route::post('/programs/{program}/plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storePlo'])->name('admin.programs.store-plo');
+        Route::put('/programs/plos/{plo}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'updatePlo'])->name('admin.programs.update-plo');
+        Route::delete('/programs/plos/{plo}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'destroyPlo'])->name('admin.programs.destroy-plo');
+        Route::get('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'clos'])->name('admin.programs.clos');
+        Route::post('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeClo'])->name('admin.programs.store-clo');
+        Route::get('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'subjects'])->name('admin.programs.subjects');
+        Route::post('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeSubject'])->name('admin.programs.store-subject');
+        Route::post('/programs/{program}/extract', [App\Http\Controllers\Admin\ProgramManagementController::class, 'extractFromDocument'])->name('admin.programs.extract');
+        
         // Google Sheets automation routes
         Route::post('/automation/google-sheets/start', [AdminController::class, 'startGoogleSheetsAutomation'])->name('admin.automation.google-sheets.start');
         Route::post('/automation/google-sheets/stop', [AdminController::class, 'stopGoogleSheetsAutomation'])->name('admin.automation.google-sheets.stop');

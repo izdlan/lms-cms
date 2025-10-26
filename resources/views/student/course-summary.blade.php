@@ -21,7 +21,7 @@
                             <p class="text-muted">{{ $program->code }} - {{ ucfirst($program->level) }} Program</p>
                         </div>
                         <div class="program-info">
-                            <span class="badge bg-primary">{{ $program->duration_months }} months</span>
+                            <span class="badge bg-primary">12-24 months</span>
                         </div>
                     </div>
                 </div>
@@ -37,19 +37,19 @@
                                 <tbody>
                                     <tr>
                                         <td class="info-label"><strong>Program Name</strong></td>
-                                        <td class="info-value" colspan="3">EMBA – EXECUTIVE MASTER IN BUSINESS ADMINISTRATION (7100)</td>
+                                        <td class="info-value" colspan="3">{{ $program->name }} ({{ $program->code }})</td>
                                     </tr>
                                     <tr>
                                         <td class="info-label"><strong>Teaching Mode</strong></td>
                                         <td class="info-value">Online - ODL</td>
                                         <td class="info-label"><strong>Duration</strong></td>
-                                        <td class="info-value">12 Months</td>
+                                        <td class="info-value">12-24 Months</td>
                                     </tr>
                                     <tr>
                                         <td class="info-label"><strong>Numbers of Subject</strong></td>
-                                        <td class="info-value">12</td>
+                                        <td class="info-value">55</td>
                                         <td class="info-label"><strong>Credit Hours</strong></td>
-                                        <td class="info-value">40</td>
+                                        <td class="info-value">122</td>
                                     </tr>
                                     <tr>
                                         <td class="info-label"><strong>Teaching Hours per subject</strong></td>
@@ -71,7 +71,7 @@
                                     </tr>
                                     <tr>
                                         <td class="info-label"><strong>Int'l Qualification Framework</strong></td>
-                                        <td class="info-value">Master Level 7</td>
+                                        <td class="info-value">Bachelor Level 6</td>
                                         <td class="info-label"><strong>Module Type</strong></td>
                                         <td class="info-value">Mandatory Core Module</td>
                                     </tr>
@@ -91,7 +91,7 @@
                         <h4 class="mb-3">{{ $program->name }}</h4>
                         <p class="lead">
                             @if(strpos($user->programme_name, 'EBBA') !== false)
-                                The Executive Bachelor in Business Administration (EBBA) is designed for working professionals seeking to enhance their business knowledge and leadership skills. This comprehensive undergraduate program provides a solid foundation in business principles, management practices, and strategic thinking. The program is tailored for individuals who want to advance their careers while gaining essential business competencies.
+                                The Executive Bachelor in Business Administration (EBBA) is crafted for mid-level professionals, aspiring managers, and adult learners seeking to enhance their managerial capabilities and business knowledge. This program bridges practical experience with foundational and applied business theory, equipping learners with the competencies required to thrive in today's dynamic and competitive business environment. The EBBA integrates essential undergraduate-level modules covering key areas such as strategic management, human resource management, marketing, finance, and digital transformation. Designed with a strong emphasis on real-world application, the program fosters critical thinking, effective decision-making, and leadership development across diverse industries.
                             @elseif(strpos($user->programme_name, 'EMBA') !== false)
                                 The Executive Master in Business Administration (EMBA) is designed for senior executives and professionals who aspire to deepen their strategic thinking, leadership, and business acumen. This programme integrates advanced postgraduate-level modules that deliver both academic excellence and practical career advancement opportunities. Each module is developed to reflect the evolving demands of global business, equipping learners with the knowledge and tools to lead effectively in complex, fast-paced environments.
                             @else
@@ -100,7 +100,7 @@
                         </p>
                         <p>
                             @if(strpos($user->programme_name, 'EBBA') !== false)
-                                The EBBA is delivered by experienced academics and industry practitioners, ensuring a practical and engaging learning experience that bridges theory with real-world application.
+                                The EBBA follows a Dual Award or Triple Award pathway (depending on the selected track), with the option to earn the Level 6 – Advanced Diploma in Business Administration awarded by the Chartered Management Institute (CMI), UK. Successful graduates may also qualify for the Chartered Manager (ChMgr) designation, positioning them as globally recognised, professionally certified managers. Delivered through a flexible, blended-learning format, the EBBA accommodates working professionals by offering part-time, modular, and remote study options. Learners benefit from expert instruction by seasoned academics and industry practitioners, supported by interactive, case-based, and experiential learning approaches.
                             @elseif(strpos($user->programme_name, 'EMBA') !== false)
                                 The EMBA is delivered by a team of highly qualified academics and accomplished business practitioners, ensuring a rich, diverse, and engaging learning experience across multiple instructional methodologies.
                             @else

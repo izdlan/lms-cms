@@ -62,7 +62,13 @@ class StudentController extends Controller
         
         // If student is blocked, continue showing dashboard but UI will be blurred by layout
 
-        $programs = Program::active()->where('code', 'EMBA')->get();
+        // Get programs based on student's actual program
+        $programCode = $user->programme_name ? 
+            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
+             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
+             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
+        
+        $programs = Program::active()->where('code', $programCode)->get();
         
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
@@ -87,7 +93,13 @@ class StudentController extends Controller
             return redirect()->route('login')->with('error', 'Access denied. Please login as a student.');
         }
 
-        $programs = Program::active()->where('code', 'EMBA')->get();
+        // Get programs based on student's actual program
+        $programCode = $user->programme_name ? 
+            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
+             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
+             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
+        
+        $programs = Program::active()->where('code', $programCode)->get();
         
         // Get student's enrolled subjects with lecturer and class information
         $enrolledSubjects = $user->enrolledSubjects()
