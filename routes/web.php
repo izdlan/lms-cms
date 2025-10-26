@@ -429,6 +429,12 @@ Route::prefix('admin')->group(function () {
         Route::post('/student-certificates/bulk-download', [App\Http\Controllers\StudentCertificateController::class, 'bulkDownload'])->name('admin.student-certificates.bulk-download');
         Route::post('/student-certificates/bulk-delete', [App\Http\Controllers\StudentCertificateController::class, 'bulkDelete'])->name('admin.student-certificates.bulk-delete');
         
+        // Student Information PDF Routes
+        Route::get('/student-info', [App\Http\Controllers\StudentInfoController::class, 'index'])->name('admin.student-info.index');
+        Route::get('/student-info/{studentId}/pdf', [App\Http\Controllers\StudentInfoController::class, 'generateStudentInfoPdf'])->name('admin.student-info.pdf');
+        Route::get('/student-info/{studentId}/preview', [App\Http\Controllers\StudentInfoController::class, 'preview'])->name('admin.student-info.preview');
+        Route::post('/student-info/bulk-pdf', [App\Http\Controllers\StudentInfoController::class, 'generateBulkStudentInfoPdf'])->name('admin.student-info.bulk-pdf');
+        
         // Password change route
         Route::get('/password/change', function() {
             return view('admin.password-change');

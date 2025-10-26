@@ -28,6 +28,10 @@
             <i class="bi bi-award-fill"></i>
             Student Certificates
         </a>
+        <a href="{{ route('admin.student-info.index') }}" class="nav-link {{ request()->routeIs('admin.student-info*') ? 'active' : '' }}">
+            <i class="bi bi-file-pdf-fill"></i>
+            Student Info PDFs
+        </a>
         <a href="{{ route('admin.import') }}" class="nav-link {{ request()->routeIs('admin.import*') ? 'active' : '' }}">
             <i class="bi bi-upload"></i>
             Import Students
