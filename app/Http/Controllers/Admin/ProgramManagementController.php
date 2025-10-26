@@ -7,6 +7,10 @@ use App\Models\Program;
 use App\Models\ProgramLearningOutcome;
 use App\Models\CourseLearningOutcome;
 use App\Models\ProgramSubject;
+use App\Models\DiplomaLearningOutcome;
+use App\Models\DegreeLearningOutcome;
+use App\Models\MasterLearningOutcome;
+use App\Models\PhdLearningOutcome;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpWord\IOFactory;
@@ -15,15 +19,31 @@ use PhpOffice\PhpWord\PhpWord;
 class ProgramManagementController extends Controller
 {
     /**
-     * Display a listing of programs
+     * Display a listing of programs grouped by academic level
      */
     public function index()
     {
-        $programs = Program::with(['programLearningOutcomes', 'courseLearningOutcomes', 'programSubjects'])
+        $diplomaPrograms = Program::whereIn('level', ['diploma', 'Diploma'])
+            ->withCount(['diplomaLearningOutcomes as plo_count'])
             ->orderBy('code')
             ->get();
 
-        return view('admin.programs.index', compact('programs'));
+        $degreePrograms = Program::whereIn('level', ['degree', 'bachelor', 'Degree', 'Bachelor'])
+            ->withCount(['degreeLearningOutcomes as plo_count'])
+            ->orderBy('code')
+            ->get();
+
+        $masterPrograms = Program::whereIn('level', ['master', 'masters', 'Master', 'Masters'])
+            ->withCount(['masterLearningOutcomes as plo_count'])
+            ->orderBy('code')
+            ->get();
+
+        $phdPrograms = Program::whereIn('level', ['phd', 'doctorate', 'PhD', 'Doctorate'])
+            ->withCount(['phdLearningOutcomes as plo_count'])
+            ->orderBy('code')
+            ->get();
+
+        return view('admin.programs.index', compact('diplomaPrograms', 'degreePrograms', 'masterPrograms', 'phdPrograms'));
     }
 
     /**
@@ -103,16 +123,52 @@ class ProgramManagementController extends Controller
     }
 
     /**
-     * Show PLO management for a program
+     * Show PLO management for a program based on academic level
      */
     public function plos(Program $program)
     {
-        $plos = $program->programLearningOutcomes()->ordered()->get();
+        $plos = $program->getLearningOutcomesByLevel();
         return view('admin.programs.plos', compact('program', 'plos'));
     }
 
     /**
-     * Store PLO for a program
+     * Show Diploma PLO management for a program
+     */
+    public function diplomaPlos(Program $program)
+    {
+        $plos = $program->diplomaLearningOutcomes()->ordered()->get();
+        return view('admin.programs.diploma-plos', compact('program', 'plos'));
+    }
+
+    /**
+     * Show Degree PLO management for a program
+     */
+    public function degreePlos(Program $program)
+    {
+        $plos = $program->degreeLearningOutcomes()->ordered()->get();
+        return view('admin.programs.degree-plos', compact('program', 'plos'));
+    }
+
+    /**
+     * Show Master PLO management for a program
+     */
+    public function masterPlos(Program $program)
+    {
+        $plos = $program->masterLearningOutcomes()->ordered()->get();
+        return view('admin.programs.master-plos', compact('program', 'plos'));
+    }
+
+    /**
+     * Show PhD PLO management for a program
+     */
+    public function phdPlos(Program $program)
+    {
+        $plos = $program->phdLearningOutcomes()->ordered()->get();
+        return view('admin.programs.phd-plos', compact('program', 'plos'));
+    }
+
+    /**
+     * Store PLO for a program based on academic level
      */
     public function storePlo(Request $request, Program $program)
     {
@@ -125,10 +181,32 @@ class ProgramManagementController extends Controller
             'sort_order' => 'integer'
         ]);
 
-        $program->programLearningOutcomes()->create($request->all());
-
-        return redirect()->route('admin.programs.plos', $program)
-            ->with('success', 'PLO created successfully.');
+        // Store PLO based on program level
+        switch (strtolower($program->level)) {
+            case 'diploma':
+                $program->diplomaLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.diploma-plos', $program)
+                    ->with('success', 'Diploma PLO created successfully.');
+            case 'degree':
+            case 'bachelor':
+                $program->degreeLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.degree-plos', $program)
+                    ->with('success', 'Degree PLO created successfully.');
+            case 'master':
+            case 'masters':
+                $program->masterLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.master-plos', $program)
+                    ->with('success', 'Master PLO created successfully.');
+            case 'phd':
+            case 'doctorate':
+                $program->phdLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.phd-plos', $program)
+                    ->with('success', 'PhD PLO created successfully.');
+            default:
+                $program->programLearningOutcomes()->create($request->all());
+                return redirect()->route('admin.programs.plos', $program)
+                    ->with('success', 'PLO created successfully.');
+        }
     }
 
     /**

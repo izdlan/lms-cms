@@ -48,6 +48,47 @@ class Program extends Model
     {
         return $this->hasMany(ProgramSubject::class);
     }
+
+    // Academic Level Specific Relationships
+    public function diplomaLearningOutcomes(): HasMany
+    {
+        return $this->hasMany(DiplomaLearningOutcome::class);
+    }
+
+    public function degreeLearningOutcomes(): HasMany
+    {
+        return $this->hasMany(DegreeLearningOutcome::class);
+    }
+
+    public function masterLearningOutcomes(): HasMany
+    {
+        return $this->hasMany(MasterLearningOutcome::class);
+    }
+
+    public function phdLearningOutcomes(): HasMany
+    {
+        return $this->hasMany(PhdLearningOutcome::class);
+    }
+
+    // Get learning outcomes based on program level
+    public function getLearningOutcomesByLevel()
+    {
+        switch (strtolower($this->level)) {
+            case 'diploma':
+                return $this->diplomaLearningOutcomes()->active()->ordered()->get();
+            case 'degree':
+            case 'bachelor':
+                return $this->degreeLearningOutcomes()->active()->ordered()->get();
+            case 'master':
+            case 'masters':
+                return $this->masterLearningOutcomes()->active()->ordered()->get();
+            case 'phd':
+            case 'doctorate':
+                return $this->phdLearningOutcomes()->active()->ordered()->get();
+            default:
+                return $this->programLearningOutcomes()->active()->ordered()->get();
+        }
+    }
 }
 
 

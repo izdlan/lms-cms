@@ -326,12 +326,18 @@ Route::prefix('admin')->group(function () {
         Route::post('/programs/{program}/plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storePlo'])->name('admin.programs.store-plo');
         Route::put('/programs/plos/{plo}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'updatePlo'])->name('admin.programs.update-plo');
         Route::delete('/programs/plos/{plo}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'destroyPlo'])->name('admin.programs.destroy-plo');
+        
+        // Academic Level Specific PLO Routes
+        Route::get('/programs/{program}/diploma-plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'diplomaPlos'])->name('admin.programs.diploma-plos');
+        Route::get('/programs/{program}/degree-plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'degreePlos'])->name('admin.programs.degree-plos');
+        Route::get('/programs/{program}/master-plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'masterPlos'])->name('admin.programs.master-plos');
+        Route::get('/programs/{program}/phd-plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'phdPlos'])->name('admin.programs.phd-plos');
         Route::get('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'clos'])->name('admin.programs.clos');
         Route::post('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeClo'])->name('admin.programs.store-clo');
         Route::get('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'subjects'])->name('admin.programs.subjects');
         Route::post('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeSubject'])->name('admin.programs.store-subject');
         Route::post('/programs/{program}/extract', [App\Http\Controllers\Admin\ProgramManagementController::class, 'extractFromDocument'])->name('admin.programs.extract');
-        
+
         // Google Sheets automation routes
         Route::post('/automation/google-sheets/start', [AdminController::class, 'startGoogleSheetsAutomation'])->name('admin.automation.google-sheets.start');
         Route::post('/automation/google-sheets/stop', [AdminController::class, 'stopGoogleSheetsAutomation'])->name('admin.automation.google-sheets.stop');
