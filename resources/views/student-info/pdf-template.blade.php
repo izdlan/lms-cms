@@ -6,7 +6,7 @@
     <title>Student Information Card</title>
     <style>
         @page {
-            margin: 15mm;
+            margin: 8mm;
             size: A4;
         }
         
@@ -16,7 +16,7 @@
             padding: 0;
             background-color: white;
             color: #333;
-            font-size: 12px;
+            font-size: 16px;
         }
         
         .container {
@@ -36,42 +36,42 @@
         
         .header h1 {
             margin: 0;
-            font-size: 20px;
+            font-size: 28px;
             font-weight: bold;
         }
         
         .header p {
             margin: 5px 0 0 0;
-            font-size: 12px;
+            font-size: 16px;
             opacity: 0.9;
         }
         
         .content {
-            padding: 20px;
+            padding: 15px;
         }
         
         .info-section {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         
         .info-section h2 {
             color: #667eea;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #e9ecef;
-            padding-bottom: 5px;
+            padding-bottom: 8px;
         }
         
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 10px;
+            gap: 15px;
+            margin-bottom: 15px;
         }
         
         .info-item {
             background: #f8f9fa;
-            padding: 8px;
+            padding: 12px;
             border-radius: 4px;
             border-left: 3px solid #667eea;
         }
@@ -83,34 +83,34 @@
         .info-label {
             font-weight: bold;
             color: #495057;
-            font-size: 11px;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
         
         .info-value {
             color: #212529;
-            font-size: 12px;
+            font-size: 16px;
             word-break: break-word;
         }
         
         .credentials-section {
             background: #e3f2fd;
-            padding: 15px;
+            padding: 20px;
             border-radius: 6px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         .credentials-section h2 {
             color: #1976d2;
             margin-top: 0;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 15px;
         }
         
         .credential-item {
             background: white;
-            padding: 8px;
-            margin: 5px 0;
+            padding: 12px;
+            margin: 8px 0;
             border-radius: 4px;
             border: 1px solid #bbdefb;
         }
@@ -118,26 +118,26 @@
         .credential-label {
             font-weight: bold;
             color: #1976d2;
-            font-size: 11px;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
         
         .credential-value {
             color: #333;
-            font-size: 12px;
+            font-size: 16px;
             font-family: 'Courier New', monospace;
             background: #f5f5f5;
-            padding: 4px;
+            padding: 8px;
             border-radius: 3px;
             word-break: break-all;
         }
         
         .footer {
             background: #f8f9fa;
-            padding: 10px;
+            padding: 15px;
             text-align: center;
             color: #6c757d;
-            font-size: 10px;
+            font-size: 14px;
             border-top: 1px solid #dee2e6;
         }
         
@@ -145,20 +145,20 @@
             background: #fff3cd;
             border: 1px solid #ffeaa7;
             color: #856404;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
-            margin: 10px 0;
+            margin: 15px 0;
         }
         
         .important-notice h3 {
-            margin: 0 0 5px 0;
+            margin: 0 0 10px 0;
             color: #856404;
-            font-size: 14px;
+            font-size: 20px;
         }
         
         .important-notice ul {
-            margin: 5px 0;
-            padding-left: 15px;
+            margin: 10px 0;
+            padding-left: 20px;
         }
         
         .page-break {
@@ -176,14 +176,14 @@
         .webmail-section h2 {
             color: #2c5aa0;
             margin-top: 0;
-            font-size: 16px;
-            margin-bottom: 10px;
+            font-size: 22px;
+            margin-bottom: 15px;
         }
         
         .webmail-item {
             background: white;
-            padding: 8px;
-            margin: 5px 0;
+            padding: 12px;
+            margin: 8px 0;
             border-radius: 4px;
             border: 1px solid #b3d9ff;
         }
@@ -191,16 +191,16 @@
         .webmail-label {
             font-weight: bold;
             color: #2c5aa0;
-            font-size: 11px;
-            margin-bottom: 3px;
+            font-size: 14px;
+            margin-bottom: 5px;
         }
         
         .webmail-value {
             color: #333;
-            font-size: 12px;
+            font-size: 16px;
             font-family: 'Courier New', monospace;
             background: #f5f5f5;
-            padding: 4px;
+            padding: 8px;
             border-radius: 3px;
             word-break: break-all;
         }
@@ -215,40 +215,40 @@
         }
         
         .instructions-section h3 {
-            margin: 0 0 5px 0;
+            margin: 0 0 10px 0;
             color: #e65100;
-            font-size: 14px;
+            font-size: 20px;
         }
         
         .instructions-section ol {
-            margin: 5px 0;
-            padding-left: 15px;
+            margin: 10px 0;
+            padding-left: 20px;
         }
         
         .instructions-section li {
-            margin: 2px 0;
-            font-size: 11px;
+            margin: 4px 0;
+            font-size: 16px;
         }
         
         .roundcube-info {
             background: #e8f5e8;
             border: 1px solid #4caf50;
             color: #2e7d32;
-            padding: 10px;
+            padding: 15px;
             border-radius: 4px;
-            margin: 10px 0;
+            margin: 15px 0;
             text-align: center;
         }
         
         .roundcube-info h4 {
-            margin: 0 0 5px 0;
+            margin: 0 0 8px 0;
             color: #2e7d32;
-            font-size: 13px;
+            font-size: 20px;
         }
         
         .roundcube-info p {
             margin: 0;
-            font-size: 11px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -264,7 +264,7 @@
         <div class="content">
             <!-- Personal Information -->
             <div class="info-section">
-                <h2>📋 Personal Information</h2>
+                <h2>Personal Information</h2>
                 <div class="info-grid">
                     <div class="info-item">
                         <div class="info-label">Name</div>
@@ -287,7 +287,7 @@
             
             <!-- LMS Access Information -->
             <div class="credentials-section">
-                <h2>🔐 LMS Access Information</h2>
+                <h2>LMS Access Information</h2>
                 
                 <div class="credential-item">
                     <div class="credential-label">LMS Link</div>
@@ -307,7 +307,7 @@
             
             <!-- Important Notice -->
             <div class="important-notice">
-                <h3>⚠️ Important Instructions</h3>
+                <h3>Important Instructions</h3>
                 <ul>
                     <li>Keep this information card safe and confidential</li>
                     <li>Use the provided credentials to access the LMS system</li>
@@ -340,7 +340,7 @@
         <div class="content">
             <!-- Webmail Access Information -->
             <div class="webmail-section">
-                <h2>📧 Webmail Access Information</h2>
+                <h2>Webmail Access Information</h2>
                 
                 <div class="webmail-item">
                     <div class="webmail-label">Webmail Link</div>
@@ -360,7 +360,7 @@
             
             <!-- Login Instructions -->
             <div class="instructions-section">
-                <h3>📋 Login Instructions</h3>
+                <h3>Login Instructions</h3>
                 <ol>
                     <li>Open your web browser and go to the webmail link above</li>
                     <li>Enter your email address and password as shown above</li>
@@ -373,13 +373,13 @@
             
             <!-- Roundcube Information -->
             <div class="roundcube-info">
-                <h4>🔵 Roundcube Webmail</h4>
+                <h4>Roundcube Webmail</h4>
                 <p>After logging in, you will see the Roundcube interface. Look for the "Open" button below the Roundcube picture to access your main email page.</p>
             </div>
             
             <!-- Password Change Instructions -->
             <div class="important-notice">
-                <h3>🔐 Password Security</h3>
+                <h3>Password Security</h3>
                 <ul>
                     <li>You can change your webmail password after logging in</li>
                     <li>Go to Settings → Password to change your password</li>
@@ -393,7 +393,7 @@
         <!-- Footer -->
         <div class="footer">
             <p>Generated on {{ date('F j, Y \a\t g:i A') }} | Olympia Education Webmail</p>
-            <p>For webmail support, contact: it-support@olympia-education.com</p>
+            <p>For webmail support, contact:support@olympia-education.com</p>
         </div>
     </div>
 </body>
