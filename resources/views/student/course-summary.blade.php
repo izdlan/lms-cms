@@ -166,45 +166,6 @@
                     </div>
                 </div>
 
-                <!-- Subjects Table -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3>Program Subjects</h3>
-                        <p class="mb-0">The 12 competencies are:</p>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th>Subjects</th>
-                                        <th>Code</th>
-                                        <th>Classification</th>
-                                        <th>Credit</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($subjects as $subject)
-                                    <tr class="subject-row" style="cursor: pointer;" data-subject-code="{{ $subject['code'] }}">
-                                        <td>
-                                            <strong>{{ $subject['name'] }}</strong>
-                                        </td>
-                                        <td>
-                                            <strong>{{ $subject['code'] }}</strong>
-                                        </td>
-                                        <td>
-                                            <strong>{{ $subject['classification'] }}</strong>
-                                        </td>
-                                        <td>
-                                            <strong>{{ $subject['credit'] }}</strong>
-                                        </td>
-                                    </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Subject Details Display -->
                 <div id="subjectDetailsSection" class="card mb-4" style="display: none;">
