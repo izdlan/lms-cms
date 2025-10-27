@@ -306,10 +306,23 @@ class StudentController extends Controller
         }
 
         // Get course details from database
-        $subject = Subject::with(['clos', 'topics'])->where('code', $subjectCode)->first();
+        $subject = Subject::where('code', $subjectCode)->first();
         
         if (!$subject) {
             return redirect()->route('student.courses')->with('error', 'Course not found.');
+        }
+
+        // Get program to find course learning outcomes
+        $program = Program::where('code', $subject->program_code)->first();
+        
+        // Get course learning outcomes from course_learning_outcomes table
+        $clos = collect();
+        if ($program) {
+            $clos = \App\Models\CourseLearningOutcome::where('program_id', $program->id)
+                ->where('course_name', $subject->name)
+                ->active()
+                ->ordered()
+                ->get();
         }
 
         // Get announcements for this subject and class
@@ -357,19 +370,14 @@ class StudentController extends Controller
             'description' => $subject->description,
             'assessment' => $subject->assessment_methods,
             'duration' => $subject->duration,
-            'clos' => $subject->clos->map(function($clo) {
+            'clos' => $clos->map(function($clo) {
                 return [
                     'clo' => $clo->clo_code,
                     'description' => $clo->description,
-                    'mqf' => $clo->mqf_alignment
+                    'mqf' => $clo->mqf_domain
                 ];
             })->toArray(),
-            'topics' => $subject->topics->map(function($topic) {
-                return [
-                    'clo' => $topic->clo_code,
-                    'topic' => $topic->topic_title
-                ];
-            })->toArray()
+            'topics' => [] // Topics can be added later if needed
         ];
 
 
