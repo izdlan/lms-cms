@@ -166,6 +166,49 @@
                     </div>
                 </div>
 
+                <!-- Subject List -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Program Subjects</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th style="width: 10%;">Code</th>
+                                        <th style="width: 50%;">Subject Name</th>
+                                        <th style="width: 15%;">Classification</th>
+                                        <th style="width: 10%;">Credit Hours</th>
+                                        <th style="width: 15%;">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if(isset($subjects) && count($subjects) > 0)
+                                        @foreach($subjects as $subject)
+                                        <tr class="subject-row" data-subject-code="{{ $subject['code'] }}" style="cursor: pointer;">
+                                            <td><strong>{{ $subject['code'] }}</strong></td>
+                                            <td>{{ $subject['name'] }}</td>
+                                            <td>{{ $subject['classification'] }}</td>
+                                            <td class="text-center">{{ $subject['credit'] }}</td>
+                                            <td class="text-center">
+                                                <span class="badge bg-success">Available</span>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted">
+                                                <i class="fas fa-info-circle"></i> 
+                                                Subject information is being updated. Please check back later.
+                                            </td>
+                                        </tr>
+                                    @endif
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Subject Details Display -->
                 <div id="subjectDetailsSection" class="card mb-4" style="display: none;">
