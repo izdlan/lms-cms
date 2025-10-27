@@ -119,6 +119,7 @@ Route::prefix('student')->group(function () {
         Route::get('/dashboard', [App\Http\Controllers\StudentController::class, 'dashboard'])->name('student.dashboard');
         Route::get('/courses', [App\Http\Controllers\StudentController::class, 'courses'])->name('student.courses');
         Route::get('/course/{program}', [App\Http\Controllers\StudentController::class, 'courseSummary'])->name('student.course.summary');
+        Route::get('/subject/{subjectCode}/clos', [App\Http\Controllers\StudentController::class, 'getSubjectClos'])->name('student.subject.clos');
         Route::get('/course/{subjectCode}/class', [App\Http\Controllers\StudentController::class, 'courseClass'])->name('student.course.class');
         Route::get('/assignments', [App\Http\Controllers\StudentController::class, 'assignments'])->name('student.assignments');
         Route::post('/assignments/{id}/submit', [App\Http\Controllers\StudentController::class, 'submitAssignment'])->name('student.assignments.submit');
@@ -334,6 +335,7 @@ Route::prefix('admin')->group(function () {
         Route::get('/programs/{program}/phd-plos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'phdPlos'])->name('admin.programs.phd-plos');
         Route::get('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'clos'])->name('admin.programs.clos');
         Route::post('/programs/{program}/clos', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeClo'])->name('admin.programs.store-clo');
+        Route::delete('/programs/clos/{clo}', [App\Http\Controllers\Admin\ProgramManagementController::class, 'destroyClo'])->name('admin.programs.destroy-clo');
         Route::get('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'subjects'])->name('admin.programs.subjects');
         Route::post('/programs/{program}/subjects', [App\Http\Controllers\Admin\ProgramManagementController::class, 'storeSubject'])->name('admin.programs.store-subject');
         Route::post('/programs/{program}/extract', [App\Http\Controllers\Admin\ProgramManagementController::class, 'extractFromDocument'])->name('admin.programs.extract');

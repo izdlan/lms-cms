@@ -63,10 +63,16 @@ class StudentController extends Controller
         // If student is blocked, continue showing dashboard but UI will be blurred by layout
 
         // Get programs based on student's actual program
-        $programCode = $user->programme_name ? 
-            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
-             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
-             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
+        $programCode = 'EBBA'; // Default to EBBA
+        if ($user->programme_name) {
+            if (strpos($user->programme_name, 'EDBA') !== false || strpos($user->programme_name, 'Executive Doctor') !== false) {
+                $programCode = 'EDBA';
+            } elseif (strpos($user->programme_name, 'EMBA') !== false || strpos($user->programme_name, 'Executive Master') !== false) {
+                $programCode = 'EMBA';
+            } elseif (strpos($user->programme_name, 'EBBA') !== false || strpos($user->programme_name, 'Executive Bachelor') !== false) {
+                $programCode = 'EBBA';
+            }
+        }
         
         $programs = Program::active()->where('code', $programCode)->get();
         
@@ -94,10 +100,16 @@ class StudentController extends Controller
         }
 
         // Get programs based on student's actual program
-        $programCode = $user->programme_name ? 
-            (strpos($user->programme_name, 'EBBA') !== false ? 'EBBA' : 
-             (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
-             'EBBA')) : 'EBBA'; // Default to EBBA if no program name
+        $programCode = 'EBBA'; // Default to EBBA
+        if ($user->programme_name) {
+            if (strpos($user->programme_name, 'EDBA') !== false || strpos($user->programme_name, 'Executive Doctor') !== false) {
+                $programCode = 'EDBA';
+            } elseif (strpos($user->programme_name, 'EMBA') !== false || strpos($user->programme_name, 'Executive Master') !== false) {
+                $programCode = 'EMBA';
+            } elseif (strpos($user->programme_name, 'EBBA') !== false || strpos($user->programme_name, 'Executive Bachelor') !== false) {
+                $programCode = 'EBBA';
+            }
+        }
         
         $programs = Program::active()->where('code', $programCode)->get();
         
@@ -141,21 +153,126 @@ class StudentController extends Controller
              (strpos($user->programme_name, 'EMBA') !== false ? 'EMBA' : 
              'EBBA')) : 'EBBA'; // Default to EBBA if no program name
         
-        $subjects = Subject::where('program_code', $programCode)
+        // Get program subjects from the program_subjects table
+        $subjects = $program->programSubjects()
             ->where('is_active', true)
-            ->orderBy('code')
+            ->orderBy('sort_order')
             ->get()
             ->map(function($subject) {
                 return [
-                    'code' => $subject->code,
-                    'name' => $subject->name,
+                    'code' => $subject->subject_code,
+                    'name' => $subject->subject_name,
                     'classification' => $subject->classification,
                     'credit' => $subject->credit_hours
                 ];
             })
             ->toArray();
 
-        return view('student.course-summary', compact('user', 'program', 'subjects', 'enrolledSubjects'));
+        // Get program learning outcomes based on program level
+        $plos = $program->getLearningOutcomesByLevel();
+        
+        return view('student.course-summary', compact('user', 'program', 'subjects', 'enrolledSubjects', 'plos'));
+    }
+
+    /**
+     * Get CLOs for a specific subject
+     */
+    public function getSubjectClos($subjectCode)
+    {
+        $user = Auth::guard('student')->user();
+        
+        if (!$user) {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+        
+        if ($user->role !== 'student') {
+            return response()->json(['error' => 'Access denied'], 403);
+        }
+
+        // Get program based on student's program
+        $programCode = 'EBBA'; // Default to EBBA
+        if ($user->programme_name) {
+            if (strpos($user->programme_name, 'EDBA') !== false || strpos($user->programme_name, 'Executive Doctor') !== false) {
+                $programCode = 'EDBA';
+            } elseif (strpos($user->programme_name, 'EMBA') !== false || strpos($user->programme_name, 'Executive Master') !== false) {
+                $programCode = 'EMBA';
+            } elseif (strpos($user->programme_name, 'EBBA') !== false || strpos($user->programme_name, 'Executive Bachelor') !== false) {
+                $programCode = 'EBBA';
+            }
+        }
+        
+        $program = Program::where('code', $programCode)->first();
+        
+        if (!$program) {
+            return response()->json(['error' => 'Program not found'], 404);
+        }
+
+        // Map subject codes to course names
+        $subjectMapping = [
+            // EBBA Codes
+            'PMOB101' => 'Principles of Management & Organizational Behaviour',
+            'HRM102' => 'Human Resource Management',
+            'MDB103' => 'Marketing & Digital Business',
+            'BCPS104' => 'Business Communication & Professional Skills',
+            'BLEG105' => 'Business Law, Ethics & Corporate Governance',
+            'EICM106' => 'Entrepreneurship, Innovation & Change Management',
+            'BEIB107' => 'Business Economics & International Business',
+            'FMA108' => 'Financial & Management Accounting',
+            'FM109' => 'Financial Management',
+            'BSM110' => 'Business Strategy & Strategic Management',
+            'BAS111' => 'Business Analytics & Statistics',
+            'PMIBL112' => 'Project Management & Industry-Based Learning',
+            // EMBA Codes
+            'EMBA7101' => 'Strategic Human Resource Management',
+            'EMBA7102' => 'Organizational Behaviour',
+            'EMBA7103' => 'Strategic Management',
+            'EMBA7104' => 'Strategic Marketing',
+            'EMBA7105' => 'Accounting and Finance for Decision Making',
+            'EMBA7106' => 'Business Analytics',
+            'EMBA7107' => 'Business Economics',
+            'EMBA7108' => 'Digital Business',
+            'EMBA7109' => 'Innovation and Technology Entrepreneurship',
+            'EMBA7110' => 'International Business Management & Policy',
+            'EMBA7111' => 'Research Methodology',
+            'EMBA7112' => 'Project',
+            // EDBA Codes
+            'MKT8101E' => 'Seminar in Advanced Marketing Management',
+            'ACC8101E' => 'Seminar in Accounting & Finance for Business Decision Making',
+            'ECO8101E' => 'Seminar in Business Economics and Global Investment',
+            'HPM8101E' => 'Seminar in Managing Human Capital in the Digital Era',
+            'MGT8101E' => 'Seminar in Business Analytics',
+            'MGT8102E' => 'Seminar in Organizational Development',
+            'RSM8101E' => 'Advanced Research Methodology',
+            'MGT8103E' => 'Seminar in Advanced Strategic Management in Contemporary Business',
+            'GOV8101E' => 'Seminar in Corporate and Human Governance',
+            'RSM8102E' => 'Advanced Academic Writing',
+            'MGT8104E' => 'Contemporary Business and Leadership Issues',
+            'RSM8103E' => 'Doctoral Research (Thesis)'
+        ];
+
+        $courseName = $subjectMapping[$subjectCode] ?? null;
+        if (!$courseName) {
+            return response()->json(['error' => 'Subject not found'], 404);
+        }
+
+        // Get CLOs for the specific course
+        $clos = $program->courseLearningOutcomes()
+            ->where('course_name', $courseName)
+            ->ordered()
+            ->get();
+
+        return response()->json([
+            'clos' => $clos->map(function($clo) {
+                return [
+                    'clo_code' => $clo->clo_code,
+                    'description' => $clo->description,
+                    'mqf_domain' => $clo->mqf_domain,
+                    'mqf_code' => $clo->mqf_code,
+                    'topics_covered' => json_decode($clo->topics_covered, true),
+                    'assessment_methods' => json_decode($clo->assessment_methods, true)
+                ];
+            })
+        ]);
     }
 
     /**

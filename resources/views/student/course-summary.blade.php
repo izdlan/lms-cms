@@ -143,54 +143,23 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td><strong>PLO1</strong></td>
-                                        <td>Demonstrate comprehensive and integrated knowledge of strategic business functions and leadership in diverse organizational contexts.</td>
-                                        <td><strong>C1: Knowledge & Understanding</strong></td>
-                                        <td>Strategic Management, Strategic HRM, Strategic Marketing</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO2</strong></td>
-                                        <td>Analyze complex business problems and make strategic decisions using critical, analytical, and evidence-based approaches.</td>
-                                        <td><strong>C2: Cognitive Skills</strong></td>
-                                        <td>Business Analytics, Accounting & Finance for Decision Making, Business Economics</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO3</strong></td>
-                                        <td>Apply advanced managerial and entrepreneurial skills to formulate strategies for innovation, technology adoption, and business growth.</td>
-                                        <td><strong>C3: Practical Skills</strong></td>
-                                        <td>Innovation & Technology Entrepreneurship, Digital Business, Strategic Marketing</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO4</strong></td>
-                                        <td>Interpret and use financial and economic data for strategic planning, budgeting, and decision-making.</td>
-                                        <td><strong>C4: Numerical & Analytical Skills</strong></td>
-                                        <td>Accounting & Finance for Decision Making, Business Economics</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO5</strong></td>
-                                        <td>Collaborate effectively in teams and lead diverse stakeholders to achieve common business goals.</td>
-                                        <td><strong>C5: Interpersonal Skills & Responsibility</strong></td>
-                                        <td>Organizational Behaviour, International Business Management & Policy</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO6</strong></td>
-                                        <td>Uphold ethical, legal, and professional standards in decision-making processes at national and global levels.</td>
-                                        <td><strong>C6: Ethics & Professionalism</strong></td>
-                                        <td>Strategic HRM, International Business Management & Policy</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO7</strong></td>
-                                        <td>Leverage digital tools and emerging technologies to solve business problems and enhance operational efficiency.</td>
-                                        <td><strong>C7: Digital Skills</strong></td>
-                                        <td>Digital Business, Business Analytics</td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>PLO8</strong></td>
-                                        <td>Communicate effectively through structured reports, presentations, and dialogue with both technical and non-technical stakeholders.</td>
-                                        <td><strong>C8: Communication Skills</strong></td>
-                                        <td>Research Methodology, Project, Strategic Management</td>
-                                    </tr>
+                                    @if($plos && $plos->count() > 0)
+                                        @foreach($plos as $plo)
+                                        <tr>
+                                            <td><strong>{{ $plo->plo_code }}</strong></td>
+                                            <td>{{ $plo->description }}</td>
+                                            <td><strong>{{ $plo->mqf_domain }}</strong></td>
+                                            <td>{{ $plo->mapped_courses }}</td>
+                                        </tr>
+                                        @endforeach
+                                    @else
+                                        <tr>
+                                            <td colspan="4" class="text-center text-muted">
+                                                <i class="fas fa-info-circle"></i> 
+                                                Program Learning Outcomes are being updated. Please check back later.
+                                            </td>
+                                        </tr>
+                                    @endif
                                 </tbody>
                             </table>
                         </div>
@@ -1251,85 +1220,90 @@ const subjectDetailsMap = {
 
 
 function viewSubject(subjectCode) {
-    const subjectData = subjectDetailsMap[subjectCode];
-    if (subjectData) {
-        // Update the subject title
-        document.getElementById('subjectTitle').textContent = subjectData.name;
-        
-        // Create detailed content
-        let content = `
-            <div class="row">
-                <div class="col-12">
-                    <h5><i class="fas fa-info-circle text-primary"></i> Course Description</h5>
-                    <p>${subjectData.description}</p>
-                </div>
-            </div>
-        `;
-
-        // Add CLOs table if available
-        if (subjectData.clos && subjectData.clos.length > 0) {
-            content += `
-                <div class="row mt-4">
+    // Show loading state
+    document.getElementById('subjectTitle').textContent = 'Loading...';
+    document.getElementById('subjectDetailsContent').innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading course details...</div>';
+    
+    // Fetch CLOs from the server
+    fetch(`/student/subject/${subjectCode}/clos`, {
+        method: 'GET',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        credentials: 'same-origin'
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                document.getElementById('subjectDetailsContent').innerHTML = `<div class="alert alert-danger">${data.error}</div>`;
+                return;
+            }
+            
+            // Get subject name from the table
+            const subjectRow = document.querySelector(`[data-subject-code="${subjectCode}"]`);
+            const subjectName = subjectRow ? subjectRow.querySelector('td strong').textContent : subjectCode;
+            
+            // Update the subject title
+            document.getElementById('subjectTitle').textContent = subjectName;
+            
+            // Create detailed content
+            let content = `
+                <div class="row">
                     <div class="col-12">
-                        <h5><i class="fas fa-graduation-cap text-success"></i> Course Learning Outcomes (CLOs)</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th style="width: 10%;">CLO</th>
-                                        <th style="width: 60%;">Learning Outcome Description</th>
-                                        <th style="width: 30%;">MQF2.0 Alignment</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${subjectData.clos.map(clo => `
-                                        <tr>
-                                            <td><strong>${clo.clo}</strong></td>
-                                            <td>${clo.description}</td>
-                                            <td><strong>${clo.mqf}</strong></td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                        <h5><i class="fas fa-info-circle text-primary"></i> Course Information</h5>
+                        <p>Course Code: <strong>${subjectCode}</strong></p>
+                        <p>Course Name: <strong>${subjectName}</strong></p>
                     </div>
                 </div>
             `;
-        }
 
-        // Add Topics table if available
-        if (subjectData.topics && subjectData.topics.length > 0) {
-            content += `
-                <div class="row mt-4">
-                    <div class="col-12">
-                        <h5><i class="fas fa-book text-info"></i> Topics Covered According to CLOs and Assessment Methods</h5>
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th style="width: 10%;">CLO</th>
-                                        <th style="width: 70%;">Topic</th>
-                                        <th style="width: 20%;">Assessment Methods</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${subjectData.topics.map((topic, index) => `
+            // Add CLOs table if available
+            if (data.clos && data.clos.length > 0) {
+                content += `
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <h5><i class="fas fa-graduation-cap text-success"></i> Course Learning Outcomes (CLOs)</h5>
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-hover">
+                                    <thead class="table-dark">
                                         <tr>
-                                            <td><strong>${topic.clo}</strong></td>
-                                            <td>${index + 1}. ${topic.topic}</td>
-                                            <td>${index === 0 ? subjectData.assessment : ''}</td>
+                                            <th style="width: 10%;">CLO</th>
+                                            <th style="width: 50%;">Learning Outcome Description</th>
+                                            <th style="width: 20%;">MQF Domain</th>
+                                            <th style="width: 20%;">Topics Covered</th>
                                         </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody>
+                                        ${data.clos.map(clo => `
+                                            <tr>
+                                                <td><strong>${clo.clo_code}</strong></td>
+                                                <td>${clo.description}</td>
+                                                <td>${clo.mqf_domain}</td>
+                                                <td>
+                                                    ${clo.topics_covered ? clo.topics_covered.map(topic => `<small class="d-block">${topic}</small>`).join('') : 'N/A'}
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        }
+                `;
+            } else {
+                content += `
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i> No Course Learning Outcomes available for this subject yet.
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
 
-        
-        // Update the content
+            // Update the content
         document.getElementById('subjectDetailsContent').innerHTML = content;
         
         // Show the subject details section
@@ -1340,10 +1314,11 @@ function viewSubject(subjectCode) {
             behavior: 'smooth', 
             block: 'start' 
         });
-    } else {
-        // Fallback to maintenance page if subject not found
-        window.location.href = '/maintenance?subject=' + subjectCode;
-    }
+        })
+        .catch(error => {
+            console.error('Error fetching CLOs:', error);
+            document.getElementById('subjectDetailsContent').innerHTML = '<div class="alert alert-danger">Error loading course details. Please try again.</div>';
+        });
 }
 
 function closeSubjectDetails() {

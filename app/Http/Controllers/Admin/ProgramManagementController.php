@@ -266,10 +266,33 @@ class ProgramManagementController extends Controller
             'sort_order' => 'integer'
         ]);
 
-        $program->courseLearningOutcomes()->create($request->all());
+        $data = $request->all();
+        
+        // Convert topics_covered and assessment_methods to JSON arrays
+        if ($request->topics_covered) {
+            $data['topics_covered'] = json_encode(array_filter(array_map('trim', explode("\n", $request->topics_covered))));
+        }
+        
+        if ($request->assessment_methods) {
+            $data['assessment_methods'] = json_encode(array_filter(array_map('trim', explode("\n", $request->assessment_methods))));
+        }
+        
+        $program->courseLearningOutcomes()->create($data);
 
         return redirect()->route('admin.programs.clos', $program)
             ->with('success', 'CLO created successfully.');
+    }
+
+    /**
+     * Delete CLO for a program
+     */
+    public function destroyClo(CourseLearningOutcome $clo)
+    {
+        $program = $clo->program;
+        $clo->delete();
+        
+        return redirect()->route('admin.programs.clos', $program)
+            ->with('success', 'CLO deleted successfully.');
     }
 
     /**
