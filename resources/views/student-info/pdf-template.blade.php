@@ -280,7 +280,7 @@
                     </div>
                     <div class="info-item">
                         <div class="info-label">Email</div>
-                        <div class="info-value">{{ $student->email ?? $student->student_email ?? 'Not Available' }}</div>
+                        <div class="info-value">{{ $student->email ?? 'Not Available' }}</div>
                     </div>
                 </div>
             </div>

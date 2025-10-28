@@ -11,6 +11,45 @@ use Illuminate\Support\Facades\Storage;
 class StudentInfoController extends Controller
 {
     /**
+     * Sanitize filename to ensure it's safe for file system
+     */
+    private function sanitizeFileName($name)
+    {
+        // Replace spaces with underscores
+        $name = str_replace(' ', '_', $name);
+        // Remove special characters except underscores, hyphens, and alphanumeric
+        $name = preg_replace('/[^a-zA-Z0-9_\-]/', '', $name);
+        return $name;
+    }
+
+    /**
+     * Get program abbreviation from full program name
+     */
+    private function getProgramAbbreviation($programName)
+    {
+        if (empty($programName)) {
+            return 'Unknown';
+        }
+
+        $program = strtoupper($programName);
+        
+        // Check for common abbreviations in the program name
+        if (preg_match('/(\b\w*E?MBA\w*\b)/i', $program, $matches)) {
+            return strtoupper($matches[1]);
+        }
+        if (preg_match('/(\b\w*E?BBA\w*\b)/i', $program, $matches)) {
+            return strtoupper($matches[1]);
+        }
+        if (preg_match('/(\b\w*E?DBA\w*\b)/i', $program, $matches)) {
+            return strtoupper($matches[1]);
+        }
+        
+        // If no abbreviation found, extract first letters or use first 4 characters
+        $abbr = preg_replace('/[^A-Z]/', '', $program);
+        return !empty($abbr) ? substr($abbr, 0, 4) : 'PROG';
+    }
+
+    /**
      * Generate PDF for a single student's information
      */
     public function generateStudentInfoPdf($studentId)
@@ -51,7 +90,10 @@ class StudentInfoController extends Controller
                 'isFontSubsettingEnabled' => true,
             ]);
 
-            $fileName = 'student_info_' . $student->student_id . '_' . time() . '.pdf';
+            // Create filename with program, student name, and ID
+            $programAbbr = $this->getProgramAbbreviation($student->programme_name ?? 'Unknown');
+            $sanitizedName = $this->sanitizeFileName($student->name);
+            $fileName = $programAbbr . '_' . $sanitizedName . '_' . $student->student_id . '.pdf';
 
             return $pdf->download($fileName);
 
@@ -130,8 +172,11 @@ class StudentInfoController extends Controller
                     'defaultPaperSize' => 'a4',
                     'isFontSubsettingEnabled' => true,
                 ]);
-
-                $fileName = 'student_info_' . $student->student_id . '.pdf';
+                
+                // Create filename with program, student name, and ID
+                $programAbbr = $this->getProgramAbbreviation($student->programme_name ?? 'Unknown');
+                $sanitizedName = $this->sanitizeFileName($student->name);
+                $fileName = $programAbbr . '_' . $sanitizedName . '_' . $student->student_id . '.pdf';
                 $filePath = $tempDir . '/' . $fileName;
                 
                 $pdf->save($filePath);
