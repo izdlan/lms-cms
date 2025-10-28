@@ -26,20 +26,60 @@
                 </div>
                 
                 <div class="card-body">
-                    <!-- Selection Controls -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="selectAll">
-                                <label class="form-check-label" for="selectAll">
-                                    Select All Students
-                                </label>
+                    <!-- Search and Filter Controls -->
+                    <form method="GET" action="{{ route('admin.student-info.index') }}" id="searchForm">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <div class="input-group">
+                                    <input type="text" 
+                                           name="search" 
+                                           class="form-control" 
+                                           placeholder="Search by name, ID, email, program..." 
+                                           value="{{ request('search') }}">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="submit" title="Search">
+                                            <i class="fas fa-search" aria-hidden="true"></i> Search
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select name="program" class="form-control" id="programFilter">
+                                    <option value="">All Programs</option>
+                                    @foreach($programs as $program)
+                                        <option value="{{ $program->programme_code }}" 
+                                                {{ request('program') == $program->programme_code ? 'selected' : '' }}>
+                                            {{ $program->programme_name ? $program->programme_name : $program->programme_code }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="show_all" value="yes" id="showAllToggle"
+                                           {{ request('show_all') == 'yes' ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="showAllToggle">
+                                        Show All
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="col-md-3 text-right">
+                                <button type="button" class="btn btn-sm btn-secondary" id="clearFilters">
+                                    <i class="fas fa-redo"></i> Clear Filters
+                                </button>
                             </div>
                         </div>
-                        <div class="col-md-6 text-right">
+                    </form>
+
+                    <!-- Selection Controls -->
+                    <div class="row mb-3">
+                        <div class="col-md-12 text-right">
                             <span class="badge badge-info" id="selectedCount">0 selected</span>
                             <button type="button" class="btn btn-sm btn-secondary ml-2" id="clearSelection">
                                 Clear Selection
+                            </button>
+                            <button type="button" class="btn btn-sm btn-info ml-2" id="downloadByProgramBtn" disabled>
+                                <i class="fas fa-download"></i> Download by Program
                             </button>
                         </div>
                     </div>
@@ -144,10 +184,96 @@
 
 @section('scripts')
 <script>
-// Simple test to confirm page loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Student Info page loaded successfully');
-    console.log('Download All button is now a direct form - no JavaScript needed');
+    
+    // Filter functionality
+    document.getElementById('programFilter').addEventListener('change', function() {
+        document.getElementById('searchForm').submit();
+    });
+    
+    document.getElementById('showAllToggle').addEventListener('change', function() {
+        document.getElementById('searchForm').submit();
+    });
+    
+    // Clear filters button
+    document.getElementById('clearFilters').addEventListener('click', function() {
+        window.location.href = "{{ route('admin.student-info.index') }}";
+    });
+    
+    // Download by Program functionality
+    document.getElementById('downloadByProgramBtn').addEventListener('click', function() {
+        const checkedBoxes = document.querySelectorAll('.student-checkbox:checked');
+        const studentIds = Array.from(checkedBoxes).map(cb => cb.value);
+        
+        if (studentIds.length === 0) {
+            alert('Please select at least one student');
+            return;
+        }
+        
+        // Get the program of selected students
+        const programs = new Set();
+        checkedBoxes.forEach(cb => {
+            const row = cb.closest('tr');
+            const programCell = row.querySelector('td:nth-child(4)'); // Program is in 4th column
+            if (programCell) {
+                programs.add(programCell.textContent.trim());
+            }
+        });
+        
+        if (programs.size > 1) {
+            if (!confirm('You have selected students from multiple programs. Download all anyway?')) {
+                return;
+            }
+        }
+        
+        // Create and submit form for bulk download
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = "{{ route('admin.student-info.bulk-pdf') }}";
+        
+        const csrf = document.createElement('input');
+        csrf.type = 'hidden';
+        csrf.name = '_token';
+        csrf.value = '{{ csrf_token() }}';
+        form.appendChild(csrf);
+        
+        studentIds.forEach(id => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'student_ids[]';
+            input.value = id;
+            form.appendChild(input);
+        });
+        
+        document.body.appendChild(form);
+        form.submit();
+    });
+    
+    // Clear Selection button
+    document.getElementById('clearSelection').addEventListener('click', function() {
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = false);
+        document.getElementById('selectedCount').textContent = '0 selected';
+        document.getElementById('downloadByProgramBtn').disabled = true;
+    });
+    
+    // Toggle download by program button based on selection
+    document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const checkedCount = document.querySelectorAll('.student-checkbox:checked').length;
+            document.getElementById('selectedCount').textContent = checkedCount + ' selected';
+            document.getElementById('downloadByProgramBtn').disabled = checkedCount === 0;
+        });
+    });
+    
+    // Select all in header
+    document.getElementById('selectAllHeader').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => cb.checked = this.checked);
+        const checkedCount = this.checked ? checkboxes.length : 0;
+        document.getElementById('selectedCount').textContent = checkedCount + ' selected';
+        document.getElementById('downloadByProgramBtn').disabled = checkedCount === 0;
+    });
 });
 </script>
 @endsection

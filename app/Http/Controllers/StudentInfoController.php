@@ -220,13 +220,43 @@ class StudentInfoController extends Controller
     /**
      * Show student info PDF generation page
      */
-    public function index()
+    public function index(Request $request)
     {
-        $students = User::where('role', 'student')
-                       ->orderBy('student_id')
-                       ->paginate(20);
+        $query = User::where('role', 'student');
 
-        return view('admin.student-info.index', compact('students'));
+        // Search functionality
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('student_id', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%")
+                  ->orWhere('ic_passport', 'like', "%{$search}%")
+                  ->orWhere('ic', 'like', "%{$search}%")
+                  ->orWhere('programme_code', 'like', "%{$search}%")
+                  ->orWhere('programme_name', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by program
+        if ($request->filled('program')) {
+            $query->where('programme_code', $request->program);
+        }
+
+        // Get all unique programs for filter dropdown
+        $programs = User::where('role', 'student')
+                       ->whereNotNull('programme_code')
+                       ->select('programme_code', 'programme_name')
+                       ->distinct()
+                       ->orderBy('programme_code')
+                       ->get();
+
+        // If "Show All" is requested or no pagination limit
+        $perPage = $request->input('show_all', 'no') === 'yes' ? 100000 : 20;
+        
+        $students = $query->orderBy('student_id')->paginate($perPage);
+
+        return view('admin.student-info.index', compact('students', 'programs'));
     }
 
     /**
