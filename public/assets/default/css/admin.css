@@ -526,6 +526,42 @@
     color: var(--admin-white);
 }
 
+/* Modern Badge Styles */
+.badge-modern {
+    font-size: var(--admin-font-size-xs);
+    padding: var(--admin-spacing-xs) var(--admin-spacing-sm);
+    border-radius: var(--admin-radius-sm);
+    font-weight: 600;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+}
+
+.badge-modern-success {
+    background: var(--admin-success);
+    color: var(--admin-white);
+}
+
+.badge-modern-warning {
+    background: var(--admin-warning);
+    color: var(--admin-white);
+}
+
+.badge-modern-danger {
+    background: var(--admin-danger);
+    color: var(--admin-white);
+}
+
+.badge-modern-info {
+    background: var(--admin-info);
+    color: var(--admin-white);
+}
+
+.badge-modern-secondary {
+    background: var(--admin-gray-500);
+    color: var(--admin-white);
+}
+
 /* ========================================
    MODAL STYLES
    ======================================== */

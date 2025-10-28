@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\Artisan;
 use App\Services\CsvImportService;
 use App\Services\XlsxImportService;
 use App\Services\GoogleSheetsImportService;
+use App\Services\UserActivityService;
 
 class AdminController extends Controller
 {
@@ -41,6 +42,48 @@ class AdminController extends Controller
         if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->isStaff())) {
             abort(403, 'Unauthorized access.');
         }
+    }
+
+    public function userActivityLogs(Request $request)
+    {
+        $this->checkAdminAccess();
+        
+        $days = $request->get('days', 30);
+        $activityType = $request->get('activity_type', 'all');
+        $userRole = $request->get('user_role', 'all');
+        
+        $query = \App\Models\UserActivity::with('user')
+            ->where('created_at', '>=', now()->subDays($days))
+            ->orderBy('created_at', 'desc');
+            
+        // Filter by activity type
+        if ($activityType !== 'all') {
+            $query->where('activity_type', $activityType);
+        }
+        
+        // Filter by user role
+        if ($userRole !== 'all') {
+            $query->where('user_role', $userRole);
+        }
+        
+        $activities = $query->paginate(50);
+        
+        // Get statistics
+        $stats = UserActivityService::getLoginStats($days);
+        
+        return view('admin.user-activity-logs', compact('activities', 'stats', 'days', 'activityType', 'userRole'));
+    }
+
+    public function studentStatus()
+    {
+        $this->checkAdminAccess();
+        
+        $students = User::where('role', 'student')
+            ->select(['name', 'email', 'student_email', 'student_id', 'programme_name', 'status', 'contact_no', 'ic'])
+            ->orderBy('name')
+            ->paginate(50);
+            
+        return view('admin.student-status', compact('students'));
     }
 
     public function dashboard()

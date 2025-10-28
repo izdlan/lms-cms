@@ -22,17 +22,9 @@
                                 <i data-feather="plus"></i>
                                 Add Student
                             </a>
-                            <a href="{{ route('admin.import') }}" class="btn-modern btn-modern-secondary">
-                                <i data-feather="upload"></i>
-                                Import Excel
-                            </a>
                             <button type="button" class="btn-modern btn-modern-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
                                 <i data-feather="download"></i>
                                 Google Sheets
-                            </button>
-                            <button type="button" class="btn-modern btn-modern-info" onclick="runOneDriveImport()" id="oneDriveBtn">
-                                <i data-feather="cloud"></i>
-                                OneDrive
                             </button>
                         </div>
                     </div>
@@ -167,15 +159,11 @@
                                     </div>
                                 </div>
                                 <h5 class="text-muted mb-2">No students found</h5>
-                                <p class="text-muted mb-4">Get started by importing students from Excel or adding them manually.</p>
+                                <p class="text-muted mb-4">Get started by importing students from Google Sheets or adding them manually.</p>
                                 <div class="d-flex gap-2 justify-content-center">
                                     <a href="{{ route('admin.students.create') }}" class="btn-modern btn-modern-primary">
                                         <i data-feather="plus"></i>
                                         Add Student
-                                    </a>
-                                    <a href="{{ route('admin.import') }}" class="btn-modern btn-modern-secondary">
-                                        <i data-feather="upload"></i>
-                                        Import Excel
                                     </a>
                                 </div>
                             </div>
@@ -591,116 +579,6 @@ function runGoogleSheetsImport() {
                 console.warn('Feather icons error in Google Sheets import finally:', error);
             }
         }
-    });
-}
-
-// OneDrive Import Function
-function runOneDriveImport() {
-    const importBtn = document.getElementById('oneDriveBtn');
-    const originalText = importBtn.innerHTML;
-    
-    // Show loading state
-    importBtn.disabled = true;
-    importBtn.innerHTML = '<i data-feather="loader" width="16" height="16"></i> Importing... (This may take up to 5 minutes)';
-    
-    // Safely replace feather icons
-    setTimeout(() => {
-        if (typeof safeFeatherReplace === 'function') {
-            safeFeatherReplace();
-        } else {
-            try {
-                if (typeof feather !== 'undefined') {
-                    feather.replace();
-                }
-            } catch (error) {
-                console.warn('Feather icons error in OneDrive import:', error);
-            }
-        }
-    }, 200);
-    
-    // Show progress message
-    showAlert('info', 'OneDrive import started. This may take up to 5 minutes. Please wait...');
-    
-    // Make the import request with extended timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-        console.log('Request timeout reached, but import may still be running in background...');
-        showAlert('warning', 'Request timed out, but the import may still be running in the background. Please refresh the page in a few minutes to check for new students.');
-        controller.abort();
-    }, 60000); // 1 minute timeout for request, but import continues in background
-    
-    console.log('Starting OneDrive import request...');
-    
-    fetch('/admin/students/onedrive-import', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
-            'Accept': 'application/json'
-        },
-        credentials: 'same-origin',
-        signal: controller.signal
-    })
-    .then(response => {
-        console.log('Response received:', response.status, response.statusText);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        console.log('Data received:', data);
-        if (data.success) {
-            // Show success message with sheet details
-            let message = `OneDrive import completed! Created: ${data.created}, Updated: ${data.updated}, Errors: ${data.errors}`;
-            
-            if (data.processed_sheets && data.processed_sheets.length > 0) {
-                message += '\n\nProcessed sheets:';
-                data.processed_sheets.forEach(sheet => {
-                    message += `\n- ${sheet.sheet}: Created=${sheet.created}, Updated=${sheet.updated}, Errors=${sheet.errors}`;
-                });
-            }
-            
-            showAlert('success', message);
-            
-            // Refresh the page after a short delay
-            setTimeout(() => {
-                window.location.reload();
-            }, 3000);
-        } else {
-            showAlert('danger', 'OneDrive import failed: ' + data.message);
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        if (error.name === 'AbortError') {
-            showAlert('danger', 'OneDrive import was aborted due to timeout. The import may still be processing in the background. Please refresh the page in a few minutes to check for new students.');
-        } else {
-            showAlert('danger', 'Error occurred during OneDrive import: ' + error.message);
-        }
-    })
-    .finally(() => {
-        // Clear timeout
-        clearTimeout(timeoutId);
-        
-        // Reset button state
-        importBtn.disabled = false;
-        importBtn.innerHTML = originalText;
-        
-        // Safely replace feather icons
-        setTimeout(() => {
-            if (typeof safeFeatherReplace === 'function') {
-                safeFeatherReplace();
-            } else {
-                try {
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
-                } catch (error) {
-                    console.warn('Feather icons error in OneDrive import finally:', error);
-                }
-            }
-        }, 100);
     });
 }
 

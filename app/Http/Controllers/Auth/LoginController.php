@@ -7,6 +7,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\UserActivity;
+use App\Services\UserActivityService;
 
 class LoginController extends Controller
 {
@@ -49,14 +51,20 @@ class LoginController extends Controller
         if (Auth::guard('student')->attempt($credentials, $request->boolean('remember'))) {
             $request->session()->regenerate();
             
-            // Check if password reset is required
+            // Log successful login
             $user = Auth::guard('student')->user();
+            UserActivityService::logLogin($user, $request, UserActivity::METHOD_IC);
+            
+            // Check if password reset is required
             if ($user->must_reset_password) {
                 return redirect()->route('student.password.change');
             }
             
             return redirect()->intended(route('student.dashboard'));
         }
+
+        // Log failed login attempt
+        UserActivityService::logFailedLogin($request, UserActivity::METHOD_IC, $request->input('ic'), 'Invalid IC or password');
 
         return back()->withErrors([
             'ic' => 'The provided credentials do not match our records.',
@@ -79,6 +87,9 @@ class LoginController extends Controller
             Auth::guard('staff')->login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             
+            // Log successful login
+            UserActivityService::logLogin($user, $request, UserActivity::METHOD_EMAIL);
+            
             // Store user role in session
             $request->session()->put('user_role', 'lecturer');
             
@@ -89,6 +100,9 @@ class LoginController extends Controller
             
             return redirect()->intended(route('staff.dashboard'));
         }
+
+        // Log failed login attempt
+        UserActivityService::logFailedLogin($request, UserActivity::METHOD_EMAIL, $request->input('email'), 'Invalid email or password');
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
@@ -111,6 +125,9 @@ class LoginController extends Controller
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
             
+            // Log successful login
+            UserActivityService::logLogin($user, $request, UserActivity::METHOD_EMAIL);
+            
             // Store user role in session
             $request->session()->put('user_role', 'admin');
             
@@ -121,6 +138,9 @@ class LoginController extends Controller
             
             return redirect()->intended(route('admin.dashboard'));
         }
+
+        // Log failed login attempt
+        UserActivityService::logFailedLogin($request, UserActivity::METHOD_EMAIL, $request->input('email'), 'Invalid email or password');
 
         return back()->withErrors([
             'email' => 'The provided credentials do not match our records.',
@@ -174,15 +194,26 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        // Determine which guard is currently authenticated
+        $user = null;
+        
+        // Determine which guard is currently authenticated and log the user before logout
         if (Auth::guard('student')->check()) {
+            $user = Auth::guard('student')->user();
             Auth::guard('student')->logout();
         } elseif (Auth::guard('staff')->check()) {
+            $user = Auth::guard('staff')->user();
             Auth::guard('staff')->logout();
         } elseif (Auth::guard('finance_admin')->check()) {
+            $user = Auth::guard('finance_admin')->user();
             Auth::guard('finance_admin')->logout();
         } else {
+            $user = Auth::user();
             Auth::logout();
+        }
+
+        // Log logout activity
+        if ($user) {
+            UserActivityService::logLogout($user, $request);
         }
 
         $request->session()->invalidate();

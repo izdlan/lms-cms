@@ -8,9 +8,17 @@
             <i class="bi bi-house-door-fill"></i>
             Dashboard
         </a>
-        <a href="{{ route('admin.students') }}" class="nav-link {{ request()->routeIs('admin.students*') ? 'active' : '' }}">
+        <a href="{{ route('admin.students') }}" class="nav-link {{ request()->routeIs('admin.students') && !request()->routeIs('admin.students.status') ? 'active' : '' }}">
             <i class="bi bi-people-fill"></i>
             Students
+        </a>
+        <a href="{{ route('admin.students.status') }}" class="nav-link {{ request()->routeIs('admin.students.status') ? 'active' : '' }}">
+            <i class="bi bi-clipboard-data-fill"></i>
+            Student Status
+        </a>
+        <a href="{{ route('admin.user-activity-logs') }}" class="nav-link {{ request()->routeIs('admin.user-activity-logs') ? 'active' : '' }}">
+            <i class="bi bi-clock-history"></i>
+            Activity Logs
         </a>
         <a href="{{ route('admin.lecturers') }}" class="nav-link {{ request()->routeIs('admin.lecturers*') ? 'active' : '' }}">
             <i class="bi bi-person-check-fill"></i>
