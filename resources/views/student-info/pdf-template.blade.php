@@ -344,7 +344,7 @@
                 
                 <div class="webmail-item">
                     <div class="webmail-label">Webmail Link</div>
-                    <div class="webmail-value">https://olympia-education.com/webmail</div>
+                    <div class="webmail-value">https://lms.olympia-education.com/webmail</div>
                 </div>
                 
                 <div class="webmail-item">
