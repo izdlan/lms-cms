@@ -186,7 +186,7 @@
 .sync-log .log-info {
     color: #17a2b8;
 }
-</style>
+</style>023
 @endsection
 
 @push('scripts')

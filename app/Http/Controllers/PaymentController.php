@@ -56,7 +56,22 @@ class PaymentController extends Controller
 
         try {
             $user = Auth::user();
-            $course = class_exists('App\Models\Course') ? \App\Models\Course::findOrFail($request->course_id) : (object)['id' => $request->course_id, 'name' => 'Course'];
+            
+            // Handle Course model safely
+            $course = (object)['id' => $request->course_id, 'name' => 'Course'];
+            
+            // Try to load actual course if model exists
+            if (class_exists('App\Models\Course')) {
+                try {
+                    $courseModelName = 'App\\Models\\Course';
+                    $foundCourse = $courseModelName::find($request->course_id);
+                    if ($foundCourse) {
+                        $course = $foundCourse;
+                    }
+                } catch (\Exception $e) {
+                    // Use fallback object
+                }
+            }
             
             // Check if there's already a pending payment for this course
             $existingPayment = Payment::where('user_id', $user->id)
@@ -254,16 +269,18 @@ class PaymentController extends Controller
     public function billplzCallback(Request $request)
     {
         try {
-            $signature = $request->header('X-Billplz-Signature');
-            $payload = $request->getContent();
+            // Get X-Signature from header (Billplz uses X-Signature header)
+            $signature = $request->header('X-Signature', $request->header('X-Billplz-Signature'));
+            $data = $request->all();
             
             // Verify webhook signature
-            if (!$this->billplzService->verifyWebhook($signature, $payload)) {
-                Log::warning('Invalid Billplz webhook signature');
+            if (!$this->billplzService->verifyWebhook($signature, $data)) {
+                Log::warning('Invalid Billplz webhook signature', [
+                    'signature' => $signature,
+                    'data' => $data
+                ]);
                 return response()->json(['error' => 'Invalid signature'], 400);
             }
-
-            $data = $request->all();
             $billId = $data['id'] ?? null;
             
             if (!$billId) {
@@ -324,14 +341,32 @@ class PaymentController extends Controller
 
     /**
      * Billplz redirect (after payment)
+     * Verifies X-Signature from redirect parameters (billplz[id], billplz[paid], etc.)
      */
     public function billplzRedirect(Request $request)
     {
-        $billId = $request->get('billplz', [])['id'] ?? null;
+        $billplzParams = $request->get('billplz', []);
+        $billId = $billplzParams['id'] ?? null;
+        $xSignature = $billplzParams['x_signature'] ?? null;
         
         if (!$billId) {
             return redirect()->route('student.payment.failed')
                 ->with('error', 'Invalid payment response');
+        }
+
+        // Verify X-Signature if provided (for redirect URLs with X-Signature enabled)
+        if ($xSignature) {
+            $isValid = $this->billplzService->verifyRedirectSignature($xSignature, $billplzParams);
+            
+            if (!$isValid) {
+                Log::warning('Invalid Billplz redirect X-Signature', [
+                    'bill_id' => $billId,
+                    'signature' => $xSignature,
+                    'params' => $billplzParams
+                ]);
+                return redirect()->route('student.payment.failed')
+                    ->with('error', 'Invalid payment signature');
+            }
         }
 
         $payment = Payment::where('billplz_id', $billId)->first();
@@ -341,25 +376,39 @@ class PaymentController extends Controller
                 ->with('error', 'Payment not found');
         }
 
-        // Check payment status
-        $result = $this->billplzService->getBillStatus($billId);
-        
-        if ($result['success']) {
-            $billplzData = $result['data'];
-            
-            if ($billplzData['state'] === 'paid') {
+        // Use redirect data if X-Signature verified, otherwise check with API
+        if ($xSignature && isset($billplzParams['paid'])) {
+            // X-Signature verified, use redirect data directly
+            if ($billplzParams['paid'] === 'true' || $billplzParams['paid'] === true) {
                 $payment->markAsPaid(
-                    $billplzData['payment_method'] ?? null,
-                    $billplzData['transaction_id'] ?? null
+                    $billplzParams['transaction_status'] ?? null,
+                    $billplzParams['transaction_id'] ?? null
                 );
                 
                 return redirect()->route('student.payment.success')
                     ->with('success', 'Payment completed successfully!');
-            } elseif ($billplzData['state'] === 'cancelled') {
-                $payment->markAsCancelled();
+            }
+        } else {
+            // No X-Signature or not verified, check with API
+            $result = $this->billplzService->getBillStatus($billId);
+            
+            if ($result['success']) {
+                $billplzData = $result['data'];
                 
-                return redirect()->route('student.payment.failed')
-                    ->with('error', 'Payment was cancelled');
+                if ($billplzData['state'] === 'paid') {
+                    $payment->markAsPaid(
+                        $billplzData['payment_method'] ?? null,
+                        $billplzData['transaction_id'] ?? null
+                    );
+                    
+                    return redirect()->route('student.payment.success')
+                        ->with('success', 'Payment completed successfully!');
+                } elseif ($billplzData['state'] === 'cancelled') {
+                    $payment->markAsCancelled();
+                    
+                    return redirect()->route('student.payment.failed')
+                        ->with('error', 'Payment was cancelled');
+                }
             }
         }
 

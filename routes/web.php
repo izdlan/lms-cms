@@ -734,6 +734,15 @@ Route::get('/test-payment-status/{paymentId}', function($paymentId) {
 Route::post('/payment/billplz/callback', [App\Http\Controllers\PaymentController::class, 'billplzCallback'])->name('billplz.callback');
 Route::get('/payment/billplz/redirect', [App\Http\Controllers\PaymentController::class, 'billplzRedirect'])->name('billplz.redirect');
 
+// Billplz Sandbox Test Routes (for testing only)
+Route::prefix('billplz-test')->group(function () {
+    Route::get('/', [App\Http\Controllers\BillplzTestController::class, 'index'])->name('billplz.test');
+    Route::get('/test-connection', [App\Http\Controllers\BillplzTestController::class, 'testConnection'])->name('billplz.test.connection');
+    Route::get('/test-collection', [App\Http\Controllers\BillplzTestController::class, 'testCollection'])->name('billplz.test.collection');
+    Route::get('/payment-gateways', [App\Http\Controllers\BillplzTestController::class, 'getPaymentGateways'])->name('billplz.test.gateways');
+    Route::post('/create-payment', [App\Http\Controllers\BillplzTestController::class, 'createTestPayment'])->name('billplz.test.payment');
+});
+
 // Accounting integration API routes
 Route::prefix('api/accounting')->group(function () {
     Route::get('/payments', [App\Http\Controllers\PaymentController::class, 'getAccountingData'])->name('accounting.payments');

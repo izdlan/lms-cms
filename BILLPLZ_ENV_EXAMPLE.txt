@@ -1,0 +1,12 @@
+# Copy this to your .env file (in the root directory)
+
+BILLPLZ_API_KEY=12fd2c2b-9b60-44e2-a8ef-0a5c899b9017
+BILLPLZ_COLLECTION_ID=goth7gdc
+BILLPLZ_X_SIGNATURE_KEY=bbd52bb79dc9bb1901c5dd5c3f52046e625c2cea3563dc836ca30ce76fa6dffe4fc9a9a5cbb7dc9c7a93d303b5f3ba6569ce418965d52c475658fcc459e5cb8e
+BILLPLZ_SANDBOX=true
+BILLPLZ_LOGGING=true
+
+# URL Configuration (auto-configured, no need to change)
+BILLPLZ_CALLBACK_URL=/payment/billplz/callback
+BILLPLZ_REDIRECT_URL=/payment/billplz/redirect
+

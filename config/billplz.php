@@ -19,6 +19,9 @@ return [
     // Webhook verification key
     'webhook_key' => env('BILLPLZ_WEBHOOK_KEY'),
 
+    // X-Signature key for webhook verification
+    'x_signature_key' => env('BILLPLZ_X_SIGNATURE_KEY'),
+
     // Sandbox mode (true for testing, false for production)
     'sandbox' => env('BILLPLZ_SANDBOX', true),
 
