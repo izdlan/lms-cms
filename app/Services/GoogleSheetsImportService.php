@@ -613,9 +613,21 @@ class GoogleSheetsImportService
     private function processStudent($data)
     {
         try {
-            // Find existing user by IC or email
-            $user = User::where('ic', $data['ic'])->first();
-            if (!$user) {
+            // Find existing user by Student ID first (most reliable), then IC, then email
+            $user = null;
+            
+            // Try to find by Student ID first if it exists
+            if (!empty($data['student_id'])) {
+                $user = User::where('student_id', $data['student_id'])->first();
+            }
+            
+            // If not found by Student ID, try IC
+            if (!$user && !empty($data['ic'])) {
+                $user = User::where('ic', $data['ic'])->first();
+            }
+            
+            // If still not found, try email (but allow duplicates as per user request)
+            if (!$user && !empty($data['email'])) {
                 $user = User::where('email', $data['email'])->first();
             }
 

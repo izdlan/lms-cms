@@ -78,7 +78,6 @@
                                             <th>IC/Passport</th>
                                             <th>Email</th>
                                             <th>Student Email</th>
-                                            <th>Phone</th>
                                             <th>Student ID</th>
                                             <th>Source Sheet</th>
                                             <th>Created</th>
@@ -111,9 +110,6 @@
                                                 </td>
                                                 <td>
                                                     <span class="text-muted">{{ $student->student_email ?? 'N/A' }}</span>
-                                                </td>
-                                                <td>
-                                                    <span class="text-muted">{{ $student->phone ?? 'N/A' }}</span>
                                                 </td>
                                                 <td>
                                                     <span class="text-muted">{{ $student->student_id ?? 'N/A' }}</span>
