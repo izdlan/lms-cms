@@ -33,7 +33,7 @@ class EnrollAllStudentsInClassesCommand extends Command
             // Get student's program code and map to subject program code
             $programCode = $student->programme_code;
             $programName = $student->programme_name;
-            ajbnjjndankdnkankda
+            
             if (!$programCode || !$programName) {
                 $errors[] = "Student {$student->name} has no program code or name";
                 continue;
