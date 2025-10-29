@@ -4,10 +4,51 @@
 
 @section('content')
 <div class="container-fluid">
+    <style>
+        /* Vibrant, readable admin styling for this page only */
+        .card { border: 0; box-shadow: 0 10px 30px rgba(51, 65, 85, .12); }
+        .card-header { padding: 1rem 1.25rem; border: 0; }
+        .card-header .card-title { margin: 0; font-weight: 700; letter-spacing: .3px; }
+        .card-header.color-splash {
+            background: linear-gradient(120deg, #7c3aed, #3b82f6, #06b6d4);
+            color: #fff;
+        }
+
+        .btn.btn-primary { background: linear-gradient(135deg,#2563eb,#7c3aed); border: none; }
+        .btn.btn-success { background: linear-gradient(135deg,#16a34a,#22c55e); border: none; }
+        .btn.btn-info { background: linear-gradient(135deg,#06b6d4,#3b82f6); border: none; color: #fff; }
+        .btn.btn-secondary { background: #64748b; border: none; }
+        .btn:focus { box-shadow: 0 0 0 .2rem rgba(124,58,237,.25); }
+
+        .table { border-radius: 10px; overflow: hidden; }
+        .table thead.thead-dark th {
+            background: linear-gradient(120deg, #111827, #1f2937);
+            border-color: #111827;
+            color: #fff;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+        }
+        .table tbody tr:nth-child(odd) { background: #f8fafc; }
+        .table tbody tr:hover { background: #eef2ff; box-shadow: inset 0 0 0 9999px rgba(59,130,246,.06); }
+        .table td { vertical-align: middle; }
+
+        .badge-program { font-weight: 700; padding: .4rem .6rem; border-radius: 999px; color: #0b1021; }
+        .badge-emba { background: #fde68a; color: #6b4000; }
+        .badge-ebba { background: #a7f3d0; color: #065f46; }
+        .badge-edba { background: #c7d2fe; color: #1e3a8a; }
+        .badge-unknown { background: #f3f4f6; color: #374151; }
+
+        .chip { display: inline-block; padding: .25rem .5rem; border-radius: .5rem; font-size: .85rem; }
+        .chip-email { background: #e0f2fe; color: #0369a1; }
+        .chip-username { background: #fee2e2; color: #991b1b; }
+
+        .row-selected { outline: 2px solid #7c3aed; background: #faf5ff !important; }
+        #selectedCount { background: #7c3aed; color: #fff; }
+    </style>
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">
+                <div class="card-header color-splash">
                     <h3 class="card-title">
                         <i class="fas fa-file-pdf"></i> Student Information PDF Generator
                     </h3>
@@ -110,9 +151,24 @@
                                     </td>
                                     <td>{{ $student->student_id ?? 'N/A' }}</td>
                                     <td>{{ $student->name ?? 'N/A' }}</td>
-                                    <td>{{ $student->programme_name ?? 'N/A' }}</td>
-                                    <td>{{ $student->email ?? $student->student_email ?? 'N/A' }}</td>
-                                    <td>{{ $student->ic_passport ?? $student->ic ?? 'N/A' }}</td>
+                                    <td>
+                                        @php
+                                            $code = strtoupper($student->programme_code ?? '');
+                                            $badgeClass = 'badge-unknown';
+                                            if (str_contains($code, 'EMBA')) { $badgeClass = 'badge-emba'; }
+                                            elseif (str_contains($code, 'EBBA')) { $badgeClass = 'badge-ebba'; }
+                                            elseif (str_contains($code, 'EDBA')) { $badgeClass = 'badge-edba'; }
+                                        @endphp
+                                        <span class="badge-program {{ $badgeClass }}" title="{{ $student->programme_code }}">
+                                            {{ $student->programme_name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="chip chip-email">{{ $student->email ?? $student->student_email ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="chip chip-username">{{ $student->ic_passport ?? $student->ic ?? 'N/A' }}</span>
+                                    </td>
                                     <td>
                                         <div class="btn-group" role="group">
                                             <a href="{{ route('admin.student-info.preview', $student->student_id) }}" 
@@ -215,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const programs = new Set();
         checkedBoxes.forEach(cb => {
             const row = cb.closest('tr');
+            row.classList.add('row-selected');
             const programCell = row.querySelector('td:nth-child(4)'); // Program is in 4th column
             if (programCell) {
                 programs.add(programCell.textContent.trim());
