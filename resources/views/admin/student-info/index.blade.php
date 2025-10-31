@@ -69,7 +69,7 @@
                 <div class="card-body">
                     <!-- Search and Filter Controls -->
                     <form method="GET" action="{{ route('admin.student-info.index') }}" id="searchForm">
-                        <div class="row mb-3">
+                    <div class="row mb-3">
                             <div class="col-md-4">
                                 <div class="input-group">
                                     <input type="text" 
@@ -96,12 +96,12 @@
                                 </select>
                             </div>
                             <div class="col-md-2">
-                                <div class="form-check">
+                            <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="show_all" value="yes" id="showAllToggle"
                                            {{ request('show_all') == 'yes' ? 'checked' : '' }}>
                                     <label class="form-check-label" for="showAllToggle">
                                         Show All
-                                    </label>
+                                </label>
                                 </div>
                             </div>
                             <div class="col-md-3 text-right">

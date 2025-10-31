@@ -147,3 +147,50 @@
         </div>
     </div>
 </nav>
+<style>
+/* Homepage-inspired light style (based on Olympia University Online Campus) */
+#navbar {
+    background: #eaf3ff !important; /* very light blue */
+    border-bottom: 1px solid rgba(0,0,0,.04) !important;
+    backdrop-filter: saturate(120%) blur(2px);
+}
+
+/* Brand and links color to a soft navy */
+#navbar .navbar-brand,
+#navbar .nav-link { color: #1a365d !important; }
+
+/* Categories pill (light, subtle shadow) */
+#navbar .menu-category > ul > li {
+    background: #f4f7ff !important;
+    border-radius: 14px !important;
+    padding: .6rem 1rem !important;
+    box-shadow: 0 8px 18px rgba(26,54,93,.08) !important;
+}
+
+/* Dropdown light card */
+#navbar .cat-dropdown-menu {
+    background: #ffffff !important;
+    border: 1px solid rgba(26,54,93,.06) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 14px 40px rgba(26,54,93,.10) !important;
+}
+
+/* Remove hover/focus background box */
+#navbar .nav-link:hover,
+#navbar .nav-link:focus {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Gradient underline on nav links (more visible) */
+#navbar .nav-link { position: relative; display: inline-block; padding-bottom: .8rem !important; }
+#navbar .nav-link::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: .2rem; height: 4px;
+    background: linear-gradient(90deg, rgba(59,130,246,0.6), rgba(147,197,253,0.5)); /* lighter blue gradient */
+    border-radius: 999px; box-shadow: 0 2px 6px rgba(59,130,246,0.25);
+    transform: scaleX(0); transform-origin: left; transition: transform .25s ease;
+}
+#navbar .nav-link:hover::after, #navbar .nav-link:focus::after, #navbar .nav-link.active::after { transform: scaleX(1); }
+
+</style>

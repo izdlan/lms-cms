@@ -100,7 +100,10 @@
     <div class="container">
         <div class="row">
             <div class="col-12">
-                <h2 class="section-title text-center mb-4">Latest Announcements</h2>
+                <h2 class="section-title text-center mb-4 title-with-underline">
+                    <i class="fas fa-bullhorn me-2"></i>
+                    Latest Announcements
+                </h2>
                 <div class="row">
                     @foreach($announcements as $announcement)
                         <div class="col-md-4 mb-4">
@@ -142,32 +145,172 @@
         <h2 class="section-title">
             We collaborate with <span class="highlight">350+ leading universities and companies</span>
         </h2>
-        <div class="logo-container d-flex flex-wrap justify-content-center align-items-center">
-            <div class="logo-item">
+    </div>
+    <!-- Full-width marquee -->
+    <div class="logo-marquee">
+            <div class="logo-track">
                 <img src="/store/1/logo/AIU.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/BESTARI.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/DERBY.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/National PHD.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/UMM.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/DRB.png" alt="Collaborate logo">
-            </div>
-            <div class="logo-item">
                 <img src="/store/1/logo/ACCA.png" alt="Collaborate logo">
-            </div>
+                <!-- duplicate for seamless loop -->
+                <img src="/store/1/logo/AIU.png" alt="Collaborate logo">
+                <img src="/store/1/logo/BESTARI.png" alt="Collaborate logo">
+                <img src="/store/1/logo/DERBY.png" alt="Collaborate logo">
+                <img src="/store/1/logo/National PHD.png" alt="Collaborate logo">
+                <img src="/store/1/logo/UMM.png" alt="Collaborate logo">
+                <img src="/store/1/logo/DRB.png" alt="Collaborate logo">
+                <img src="/store/1/logo/ACCA.png" alt="Collaborate logo">
         </div>
     </div>
 </section>
 
+@push('styles')
+<style>
+.collaboration-section { padding: 40px 0; }
+.logo-marquee { overflow: hidden; position: relative; width: 100vw; left: 50%; transform: translateX(-50%); }
+.logo-track {
+    display: inline-flex; align-items: center; gap: 120px; /* wider gap between logos */
+    white-space: nowrap; will-change: transform;
+    animation: marquee-left 30s linear infinite;
+}
+.logo-track img { height: 48px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); opacity: .98; }
+@keyframes marquee-left {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+@media (max-width: 768px) {
+    .logo-track { gap: 48px; animation-duration: 20s; }
+    .logo-track img { height: 32px; }
+}
+</style>
+@endpush
+
+@push('scripts')
+<script>
+// Animated counters with lightening color and trailing plus sign
+document.addEventListener('DOMContentLoaded', function () {
+    const counters = document.querySelectorAll('.counter');
+    if (!counters.length) return;
+
+    // blue tone (same as before)
+    const baseColor = { r: 30, g: 64, b: 175 };      // deep blue
+    const lightColor = { r: 158, g: 197, b: 254 };   // light blue
+
+    function lerp(a, b, t) { return a + (b - a) * t; }
+    function blend(c1, c2, t) {
+        return `rgb(${Math.round(lerp(c1.r, c2.r, t))}, ${Math.round(lerp(c1.g, c2.g, t))}, ${Math.round(lerp(c1.b, c2.b, t))})`;
+    }
+
+    function animateCounter(el) {
+        const target = parseInt(el.getAttribute('data-target') || '0', 10);
+        const duration = 1600 + Math.min(2400, target * 12); // bigger number => slightly longer
+        const start = performance.now();
+
+        function frame(now) {
+            const progress = Math.min(1, (now - start) / duration);
+            const current = Math.floor(target * progress);
+            el.textContent = `${current}+`;
+            // make color lighter as it grows
+            el.style.color = blend(baseColor, lightColor, progress);
+            if (progress < 1) {
+                requestAnimationFrame(frame);
+            } else {
+                // pause for 4 seconds, then loop again from 0
+                setTimeout(() => {
+                    el.textContent = '0+';
+                    el.style.color = blend(baseColor, lightColor, 0);
+                    animateCounter(el);
+                }, 4000);
+            }
+        }
+        requestAnimationFrame(frame);
+    }
+
+    // Run when the stats block enters the viewport
+    const io = new IntersectionObserver((entries, obs) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                counters.forEach(animateCounter);
+                obs.disconnect();
+            }
+        });
+    }, { threshold: 0.2 });
+
+    const statsSection = document.querySelector('.stats-container');
+    if (statsSection) io.observe(statsSection); else counters.forEach(animateCounter);
+});
+</script>
+@endpush
+
+@push('styles')
+<style>
+/* Stats section styling to match reference */
+.stats-container { padding: 0 !important; }
+.stats-container > .container { padding-top: 6px !important; padding-bottom: 0 !important; margin-bottom: -10px !important; }
+.stats-container .row { margin-top: 0 !important; margin-bottom: 0 !important; }
+.stats-container .row > [class^="col-"] { padding-bottom: 0 !important; margin-bottom: 0 !important; }
+.home-sections.stats-container { margin-bottom: 0 !important; padding-bottom: 0 !important; padding-top: 6px !important; min-height: 0 !important; }
+/* Tighten vertical spacing inside stats section */
+.stats-container .mt-25 { margin-top: 0 !important; }
+.stats-container .stats-item { padding-top: 4px !important; padding-bottom: 4px !important; margin-top: 0 !important; margin-bottom: 0 !important; }
+.stats-container .stat-icon-box { margin-bottom: 6px !important; }
+.stats-container .stat-number { margin: 4px 0 !important; }
+.stats-container .stat-title { margin: 2px 0 0 0 !important; }
+.stats-container .stat-desc { margin-top: 4px !important; margin-bottom: 0 !important; }
+/* Minimize paragraph spacing inside stats */
+.stats-container p { margin-top: 4px !important; margin-bottom: 0 !important; }
+
+/* Safety: neutralize any bootstrap spacing utilities that add bottom gap here */
+.stats-container [class*="pb-"],
+.stats-container [class*="mb-"] {
+    padding-bottom: 0 !important;
+    margin-bottom: 0 !important;
+}
+.stats-item { background: transparent !important; border: none !important; box-shadow: none !important; }
+.stats-item .stat-icon-box { 
+    width: 84px; height: 84px; border-radius: 50%; background: rgba(255,255,255,0.9);
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,.12);
+}
+.stats-item .stat-icon-box img { width: 48px; height: 48px; object-fit: contain; }
+.stats-item .stat-number { font-size: 42px; font-weight: 700; letter-spacing: .5px; }
+.stats-item .stat-title { color: #1a365d !important; }
+
+/* Title underline (blue gradient) */
+.title-with-underline {
+    position: relative;
+    display: flex; /* full-width flex container */
+    width: 100%;
+    align-items: center;
+    justify-content: center; /* center content horizontally */
+    gap: 10px; /* space between icon and text */
+    padding-bottom: 8px;
+    color: #0b2a55; /* deep blue */
+}
+.title-with-underline i { color: #0b2a55; margin: 0; }
+.title-with-underline:after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -6px;
+    width: 180px;
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, rgba(30,64,175,0), rgba(59,130,246,0.8), rgba(30,64,175,0));
+    box-shadow: 0 3px 10px rgba(59,130,246,.35);
+}
+/* Remove blue gap between sections */
+.top-links-section { margin-bottom: 0 !important; padding-bottom: 0 !important; }
+.announcements-section { margin-top: 0 !important; padding-top: 0 !important; }
+/* Remove blue divider between hero and top-links */
+.slider-hero-section2 { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
+.home-sections.top-links-section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+</style>
+@endpush
 
 <section class="home-sections stats-container page-has-hero-section-2">
     <div class="container">
@@ -177,7 +320,7 @@
                     <div class="stat-icon-box">
                         <img src="/assets/default/img/stats/teacher.svg" alt="" class="img-fluid" />
                     </div>
-                    <strong class="stat-number mt-10">19</strong>
+                    <strong class="stat-number mt-10 counter" data-target="19">0+</strong>
                     <h4 class="stat-title">Expert Instructor</h4>
                     <p class="stat-desc mt-10">Start learning from experienced instructors.</p>
                 </div>
@@ -188,7 +331,7 @@
                     <div class="stat-icon-box">
                         <img src="/assets/default/img/stats/student.svg" alt="" class="img-fluid" />
                     </div>
-                    <strong class="stat-number mt-10">0</strong>
+                    <strong class="stat-number mt-10 counter" data-target="0">0+</strong>
                     <h4 class="stat-title">Registered Student</h4>
                     <p class="stat-desc mt-10">Enrolled in our courses and improved their skills.</p>
                 </div>
@@ -199,7 +342,7 @@
                     <div class="stat-icon-box">
                         <img src="/assets/default/img/stats/video.svg" alt="" class="img-fluid" />
                     </div>
-                    <strong class="stat-number mt-10">126</strong>
+                    <strong class="stat-number mt-10 counter" data-target="126">0+</strong>
                     <h4 class="stat-title">Live Classes</h4>
                     <p class="stat-desc mt-10">Improve your skills using live knowledge flow.</p>
                 </div>
@@ -210,7 +353,7 @@
                     <div class="stat-icon-box">
                         <img src="/assets/default/img/stats/course.svg" alt="" class="img-fluid" />
                     </div>
-                    <strong class="stat-number mt-10">0</strong>
+                    <strong class="stat-number mt-10 counter" data-target="0">0+</strong>
                     <h4 class="stat-title">Video Courses</h4>
                     <p class="stat-desc mt-10">Learn without any geographical &amp; time limitations.</p>
                 </div>

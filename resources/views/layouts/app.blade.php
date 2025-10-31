@@ -1210,6 +1210,66 @@
             font-display: block;
         }
     </style>
+    
+    <!-- Global light homepage style inspired by Olympia University Online Campus -->
+    <style>
+        /* Page background and base colors */
+        html, body {
+            background: #eaf3ff !important; /* very light blue wash across the site */
+            color: #1a2a44 !important; /* deep slate for readability */
+        }
+
+        a { color: #1a365d !important; }
+        a:hover, a:focus { color: #0f2a4a !important; text-decoration: none !important; }
+
+        /* Section spacing helpers */
+        .section-lg { padding: 3rem 0 !important; }
+        .section-xl { padding: 4rem 0 !important; }
+
+        /* Cards: softer, airier look */
+        .card, .content-card, .dashboard-card, .password-change-card, .course-card, .stats-card {
+            background: #ffffff !important;
+            border: 1px solid rgba(26,54,93,.06) !important;
+            border-radius: 14px !important;
+            box-shadow: 0 14px 40px rgba(26,54,93,.08) !important;
+        }
+
+        /* Buttons – lighter blue palette */
+        .btn-primary {
+            background: #3b82f6 !important; /* blue-500 */
+            border-color: #3b82f6 !important;
+            color: #ffffff !important;
+            box-shadow: 0 6px 16px rgba(59,130,246,.25) !important;
+        }
+        .btn-primary:hover, .btn-primary:focus {
+            background: #2563eb !important; /* blue-600 */
+            border-color: #2563eb !important;
+            box-shadow: 0 8px 22px rgba(37,99,235,.32) !important;
+        }
+        .btn-outline-primary {
+            border-color: #3b82f6 !important; color: #2563eb !important; background: transparent !important;
+        }
+        .btn-outline-primary:hover { background: #e8f1ff !important; color: #1a365d !important; }
+
+        /* Headings – soft navy */
+        h1, h2, h3, .page-title { color: #1a365d !important; }
+        .text-muted { color: #5b6b86 !important; }
+
+        /* Light hero area helper (for home sections if used) */
+        .hero-light {
+            background: linear-gradient(180deg, #eef6ff 0%, rgba(238,246,255,0.6) 100%) !important;
+            border-radius: 18px !important;
+            box-shadow: inset 0 -1px 0 rgba(26,54,93,.06) !important;
+        }
+
+        /* Tables and list rows – soft separators */
+        table thead th { background: #f7fbff !important; border-bottom: 1px solid rgba(26,54,93,.06) !important; }
+        table tbody tr { border-bottom: 1px solid rgba(26,54,93,.06) !important; }
+
+        /* Inputs */
+        .form-control { border-radius: 10px !important; border-color: rgba(26,54,93,.18) !important; }
+        .form-control:focus { box-shadow: 0 0 0 .2rem rgba(59,130,246,.15) !important; border-color: #3b82f6 !important; }
+    </style>
 
     <link rel="stylesheet" href="/assets/vendors/nprogress/nprogress.min.css">
     <script src="/assets/vendors/nprogress/nprogress.min.js"></script>

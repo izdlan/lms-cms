@@ -21,11 +21,6 @@
                         </a>
                     </p>
                     <p>
-                        <a href="/blog">
-                            <font color="#ffffff">- Blog</font>
-                        </a>
-                    </p>
-                    <p>
                         <a href="/contact">
                             <font color="#ffffff">- Contact us</font>
                         </a>
@@ -35,17 +30,6 @@
                             <a href="{{ route('ex-student.login') }}">
                                 <font color="#ffffff">- Certificate validation</font>
                             </a><br></font>
-                    </p>
-                    <p>
-                        <font color="#ffffff">
-                            <a href="/become-instructor">
-                                <font color="#ffffff">- Become instructor</font>
-                            </a><br></font>
-                    </p>
-                    <p>
-                        <a href="/pages/terms">
-                            <font color="#ffffff">- Terms &amp; rules</font>
-                        </a>
                     </p>
                     <p>
                         <a href="/pages/about">
