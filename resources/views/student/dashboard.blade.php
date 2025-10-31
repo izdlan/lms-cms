@@ -22,6 +22,11 @@
                     <p class="text-muted">Here's your academic overview and course information.</p>
                 </div>
 
+                <!-- System Maintenance Banner -->
+                <div class="maintenance-banner" role="alert">
+                    <strong>Notice:</strong> Dear student, please be informed that your profile picture and password have been reset due to system maintenance. You may update them again upon your next login. Thank you for your understanding.
+                </div>
+
                 @if(auth('student')->user()->must_reset_password)
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
                         <i data-feather="alert-triangle" width="20" height="20"></i>
@@ -95,6 +100,19 @@
 
 @push('styles')
 <style>
+
+.maintenance-banner {
+    background: #dc2626; /* solid red */
+    border: 2px solid #b91c1c; /* darker red border */
+    color: #ffffff; /* white text for contrast */
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(185, 28, 28, 0.25);
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.maintenance-banner a { color: #ffffff; text-decoration: underline; }
 
 .stats-card {
     background: white;
