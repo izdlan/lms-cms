@@ -215,7 +215,7 @@
                         <h4 class="instructions-title">HOW TO MAKE PAYMENT:</h4>
                         <div class="instructions-content">
                             <ol class="steps-list">
-                                <li><strong>Click on the Bill Number</strong> - Click on any unpaid bill number in the table above</li>
+                                <li><strong>Click on the Bill Number</strong> - Click on any unpaid or pending bill number in the table above</li>
                                 <li><strong>Select Payment Method</strong> - Choose from available payment options (Online Banking, Credit Card, etc.)</li>
                                 <li><strong>Enter Payment Details</strong> - Fill in your payment information and billing address</li>
                                 <li><strong>Review & Confirm</strong> - Double-check all details before proceeding with payment</li>
@@ -394,6 +394,12 @@
     background: #d1edff;
     color: #0c5460;
     border: 1px solid #bee5eb;
+}
+
+.status.unpaid {
+    background: #e9ecef;
+    color: #495057;
+    border: 1px solid #ced4da;
 }
 
 .status.pending {

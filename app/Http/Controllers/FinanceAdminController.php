@@ -331,7 +331,7 @@ class FinanceAdminController extends Controller
 
         $student = User::where('id', $studentId)->where('role', 'student')->firstOrFail();
 
-        $invoice = Invoice::create([
+        $invoice = \App\Models\StudentBill::create([
             'bill_number' => \App\Models\StudentBill::generateBillNumber(),
             'user_id' => $studentId,
             'bill_type' => $request->bill_type,
@@ -341,7 +341,7 @@ class FinanceAdminController extends Controller
             'due_date' => $request->due_date,
             'description' => $request->description,
             'metadata' => ['created_by' => Auth::id(), 'notes' => $request->notes],
-            'status' => 'pending'
+            'status' => \App\Models\StudentBill::STATUS_UNPAID
         ]);
 
         return redirect()->route('finance-admin.student.show', $studentId)

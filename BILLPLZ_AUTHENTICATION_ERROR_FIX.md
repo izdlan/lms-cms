@@ -168,3 +168,5 @@ Remember:
 
 **Once you update your `.env` with the correct sandbox credentials, the 400 error will be fixed!** ✅
 
+
+

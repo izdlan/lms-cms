@@ -59,8 +59,11 @@ class BillplzService
                 $postData['reference_1'] = $data['bank_code'];
             }
 
+            // Note: Bills endpoint is still v3, other endpoints use v4
+            $billsBaseUrl = $this->sandboxMode ? 'https://www.billplz-sandbox.com/api/v3' : 'https://www.billplz.com/api/v3';
+            
             $response = Http::withBasicAuth($this->apiKey, '')
-                ->post($this->baseUrl . '/bills', $postData);
+                ->post($billsBaseUrl . '/bills', $postData);
 
             if ($response->successful()) {
                 $billData = $response->json();
@@ -76,13 +79,28 @@ class BillplzService
                     'data' => $billData
                 ];
             } else {
+                $errorResponse = $response->json();
+                $errorMessage = 'Failed to create bill';
+                
+                if (isset($errorResponse['error'])) {
+                    if (is_array($errorResponse['error'])) {
+                        $errorMessage = $errorResponse['error']['message'] ?? json_encode($errorResponse['error']);
+                    } else {
+                        $errorMessage = $errorResponse['error'];
+                    }
+                }
+                
                 Log::error('Billplz bill creation failed', [
                     'status' => $response->status(),
-                    'response' => $response->body()
+                    'response' => $response->body(),
+                    'error' => $errorMessage
                 ]);
+                
                 return [
                     'success' => false,
-                    'error' => $response->json()['error'] ?? 'Failed to create bill'
+                    'error' => $errorMessage,
+                    'http_status' => $response->status(),
+                    'response' => $errorResponse
                 ];
             }
         } catch (\Exception $e) {
@@ -103,8 +121,11 @@ class BillplzService
     public function getBillStatus($billId)
     {
         try {
+            // Bills endpoint uses v3
+            $billsBaseUrl = $this->sandboxMode ? 'https://www.billplz-sandbox.com/api/v3' : 'https://www.billplz.com/api/v3';
+            
             $response = Http::withBasicAuth($this->apiKey, '')
-                ->get($this->baseUrl . '/bills/' . $billId);
+                ->get($billsBaseUrl . '/bills/' . $billId);
 
             if ($response->successful()) {
                 return [

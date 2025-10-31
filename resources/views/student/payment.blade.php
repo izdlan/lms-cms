@@ -429,11 +429,21 @@ function processPayment() {
     const statusDiv = document.getElementById('paymentStatus');
     const statusText = document.getElementById('paymentStatusText');
     
+    if (!payBtn || !statusDiv) {
+        console.error('Required payment elements not found');
+        alert('Payment form error. Please refresh the page and try again.');
+        return;
+    }
+    
     // Disable button and show status
     payBtn.disabled = true;
     payBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
     statusDiv.style.display = 'block';
-    statusText.textContent = 'Creating payment with Billplz...';
+    if (statusText) {
+        statusText.textContent = 'Creating payment with Billplz...';
+    } else {
+        statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Creating payment with Billplz...</div>';
+    }
     
     // Make AJAX request to process payment
     fetch('{{ route("student.payment.process") }}', {
@@ -446,16 +456,30 @@ function processPayment() {
             bill_id: {{ $bill->id }}
         })
     })
-    .then(response => response.json())
+    .then(response => {
+        // Check if response is ok
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'HTTP error: ' + response.status);
+            });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            statusText.textContent = 'Redirecting to payment gateway...';
+            if (statusText) {
+                statusText.textContent = 'Redirecting to payment gateway...';
+            } else {
+                statusDiv.innerHTML = '<div class="alert alert-info"><i class="fas fa-spinner fa-spin"></i> Redirecting to payment gateway...</div>';
+            }
             // Redirect to Billplz payment page
-            window.location.href = data.payment_url;
+            setTimeout(() => {
+                window.location.href = data.payment_url;
+            }, 500);
         } else {
-            statusText.textContent = 'Error: ' + data.message;
+            const errorMsg = data.message || 'Failed to process payment';
             statusDiv.className = 'mt-3';
-            statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + data.message + '</div>';
+            statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + errorMsg + '</div>';
             
             // Re-enable button
             payBtn.disabled = false;
@@ -463,10 +487,11 @@ function processPayment() {
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        statusText.textContent = 'An error occurred. Please try again.';
+        console.error('Payment Error:', error);
+        const errorMessage = error.message || 'An error occurred. Please try again.';
+        
         statusDiv.className = 'mt-3';
-        statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> An error occurred. Please try again.</div>';
+        statusDiv.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle"></i> ' + errorMessage + '</div>';
         
         // Re-enable button
         payBtn.disabled = false;

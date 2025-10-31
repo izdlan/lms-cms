@@ -858,7 +858,7 @@ class StudentController extends Controller
         if ($billId) {
             $bill = StudentBill::where('id', $billId)
                 ->where('user_id', $user->id)
-                ->where('status', StudentBill::STATUS_PENDING)
+                ->whereIn('status', [StudentBill::STATUS_UNPAID, StudentBill::STATUS_PENDING])
                 ->firstOrFail();
         }
         
@@ -888,7 +888,7 @@ class StudentController extends Controller
         try {
             $bill = StudentBill::where('id', $request->bill_id)
                 ->where('user_id', $user->id)
-                ->where('status', StudentBill::STATUS_PENDING)
+                ->whereIn('status', [StudentBill::STATUS_UNPAID, StudentBill::STATUS_PENDING])
                 ->firstOrFail();
 
             // Check if there's already a pending payment for this bill
@@ -913,16 +913,28 @@ class StudentController extends Controller
             if ($result['success']) {
                 $billplzData = $result['data'];
                 
+                // Mark bill as pending when payment is initiated
+                if ($bill->isUnpaid()) {
+                    $bill->markAsPending();
+                }
+                
                 // Create payment record
                 $payment = Payment::create([
+                    'payment_number' => Payment::generatePaymentNumber(),
                     'billplz_id' => $billplzData['id'],
                     'billplz_collection_id' => $billplzData['collection_id'],
+                    'user_id' => $user->id,
                     'student_id' => $user->id,
                     'student_bill_id' => $bill->id,
+                    'reference_id' => (string)$bill->id,
+                    'reference_type' => 'bill',
+                    'type' => Payment::TYPE_INVOICE_PAYMENT,
                     'amount' => $bill->amount,
+                    'currency' => 'MYR',
+                    'status' => Payment::STATUS_PENDING,
                     'payment_method' => 'online_banking',
                     'description' => "Payment for {$bill->bill_type} - {$bill->bill_number}",
-                    'payment_details' => $billplzData,
+                    'billplz_response' => $billplzData,
                     'expires_at' => now()->addMinutes(config('billplz.timeout', 30)),
                 ]);
 
@@ -933,21 +945,35 @@ class StudentController extends Controller
                     'message' => 'Payment created successfully'
                 ]);
             } else {
+                Log::error('Billplz payment creation failed in StudentController', [
+                    'error' => $result['error'] ?? 'Unknown error',
+                    'result' => $result,
+                    'bill_id' => $bill->id,
+                    'user_id' => $user->id
+                ]);
+
                 return response()->json([
                     'success' => false,
-                    'message' => $result['error']
+                    'message' => $result['error'] ?? 'Failed to create payment with Billplz',
+                    'debug' => config('app.debug') ? $result : null
                 ], 400);
             }
         } catch (\Exception $e) {
             Log::error('Bill payment processing failed', [
                 'error' => $e->getMessage(),
-                'user_id' => $user->id,
-                'bill_id' => $request->bill_id
+                'trace' => $e->getTraceAsString(),
+                'user_id' => $user->id ?? null,
+                'bill_id' => $request->bill_id ?? null
             ]);
 
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to process payment. Please try again.'
+                'message' => config('app.debug') ? $e->getMessage() : 'Failed to process payment. Please try again.',
+                'error' => config('app.debug') ? [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine()
+                ] : null
             ], 500);
         }
     }

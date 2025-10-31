@@ -58,6 +58,7 @@ class StudentBill extends Model
     }
 
     // Status constants
+    const STATUS_UNPAID = 'unpaid';
     const STATUS_PENDING = 'pending';
     const STATUS_PAID = 'paid';
     const STATUS_OVERDUE = 'overdue';
@@ -112,6 +113,14 @@ class StudentBill extends Model
     public function isFullyPaid(): bool
     {
         return $this->total_paid >= (float) $this->amount;
+    }
+
+    /**
+     * Check if bill is unpaid
+     */
+    public function isUnpaid(): bool
+    {
+        return $this->status === self::STATUS_UNPAID;
     }
 
     /**
@@ -205,10 +214,31 @@ class StudentBill extends Model
         return match($this->status) {
             self::STATUS_PAID => 'bg-success',
             self::STATUS_PENDING => 'bg-warning',
+            self::STATUS_UNPAID => 'bg-secondary',
             self::STATUS_OVERDUE => 'bg-danger',
             self::STATUS_CANCELLED => 'bg-secondary',
             default => 'bg-secondary'
         };
+    }
+
+    /**
+     * Mark bill as pending (when payment is initiated)
+     */
+    public function markAsPending(): void
+    {
+        if ($this->status === self::STATUS_UNPAID) {
+            $this->update([
+                'status' => self::STATUS_PENDING,
+            ]);
+        }
+    }
+
+    /**
+     * Scope for unpaid bills
+     */
+    public function scopeUnpaid($query)
+    {
+        return $query->where('status', self::STATUS_UNPAID);
     }
 
     /**
