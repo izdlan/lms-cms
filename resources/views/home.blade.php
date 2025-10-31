@@ -30,10 +30,30 @@
                 <div class="sidebar-content">
                     <h2 class="sidebar-title">Student Portal</h2>
                     <ul class="top-links-list">
-                        <li><a href="/login" class="top-link-item">Login</a></li>
-                        <li><a href="/login" class="top-link-item">Course Registration</a></li>
-                        <li><a href="/login" class="top-link-item">Student Bills</a></li>
-                        <li><a href="/login" class="top-link-item">Exam Result</a></li>
+                        <li>
+                            <a href="/login" class="top-link-item">
+                                <i class="fa-solid fa-right-to-bracket me-2"></i>
+                                Login
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/login" class="top-link-item">
+                                <i class="fa-solid fa-clipboard-list me-2"></i>
+                                Course Registration
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/login" class="top-link-item">
+                                <i class="fa-solid fa-file-invoice-dollar me-2"></i>
+                                Student Bills
+                            </a>
+                        </li>
+                        <li>
+                            <a href="/login" class="top-link-item">
+                                <i class="fa-solid fa-graduation-cap me-2"></i>
+                                Exam Result
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </div>
@@ -132,7 +152,10 @@
                     @endforeach
                 </div>
                 <div class="text-center mt-4">
-                    <a href="/announcements" class="btn btn-primary">View All Announcements</a>
+                    <a href="/announcements" class="btn btn-primary">
+                        <i class="fa-solid fa-bullhorn me-2"></i>
+                        View All Announcements
+                    </a>
                 </div>
             </div>
         </div>
@@ -170,21 +193,25 @@
 
 @push('styles')
 <style>
-.collaboration-section { padding: 40px 0; }
+/* Student Portal icons */
+.top-links-list .top-link-item:before { content: none !important; }
+.top-links-list .top-link-item i { color: #0b2a55 !important; width: 18px !important; text-align: center !important; }
+.top-links-list .top-link-item { display: flex !important; align-items: center !important; gap: 8px !important; }
+.collaboration-section { padding: 60px 0 20px 0; }
 .logo-marquee { overflow: hidden; position: relative; width: 100vw; left: 50%; transform: translateX(-50%); }
 .logo-track {
-    display: inline-flex; align-items: center; gap: 120px; /* wider gap between logos */
+    display: inline-flex; align-items: center; gap: 160px; /* wider gap between logos */
     white-space: nowrap; will-change: transform;
     animation: marquee-left 30s linear infinite;
 }
-.logo-track img { height: 48px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); opacity: .98; }
+.logo-track img { height: 56px; width: auto; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.12)); opacity: .98; }
 @keyframes marquee-left {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
 }
 @media (max-width: 768px) {
-    .logo-track { gap: 48px; animation-duration: 20s; }
-    .logo-track img { height: 32px; }
+    .logo-track { gap: 64px; animation-duration: 20s; }
+    .logo-track img { height: 36px; }
 }
 </style>
 @endpush
@@ -248,19 +275,48 @@ document.addEventListener('DOMContentLoaded', function () {
 
 @push('styles')
 <style>
+/* Keep page background neutral; section provides its own background */
+body { background: #ffffff !important; }
 /* Stats section styling to match reference */
 .stats-container { padding: 0 !important; }
-.stats-container > .container { padding-top: 6px !important; padding-bottom: 0 !important; margin-bottom: -10px !important; }
+.stats-container > .container { padding-top: 0 !important; padding-bottom: 0 !important; margin-bottom: -10px !important; }
 .stats-container .row { margin-top: 0 !important; margin-bottom: 0 !important; }
 .stats-container .row > [class^="col-"] { padding-bottom: 0 !important; margin-bottom: 0 !important; }
-.home-sections.stats-container { margin-bottom: 0 !important; padding-bottom: 0 !important; padding-top: 6px !important; min-height: 0 !important; }
-/* Tighten vertical spacing inside stats section */
-.stats-container .mt-25 { margin-top: 0 !important; }
-.stats-container .stats-item { padding-top: 4px !important; padding-bottom: 4px !important; margin-top: 0 !important; margin-bottom: 0 !important; }
-.stats-container .stat-icon-box { margin-bottom: 6px !important; }
-.stats-container .stat-number { margin: 4px 0 !important; }
-.stats-container .stat-title { margin: 2px 0 0 0 !important; }
-.stats-container .stat-desc { margin-top: 4px !important; margin-bottom: 0 !important; }
+.home-sections.stats-container { margin-bottom: 0 !important; padding-bottom: 0 !important; padding-top: 0 !important; min-height: 0 !important; }
+/* Background image for stats section */
+.home-sections.stats-container {
+    background: url('/assets/default/img/home/annoucement.jpg') center center / cover no-repeat !important;
+    min-height: 480px; /* slightly shorter while keeping image visible */
+    margin-top: 0 !important; /* remove gap above */
+    margin-bottom: 0 !important; /* remove gap below */
+    padding: 40px 0 !important; /* moderate breathing room */
+    overflow: hidden !important;
+    position: relative !important; /* enable overlay */
+}
+/* dark overlay to improve text contrast */
+.home-sections.stats-container:before {
+    content: "";
+    position: absolute !important;
+    inset: 0 !important;
+    background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,.35)) !important;
+    pointer-events: none !important;
+    z-index: 0 !important;
+}
+.home-sections.stats-container > .container { position: relative !important; z-index: 1 !important; }
+/* Remove top margin on footer band to eliminate white gap below section */
+/* Remove top gap before footer caused by global footer margin */
+.footer { margin-top: 0 !important; }
+.footer .mt-40 { margin-top: 0 !important; }
+/* Remove any top margin from the next section to prevent white gap */
+.home-sections.stats-container + section { margin-top: 0 !important; }
+/* Comfortable vertical spacing inside stats section */
+.stats-container .mt-25 { margin-top: 12px !important; }
+.stats-container .row > [class^="col-"] { padding-top: 6px !important; padding-bottom: 6px !important; }
+.stats-container .stats-item { padding-top: 12px !important; padding-bottom: 12px !important; margin-top: 6px !important; margin-bottom: 6px !important; }
+.stats-container .stat-icon-box { margin-bottom: 12px !important; }
+.stats-container .stat-number { margin: 8px 0 !important; }
+.stats-container .stat-title { margin: 4px 0 0 0 !important; }
+.stats-container .stat-desc { margin-top: 8px !important; margin-bottom: 0 !important; color: #f1f5f9 !important; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
 /* Minimize paragraph spacing inside stats */
 .stats-container p { margin-top: 4px !important; margin-bottom: 0 !important; }
 
@@ -276,8 +332,8 @@ document.addEventListener('DOMContentLoaded', function () {
     display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0,0,0,.12);
 }
 .stats-item .stat-icon-box img { width: 48px; height: 48px; object-fit: contain; }
-.stats-item .stat-number { font-size: 42px; font-weight: 700; letter-spacing: .5px; }
-.stats-item .stat-title { color: #1a365d !important; }
+.stats-item .stat-number { font-size: 42px; font-weight: 700; letter-spacing: .5px; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
+.stats-item .stat-title { color: #ffffff !important; text-shadow: 0 2px 8px rgba(0,0,0,.35); }
 
 /* Title underline (blue gradient) */
 .title-with-underline {
@@ -309,6 +365,12 @@ document.addEventListener('DOMContentLoaded', function () {
 /* Remove blue divider between hero and top-links */
 .slider-hero-section2 { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
 .home-sections.top-links-section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
+/* Announcements CTA icon alignment */
+.announcements-section .btn i { width: 16px !important; text-align: center !important; }
+/* Remove gap between collaboration and stats sections */
+.home-sections.collaboration-section { margin-bottom: 0 !important; padding-bottom: 32px !important; }
+.home-sections.collaboration-section .container { margin-bottom: 0 !important; padding-bottom: 16px !important; }
+.logo-marquee { margin-bottom: 0 !important; padding-bottom: 16px !important; }
 </style>
 @endpush
 
