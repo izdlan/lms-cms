@@ -65,9 +65,16 @@
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div class="me-3">
-                                                            <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                                <i data-feather="user" width="16" height="16" class="text-primary"></i>
-                                                            </div>
+                                                            @if($student->profile_picture)
+                                                                <img src="{{ asset('storage/' . $student->profile_picture) }}" 
+                                                                     alt="{{ $student->name }}" 
+                                                                     class="rounded-circle"
+                                                                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e0e0e0;">
+                                                            @else
+                                                                <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                    <i data-feather="user" width="16" height="16" class="text-primary"></i>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                         <div>
                                                             <div class="fw-semibold">{{ $student->name }}</div>

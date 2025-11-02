@@ -279,6 +279,7 @@ Route::prefix('admin')->group(function () {
     Route::middleware(['auth', 'admin'])->group(function () {
         Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('admin.dashboard');
         Route::get('/students', [AdminController::class, 'students'])->name('admin.students');
+        Route::post('/students/enroll-new', [AdminController::class, 'enrollNewStudents'])->name('admin.students.enroll-new');
         Route::get('/students/status', [AdminController::class, 'studentStatus'])->name('admin.students.status');
         Route::get('/user-activity-logs', [AdminController::class, 'userActivityLogs'])->name('admin.user-activity-logs');
         Route::get('/students/create', [AdminController::class, 'createStudent'])->name('admin.students.create');

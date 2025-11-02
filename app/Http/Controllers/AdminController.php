@@ -29,6 +29,7 @@ use App\Services\CsvImportService;
 use App\Services\XlsxImportService;
 use App\Services\GoogleSheetsImportService;
 use App\Services\UserActivityService;
+use App\Services\EnrollmentService;
 
 class AdminController extends Controller
 {
@@ -79,7 +80,7 @@ class AdminController extends Controller
         $this->checkAdminAccess();
         
         $students = User::where('role', 'student')
-            ->select(['name', 'email', 'student_email', 'student_id', 'programme_name', 'status', 'contact_no', 'ic'])
+            ->select(['name', 'email', 'student_email', 'student_id', 'programme_name', 'status', 'contact_no', 'ic', 'profile_picture'])
             ->orderBy('name')
             ->paginate(50);
             
@@ -118,6 +119,21 @@ class AdminController extends Controller
         
         $students = User::where('role', 'student')->paginate(20);
         return view('admin.students', compact('students'));
+    }
+
+    /**
+     * Enroll all recently added/un-enrolled students into their program subjects/classes
+     */
+    public function enrollNewStudents(EnrollmentService $enrollmentService)
+    {
+        $this->checkAdminAccess();
+        try {
+            $summary = $enrollmentService->enrollAllUnenrolled();
+            return back()->with('success', 'Enrollment completed. Enrolled: ' . $summary['totalEnrolled'] . ', Skipped: ' . $summary['totalSkipped'] . ', Errors: ' . $summary['totalErrors']);
+        } catch (\Throwable $e) {
+            Log::error('Admin enroll new students failed', ['error' => $e->getMessage()]);
+            return back()->with('error', 'Enrollment failed: ' . $e->getMessage());
+        }
     }
 
     public function showImportForm()
@@ -248,7 +264,7 @@ class AdminController extends Controller
         // Use student_email as fallback if email is empty
         $email = $request->email ?: $request->student_email;
 
-        User::create([
+        $user = User::create([
             'name' => $request->name,
             'ic' => $request->ic,
             'email' => $email,
@@ -262,7 +278,17 @@ class AdminController extends Controller
             'courses' => $courses,
         ]);
 
-        return redirect()->route('admin.students')->with('success', 'Student created successfully!');
+        // Auto-enroll this newly created student into their program subjects/classes
+        try {
+            app(EnrollmentService::class)->enrollUser($user);
+        } catch (\Throwable $e) {
+            Log::warning('Auto-enroll failed after student creation', [
+                'user_id' => $user->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return redirect()->route('admin.students')->with('success', 'Student created and enrollment attempted.');
     }
 
     public function editStudent(User $student)

@@ -22,6 +22,13 @@
                                 <i data-feather="plus"></i>
                                 Add Student
                             </a>
+                            <form method="POST" action="{{ route('admin.students.enroll-new') }}">
+                                @csrf
+                                <button type="submit" class="btn-modern btn-modern-success">
+                                    <i data-feather="user-check"></i>
+                                    Enroll New Students
+                                </button>
+                            </form>
                             <button type="button" class="btn-modern btn-modern-warning" onclick="runGoogleSheetsImport()" id="googleSheetsBtn">
                                 <i data-feather="download"></i>
                                 Google Sheets
@@ -34,6 +41,12 @@
                     <div class="alert-modern alert-modern-success">
                         <i data-feather="check-circle"></i>
                         {{ session('success') }}
+                    </div>
+                @endif
+                @if(session('error'))
+                    <div class="alert-modern alert-modern-danger">
+                        <i data-feather="alert-triangle"></i>
+                        {{ session('error') }}
                     </div>
                 @endif
 
@@ -85,9 +98,16 @@
                                                 <td>
                                                     <div class="d-flex align-items-center">
                                                         <div class="me-3">
-                                                            <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
-                                                                <i data-feather="user" width="16" height="16" class="text-primary"></i>
-                                                            </div>
+                                                            @if($student->profile_picture)
+                                                                <img src="{{ asset('storage/' . $student->profile_picture) }}" 
+                                                                     alt="{{ $student->name }}" 
+                                                                     class="rounded-circle"
+                                                                     style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #e0e0e0;">
+                                                            @else
+                                                                <div class="bg-primary-light rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                                                    <i data-feather="user" width="16" height="16" class="text-primary"></i>
+                                                                </div>
+                                                            @endif
                                                         </div>
                                                         <div>
                                                             <div class="fw-semibold">{{ $student->name }}</div>
