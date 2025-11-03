@@ -2,15 +2,16 @@
 <nav id="navbar" class="navbar navbar-expand-lg navbar-light">
     <div class="container">
         <div class="d-flex align-items-center justify-content-between w-100">
-            <a class="navbar-brand navbar-order d-flex align-items-center justify-content-center mr-0 ml-auto" href="/">
-                <img src="/store/1/dark-logo.png" alt="site logo" style="height: 40px; width: auto; object-fit: contain;">
-            </a>
-
+            <!-- Toggle button on the left -->
             <button class="navbar-toggler navbar-order" type="button" id="navbarToggle">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
-            <div class="mx-lg-30 d-none d-lg-flex flex-grow-1 navbar-toggle-content " id="navbarContent">
+            <a class="navbar-brand navbar-order d-flex align-items-center justify-content-center mr-0 ml-auto" href="/">
+                <img src="/store/1/dark-logo.png" alt="site logo" style="height: 40px; width: auto; object-fit: contain;">
+            </a>
+
+            <div class="mx-lg-30 d-none d-lg-flex flex-grow-1 navbar-toggle-content" id="navbarContent">
                 <div class="navbar-toggle-header text-right d-lg-none">
                     <button class="btn-transparent" id="navbarClose">
                         <i data-feather="x" width="32" height="32"></i>
@@ -193,4 +194,345 @@
 }
 #navbar .nav-link:hover::after, #navbar .nav-link:focus::after, #navbar .nav-link.active::after { transform: scaleX(1); }
 
+/* Mobile Responsive Fixes */
+@media (max-width: 991.98px) {
+    #navbar {
+        padding: 0.5rem 0 !important;
+    }
+    
+    #navbar .container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    #navbar .d-flex {
+        flex-wrap: nowrap !important;
+    }
+    
+    /* Toggle button - ALWAYS VISIBLE ON MOBILE, ON THE LEFT */
+    #navbar .navbar-toggler {
+        padding: 0.25rem 0.5rem !important;
+        font-size: 1rem !important;
+        margin-right: 0.5rem !important;
+        order: 1 !important;
+        border: 1px solid rgba(26,54,93,0.15) !important;
+        border-radius: 6px !important;
+        z-index: 1051 !important;
+        position: relative !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        background: white !important;
+    }
+    
+    /* Hide toggle button on desktop */
+    @media (min-width: 992px) {
+        #navbar .navbar-toggler {
+            display: none !important;
+        }
+    }
+    
+    /* Logo adjustments - ALWAYS VISIBLE */
+    #navbar .navbar-brand {
+        margin-right: 0.5rem !important;
+        margin-left: auto !important;
+        flex-shrink: 0 !important;
+        z-index: 1051 !important;
+        position: relative !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        order: 2 !important;
+    }
+    
+    #navbar .navbar-brand img {
+        height: 35px !important;
+        max-width: 150px !important;
+    }
+    
+    /* Login button adjustments - ALWAYS VISIBLE */
+    #navbar .nav-icons-or-start-live {
+        margin-left: 0.5rem !important;
+        order: 3 !important;
+        flex-shrink: 0 !important;
+        z-index: 1051 !important;
+        position: relative !important;
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    #navbar .nav-icons-or-start-live .nav-link {
+        padding: 0.4rem 0.8rem !important;
+        font-size: 0.85rem !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Hide gradient underline on mobile nav links */
+    #navbar .nav-link::after {
+        display: none !important;
+    }
+    
+    /* Mobile menu overlay - show when toggled - FULL SCREEN COVERAGE */
+    #navbarContent {
+        position: fixed !important;
+        inset: 0 !important; /* Shorthand for top:0, right:0, bottom:0, left:0 */
+        width: 100vw !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        max-width: 100vw !important;
+        background: rgba(26,54,93,0.95) !important;
+        z-index: 1049 !important;
+        padding: 2rem 1.5rem !important;
+        padding-top: 80px !important; /* Space for navbar */
+        margin: 0 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        display: none !important; /* Hidden by default */
+        box-sizing: border-box !important;
+    }
+    
+    /* When menu is shown - override d-none and show fully */
+    #navbarContent.show,
+    #navbarContent.collapse.show,
+    #navbarContent.show.d-lg-flex,
+    #navbarContent.d-lg-flex.show,
+    #navbarContent:not(.d-none).show {
+        display: flex !important;
+        transform: translateX(0) !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+    }
+    
+    /* When menu is hidden - ensure it's off screen */
+    #navbarContent.d-none:not(.show) {
+        display: none !important;
+        transform: translateX(-100%) !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+    }
+    
+    /* Prevent body scroll and ensure menu covers everything when open */
+    body.menu-open {
+        overflow: hidden !important;
+        height: 100vh !important;
+        position: fixed !important;
+        width: 100% !important;
+    }
+    
+    html.menu-open {
+        overflow: hidden !important;
+        height: 100vh !important;
+    }
+    
+    /* Ensure navbar container stays on top of menu */
+    #navbar {
+        position: relative !important;
+        z-index: 1052 !important;
+    }
+    
+    #navbar > .container {
+        position: relative !important;
+        z-index: 1053 !important;
+        background: #eaf3ff !important;
+    }
+    
+    #navbarContent .navbar-nav {
+        flex-direction: column !important;
+        width: 100% !important;
+        margin-top: 2rem !important;
+        display: flex !important;
+        visibility: visible !important;
+    }
+    
+    #navbarContent .nav-item {
+        width: 100% !important;
+        margin-bottom: 0.5rem !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    #navbarContent .nav-link {
+        color: #ffffff !important;
+        padding: 1rem !important;
+        width: 100% !important;
+        text-align: left !important;
+        border-radius: 8px !important;
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    #navbarContent .nav-link:hover {
+        background: rgba(255,255,255,0.1) !important;
+    }
+    
+    /* Ensure Categories, Home, Announcements are always visible */
+    #navbarContent .menu-category,
+    #navbarContent .menu-category > ul,
+    #navbarContent .menu-category > ul > li {
+        display: block !important;
+        visibility: visible !important;
+        width: 100% !important;
+    }
+    
+    /* Close button in mobile menu */
+    #navbarContent .navbar-toggle-header {
+        width: 100% !important;
+        display: flex !important;
+        justify-content: flex-end !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    #navbarClose {
+        background: rgba(255,255,255,0.1) !important;
+        border: 1px solid rgba(255,255,255,0.2) !important;
+        border-radius: 6px !important;
+        padding: 0.5rem !important;
+        color: #ffffff !important;
+    }
+    
+    /* Categories menu on mobile */
+    #navbarContent .menu-category {
+        width: 100% !important;
+    }
+    
+    #navbarContent .menu-category > ul > li {
+        width: 100% !important;
+        background: rgba(255,255,255,0.1) !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    #navbarContent .cat-dropdown-menu {
+        position: static !important;
+        box-shadow: none !important;
+        background: rgba(255,255,255,0.05) !important;
+        margin-top: 0.5rem !important;
+        border: 1px solid rgba(255,255,255,0.1) !important;
+    }
+}
+
+@media (max-width: 576px) {
+    #navbar .navbar-brand img {
+        height: 30px !important;
+        max-width: 120px !important;
+    }
+    
+    #navbar .nav-icons-or-start-live .nav-link {
+        padding: 0.3rem 0.6rem !important;
+        font-size: 0.75rem !important;
+    }
+    
+    #navbar .navbar-toggler {
+        padding: 0.2rem 0.4rem !important;
+    }
+}
+
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const navbarToggle = document.getElementById('navbarToggle');
+    const navbarContent = document.getElementById('navbarContent');
+    const navbarClose = document.getElementById('navbarClose');
+    
+    if (navbarToggle && navbarContent) {
+        // Toggle menu - open if closed, close if open
+        navbarToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Check if menu is currently open
+            const isOpen = navbarContent.classList.contains('show');
+            
+            if (isOpen) {
+                // Close menu
+                navbarContent.classList.remove('show', 'd-lg-flex');
+                navbarContent.classList.add('d-none');
+                document.body.classList.remove('menu-open');
+                document.documentElement.classList.remove('menu-open');
+                document.body.style.overflow = '';
+            } else {
+                // Open menu - logo and login stay visible
+                navbarContent.classList.remove('d-none');
+                navbarContent.classList.add('show', 'd-lg-flex');
+                // Prevent body scroll when menu is open
+                document.body.classList.add('menu-open');
+                document.documentElement.classList.add('menu-open');
+                document.body.style.overflow = 'hidden';
+            }
+        });
+        
+        // Close menu
+        if (navbarClose) {
+            navbarClose.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                // Remove show classes, add d-none back
+                navbarContent.classList.remove('show', 'd-lg-flex');
+                navbarContent.classList.add('d-none');
+                // Restore body scroll
+                document.body.classList.remove('menu-open');
+                document.documentElement.classList.remove('menu-open');
+                document.body.style.overflow = '';
+            });
+        }
+        
+        // Helper function to close menu
+        function closeMenu() {
+            navbarContent.classList.remove('show', 'd-lg-flex');
+            navbarContent.classList.add('d-none');
+            document.body.classList.remove('menu-open');
+            document.documentElement.classList.remove('menu-open');
+            document.body.style.overflow = '';
+        }
+        
+        // Close menu when clicking outside (but not on navbar items or toggle button)
+        document.addEventListener('click', function(e) {
+            if (navbarContent.classList.contains('show')) {
+                // Close if clicking outside menu content, but not on navbar items (logo, toggle, login)
+                const isToggleButton = e.target.closest('#navbarToggle');
+                const isNavbarItem = e.target.closest('#navbar .navbar-brand') || 
+                                    e.target.closest('#navbar .nav-icons-or-start-live');
+                const isMenuContent = navbarContent.contains(e.target);
+                const isCloseButton = e.target.closest('#navbarClose');
+                
+                // Close if clicking outside menu AND not on navbar items or toggle button, OR if clicking close button
+                // Don't close if clicking toggle button (it handles its own toggle)
+                if (!isToggleButton && ((!isMenuContent && !isNavbarItem) || isCloseButton)) {
+                    closeMenu();
+                }
+            }
+        });
+        
+        // Close menu on escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && navbarContent.classList.contains('show')) {
+                closeMenu();
+            }
+        });
+        
+        // Close menu when clicking on a nav link (optional - for better UX)
+        const navLinks = navbarContent.querySelectorAll('.nav-link');
+        navLinks.forEach(function(link) {
+            link.addEventListener('click', function() {
+                // Only close if it's not a dropdown parent
+                if (!this.closest('.menu-category')) {
+                    setTimeout(function() {
+                        closeMenu();
+                    }, 300); // Small delay for better UX
+                }
+            });
+        });
+    }
+});
+</script>
