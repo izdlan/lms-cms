@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Auth\AdminAuthController;
 use App\Http\Controllers\AdminController;
@@ -456,7 +457,7 @@ Route::prefix('admin')->group(function () {
                 'password' => ['required', 'confirmed', new \App\Rules\StrongPassword],
             ]);
             
-            $user = auth()->user();
+            $user = Auth::user();
             if (!Hash::check($request->current_password, $user->password)) {
                 return back()->withErrors(['current_password' => 'Current password is incorrect.']);
             }
@@ -533,7 +534,7 @@ Route::prefix('admin')->group(function () {
                     'metadata' => json_encode(['images' => $request->images]),
                     'sort_order' => 2,
                     'is_active' => true,
-                    'admin_id' => \App\Models\Admin::where('email', auth()->user()->email)->first()->id ?? 1
+                    'admin_id' => \App\Models\Admin::where('email', Auth::user()->email)->first()->id ?? 1
                 ]);
             } else {
                 $gallerySection->update([
@@ -579,18 +580,18 @@ Route::prefix('admin')->group(function () {
             if (!$heroSection) {
                 $heroSection = \App\Models\HomePageContent::create([
                     'section_name' => 'hero',
-                    'title' => $request->title,
-                    'content' => $request->content,
-                    'image_url' => $request->image_url,
+                    'title' => $request->input('title'),
+                    'content' => $request->input('content'),
+                    'image_url' => $request->input('image_url'),
                     'sort_order' => 1,
                     'is_active' => true,
-                    'admin_id' => \App\Models\Admin::where('email', auth()->user()->email)->first()->id ?? 1
+                    'admin_id' => \App\Models\Admin::where('email', Auth::user()->email)->first()->id ?? 1
                 ]);
             } else {
                 $heroSection->update([
-                    'title' => $request->title,
-                    'content' => $request->content,
-                    'image_url' => $request->image_url
+                    'title' => $request->input('title'),
+                    'content' => $request->input('content'),
+                    'image_url' => $request->input('image_url')
                 ]);
             }
             

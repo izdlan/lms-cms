@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\HomePageContent;
 use App\Models\PublicAnnouncement;
@@ -61,12 +62,12 @@ class AdminContentController extends Controller
         $adminId = $this->getOrCreateAdminId(Auth::id());
 
         HomePageContent::create([
-            'section_name' => $request->section_name,
-            'title' => $request->title,
-            'content' => $request->content,
+            'section_name' => $request->input('section_name'),
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
             'image_url' => $imageUrl,
-            'metadata' => $request->metadata ?? [],
-            'sort_order' => $request->sort_order,
+            'metadata' => $request->input('metadata', []),
+            'sort_order' => $request->input('sort_order'),
             'is_active' => $request->boolean('is_active', true),
             'admin_id' => $adminId
         ]);
@@ -104,12 +105,12 @@ class AdminContentController extends Controller
         }
 
         $content->update([
-            'section_name' => $request->section_name,
-            'title' => $request->title,
-            'content' => $request->content,
+            'section_name' => $request->input('section_name'),
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
             'image_url' => $imageUrl,
-            'metadata' => $request->metadata ?? [],
-            'sort_order' => $request->sort_order,
+            'metadata' => $request->input('metadata', []),
+            'sort_order' => $request->input('sort_order'),
             'is_active' => $request->boolean('is_active', true)
         ]);
 
@@ -150,7 +151,7 @@ class AdminContentController extends Controller
     private function uploadImageFile($file, $folder = 'home-page-images')
     {
         $filename = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-        \Log::info('Uploading file', [
+        Log::info('Uploading file', [
             'original_name' => $file->getClientOriginalName(),
             'generated_filename' => $filename,
             'folder' => $folder,
@@ -158,10 +159,10 @@ class AdminContentController extends Controller
         ]);
         
         $path = $file->storeAs($folder, $filename, 'public');
-        \Log::info('File stored', ['path' => $path]);
+        Log::info('File stored', ['path' => $path]);
         
         $fullUrl = '/storage/' . $path;
-        \Log::info('Generated URL', ['url' => $fullUrl]);
+        Log::info('Generated URL', ['url' => $fullUrl]);
         
         return $fullUrl;
     }
@@ -222,26 +223,26 @@ class AdminContentController extends Controller
         
         // Handle file upload
         if ($request->hasFile('image')) {
-            \Log::info('Announcement image upload started', [
+            Log::info('Announcement image upload started', [
                 'file_name' => $request->file('image')->getClientOriginalName(),
                 'file_size' => $request->file('image')->getSize(),
                 'mime_type' => $request->file('image')->getMimeType()
             ]);
             $imageUrl = $this->uploadImageFile($request->file('image'), 'announcements');
-            \Log::info('Announcement image upload completed', ['image_url' => $imageUrl]);
+            Log::info('Announcement image upload completed', ['image_url' => $imageUrl]);
         }
 
         // Get or create admin record for the current user
         $adminId = $this->getOrCreateAdminId(Auth::id());
 
         PublicAnnouncement::create([
-            'title' => $request->title,
-            'content' => $request->content,
-            'category' => $request->category,
-            'priority' => $request->priority,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
+            'category' => $request->input('category'),
+            'priority' => $request->input('priority'),
             'image_url' => $imageUrl,
-            'published_at' => $request->published_at ?? now(),
-            'expires_at' => $request->expires_at,
+            'published_at' => $request->input('published_at') ?? now(),
+            'expires_at' => $request->input('expires_at'),
             'is_featured' => $request->boolean('is_featured', false),
             'is_active' => $request->boolean('is_active', true),
             'admin_id' => $adminId
@@ -283,13 +284,13 @@ class AdminContentController extends Controller
         }
 
         $announcement->update([
-            'title' => $request->title,
-            'content' => $request->content,
-            'category' => $request->category,
-            'priority' => $request->priority,
+            'title' => $request->input('title'),
+            'content' => $request->input('content'),
+            'category' => $request->input('category'),
+            'priority' => $request->input('priority'),
             'image_url' => $imageUrl,
-            'published_at' => $request->published_at ?? $announcement->published_at,
-            'expires_at' => $request->expires_at,
+            'published_at' => $request->input('published_at') ?? $announcement->published_at,
+            'expires_at' => $request->input('expires_at'),
             'is_featured' => $request->boolean('is_featured', false),
             'is_active' => $request->boolean('is_active', true)
         ]);
