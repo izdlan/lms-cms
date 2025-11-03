@@ -5,7 +5,7 @@
 @section('content')
 <div class="login-page">
     <div class="container">
-        <div class="row min-vh-100 align-items-center">
+        <div class="row align-items-center">
             <div class="col-lg-6">
                 <div class="login-image-section text-center">
                     <img src="store/1/default_images/front_login.jpg" 
@@ -164,11 +164,19 @@
 
 @push('styles')
 <style>
-.login-page {
+ .login-page {
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-    min-height: 100vh;
-    padding: 2rem 0;
-}
+    padding: 2rem 0 0 0;
+ }
+ /* Tighten spacing: remove global footer gap on this page */
+ .footer { margin-top: 0 !important; }
+ /* Ensure no bottom spacing from grid wrappers */
+ .login-page .container,
+ .login-page .row,
+ .login-page [class^="col-"] {
+    margin-bottom: 0 !important;
+    padding-bottom: 0 !important;
+ }
 
 .login-image {
     max-width: 100%;

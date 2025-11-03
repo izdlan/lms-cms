@@ -1,4 +1,4 @@
-<footer class="footer position-relative user-select-none">
+<footer class="footer position-relative user-select-none" style="margin-top:0 !important;">
     <div class="container">
         <div class="footer-wrapper">
             <div class="footer-col">
