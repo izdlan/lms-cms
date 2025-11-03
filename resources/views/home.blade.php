@@ -127,23 +127,23 @@
                 <div class="row">
                     @foreach($announcements as $announcement)
                         <div class="col-md-4 mb-4">
-                            <div class="announcement-card">
-                                @if($announcement->image_url)
-                                    <div class="announcement-image">
-                                        <img src="{{ $announcement->image_url }}" alt="{{ $announcement->title }}" class="img-fluid">
-                                    </div>
-                                @endif
-                                <div class="announcement-content">
+                                <div class="announcement-card">
+                                    @if($announcement->image_url)
+                                            <div class="announcement-image">
+                                    <img src="{{ Str::startsWith($announcement->image_url, ['http://','https://']) ? $announcement->image_url : asset(ltrim($announcement->image_url,'/')) }}" alt="{{ $announcement->title }}" class="img-fluid">
+                                        </div>
+                                    @endif
+                                    <div class="announcement-content">
                                     <div class="announcement-meta">
                                         <span class="badge badge-{{ $announcement->priority === 'high' ? 'danger' : ($announcement->priority === 'medium' ? 'warning' : 'success') }}">
-                                            {{ ucfirst($announcement->priority) }}
-                                        </span>
-                                        <span class="announcement-category">{{ ucfirst($announcement->category) }}</span>
-                                    </div>
-                                    <h4 class="announcement-title">{{ $announcement->title }}</h4>
-                                    <p class="announcement-excerpt">{{ Str::limit(strip_tags($announcement->content), 100) }}</p>
-                                    <div class="announcement-date">
-                                        <i class="fas fa-calendar"></i>
+                                                {{ ucfirst($announcement->priority) }}
+                                            </span>
+                                        <span class="announcement-category"><i class="fas fa-tag"></i> {{ ucfirst($announcement->category) }}</span>
+                                        </div>
+                                    <h4 class="announcement-title"><i class="fas fa-bullhorn"></i> {{ $announcement->title }}</h4>
+                                    <p class="announcement-excerpt"><i class="fas fa-file-alt"></i> {{ Str::limit(strip_tags($announcement->content), 100) }}</p>
+                                            <div class="announcement-date">
+                                        <i class="fas fa-calendar-alt"></i>
                                         {{ $announcement->published_at->format('M d, Y') }}
                                     </div>
                                 </div>
@@ -151,7 +151,7 @@
                         </div>
                     @endforeach
                 </div>
-                <div class="text-center mt-4">
+                <div class="text-center mt-4 mb-0">
                     <a href="/announcements" class="btn btn-primary">
                         <i class="fa-solid fa-bullhorn me-2"></i>
                         View All Announcements
@@ -197,7 +197,11 @@
 .top-links-list .top-link-item:before { content: none !important; }
 .top-links-list .top-link-item i { color: #0b2a55 !important; width: 18px !important; text-align: center !important; }
 .top-links-list .top-link-item { display: flex !important; align-items: center !important; gap: 8px !important; }
-.collaboration-section { padding: 60px 0 20px 0; }
+.collaboration-section { 
+    padding: 40px 0 20px 0; 
+    margin-top: 0 !important; 
+    background: #ffffff !important;
+}
 .logo-marquee { overflow: hidden; position: relative; width: 100vw; left: 50%; transform: translateX(-50%); }
 .logo-track {
     display: inline-flex; align-items: center; gap: 160px; /* wider gap between logos */
@@ -361,7 +365,7 @@ body { background: #ffffff !important; }
 }
 /* Remove blue gap between sections */
 .top-links-section { margin-bottom: 0 !important; padding-bottom: 0 !important; }
-.announcements-section { margin-top: 0 !important; padding-top: 0 !important; }
+.announcements-section { margin-top: 0 !important; }
 /* Remove blue divider between hero and top-links */
 .slider-hero-section2 { margin-bottom: 0 !important; padding-bottom: 0 !important; border-bottom: 0 !important; }
 .home-sections.top-links-section { margin-top: 0 !important; padding-top: 0 !important; border-top: 0 !important; }
@@ -371,6 +375,206 @@ body { background: #ffffff !important; }
 .home-sections.collaboration-section { margin-bottom: 0 !important; padding-bottom: 32px !important; }
 .home-sections.collaboration-section .container { margin-bottom: 0 !important; padding-bottom: 16px !important; }
 .logo-marquee { margin-bottom: 0 !important; padding-bottom: 16px !important; }
+
+/* Announcements Section Styling - Light Theme */
+.announcement-card {
+    background: #ffffff !important;
+    border-radius: 14px;
+    border: 1px solid rgba(30, 64, 175, 0.15);
+    box-shadow: none !important;
+    overflow: hidden;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+    height: 100%;
+}
+
+.announcement-card:hover {
+    transform: translateY(-4px);
+    background: rgba(248, 249, 250, 1) !important;
+    border-color: rgba(30, 64, 175, 0.35);
+    box-shadow: 0 4px 12px rgba(30, 64, 175, 0.1) !important;
+}
+
+.announcement-image {
+    height: 200px;
+    overflow: hidden;
+}
+
+.announcement-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.announcement-content {
+    padding: 18px 18px 20px 18px;
+}
+
+.announcement-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.announcement-category {
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.announcement-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 10px;
+    line-height: 1.35;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.announcement-excerpt {
+    color: #495057;
+    font-size: 14px;
+    line-height: 1.55;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.announcement-date {
+    color: #6c757d;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.announcement-date i {
+    margin-right: 5px;
+}
+
+/* Section styling */
+.announcements-section {
+    background: #f8f9fa !important;
+    padding-top: 40px !important;
+    padding-bottom: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+
+.announcements-section::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url('{{ asset('assets/default/img/annoucement.jpg') }}'), url('{{ asset('assets/default/img/announcement.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    filter: blur(6px);
+    transform: scale(1.05);
+    z-index: 0;
+    opacity: 0.15;
+}
+
+.announcements-section::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(248, 249, 250, 0.7);
+    z-index: 0;
+}
+
+.announcements-section .container,
+.announcements-section .container-fluid,
+.announcements-section .row {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+.announcements-section .section-title {
+    color: #0b2a55;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+}
+
+.section-header {
+    position: relative;
+    padding-bottom: 14px;
+    display: inline-block;
+}
+
+.section-header:after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 0;
+    width: 220px;
+    height: 3px;
+    background: linear-gradient(90deg, rgba(30, 64, 175, 0) 0%, #1e40af 50%, rgba(30, 64, 175, 0) 100%);
+    border-radius: 3px;
+}
+
+.announcements-section .badge-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+}
+
+.announcements-section .badge-warning {
+    background-color: #ffc107 !important;
+    color: #212529 !important;
+}
+
+.announcements-section .badge-success {
+    background-color: #28a745 !important;
+    color: white !important;
+}
+
+.announcements-section .btn-primary {
+    background: linear-gradient(90deg, #3b82f6 0%, #1e40af 100%);
+    border: 1px solid rgba(30, 64, 175, 0.65);
+    color: #ffffff;
+    border-radius: 12px;
+    padding: 12px 24px;
+    box-shadow: 0 10px 24px rgba(30, 64, 175, 0.22);
+    transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.announcements-section .btn-primary:hover {
+    filter: brightness(1.1);
+    transform: translateY(-2px);
+    color: #ffffff;
+}
+
+.announcements-section .btn-primary i {
+    margin-right: 8px;
+}
+
+.announcements-section .text-center {
+    margin-bottom: 30px !important;
+    padding-bottom: 0 !important;
+}
+
+/* Icon styling */
+.announcement-category i,
+.announcement-title i,
+.announcement-excerpt i,
+.announcement-date i {
+    font-size: inherit;
+}
 </style>
 @endpush
 
@@ -427,75 +631,4 @@ body { background: #ffffff !important; }
 
 @endsection
 
-@section('styles')
-<style>
-.announcement-card {
-    background: white;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    overflow: hidden;
-    transition: transform 0.3s ease;
-    height: 100%;
-}
-
-.announcement-card:hover {
-    transform: translateY(-5px);
-}
-
-.announcement-image {
-    height: 200px;
-    overflow: hidden;
-}
-
-.announcement-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.announcement-content {
-    padding: 20px;
-}
-
-.announcement-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-}
-
-.announcement-category {
-    color: #666;
-    font-size: 12px;
-    text-transform: uppercase;
-    font-weight: 500;
-}
-
-.announcement-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: #333;
-    margin-bottom: 10px;
-    line-height: 1.4;
-}
-
-.announcement-excerpt {
-    color: #666;
-    font-size: 14px;
-    line-height: 1.5;
-    margin-bottom: 15px;
-}
-
-.announcement-date {
-    color: #999;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-}
-
-.announcement-date i {
-    margin-right: 5px;
-}
-</style>
-@endsection
 

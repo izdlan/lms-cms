@@ -1,10 +1,24 @@
 @extends('layouts.app')
 
-@section('title', $announcement['title'])
+@php
+    $isArray = is_array($announcement);
+    $title = $isArray ? ($announcement['title'] ?? '') : ($announcement->title ?? '');
+    $imageUrl = $isArray
+        ? ($announcement['poster'] ?? ($announcement['image_url'] ?? null))
+        : ($announcement->poster ?? ($announcement->image_url ?? null));
+    $publishedAt = $isArray ? ($announcement['date'] ?? null) : ($announcement->published_at ?? null);
+    $category = $isArray ? ($announcement['category'] ?? 'general') : ($announcement->category ?? 'general');
+    $priority = $isArray ? ($announcement['priority'] ?? 'low') : ($announcement->priority ?? 'low');
+    $author = $isArray ? ($announcement['author'] ?? '') : ($announcement->author ?? ($announcement->author_name ?? ''));
+    $hasImage = !empty($imageUrl);
+    $formattedDate = $publishedAt ? \Illuminate\Support\Carbon::parse($publishedAt)->format('F d, Y') : 'No date';
+@endphp
+
+@section('title', $title)
 
 @section('content')
 <div class="announcement-detail-page">
-    <div class="container">
+    <div class="container-fluid">
         <!-- Back Button -->
         <div class="back-section mb-4">
             <a href="{{ route('announcements.index') }}" class="back-btn">
@@ -15,30 +29,25 @@
 
         <!-- Announcement Detail Card -->
         <div class="announcement-detail-card">
-            <!-- Poster Image Section -->
-            @if($announcement['has_poster'] && $announcement['poster'])
-            <div class="announcement-poster-large">
-                <img src="{{ $announcement['poster'] }}" alt="{{ $announcement['title'] }}" class="poster-image-large">
-            </div>
-            @endif
+            <!-- Removed top poster image to avoid duplicate image rendering -->
             
             <div class="announcement-header">
                 <div class="announcement-meta">
-                    <span class="announcement-category badge badge-{{ $announcement['priority'] === 'high' ? 'danger' : ($announcement['priority'] === 'medium' ? 'warning' : 'info') }}">
-                        {{ $announcement['category'] }}
+                    <span class="announcement-category badge badge-{{ $priority === 'high' ? 'danger' : ($priority === 'medium' ? 'warning' : 'info') }}">
+                        {{ $category }}
                     </span>
                     <span class="announcement-date">
                         <i class="fas fa-calendar-alt me-1"></i>
-                        {{ date('F d, Y', strtotime($announcement['date'])) }}
+                        {{ $formattedDate }}
                     </span>
                 </div>
                 <div class="announcement-priority">
-                    @if($announcement['priority'] === 'high')
+                    @if($priority === 'high')
                         <span class="priority-badge high">
                             <i class="fas fa-exclamation-triangle"></i>
                             High Priority
                         </span>
-                    @elseif($announcement['priority'] === 'medium')
+                    @elseif($priority === 'medium')
                         <span class="priority-badge medium">
                             <i class="fas fa-info-circle"></i>
                             Medium Priority
@@ -53,16 +62,27 @@
             </div>
             
             <div class="announcement-body">
-                <h1 class="announcement-title">{{ $announcement['title'] }}</h1>
+                <h1 class="announcement-title">{{ $title }}</h1>
+                @if($hasImage)
+                <div class="announcement-image-wrapper">
+                    <button type="button" class="image-lightbox-trigger" aria-label="View image" onclick="openAnnouncementLightbox('{{ $imageUrl }}')">
+                        <img src="{{ $imageUrl }}" alt="{{ $title }}" class="announcement-full-image">
+                    </button>
+                </div>
+                @endif
                 
                 <div class="announcement-content">
-                    {!! nl2br(e($announcement['full_content'])) !!}
+                    @if($isArray)
+                        {!! nl2br(e($announcement['full_content'] ?? ($announcement['content'] ?? ''))) !!}
+                    @else
+                        {!! nl2br(e($announcement->full_content ?? ($announcement->content ?? ''))) !!}
+                    @endif
                 </div>
                 
                 <div class="announcement-footer">
                     <div class="announcement-author">
                         <i class="fas fa-user me-1"></i>
-                        Published by: {{ $announcement['author'] }}
+                        Published by: {{ $author }}
                     </div>
                     <div class="announcement-actions">
                         <button class="btn btn-outline-primary" onclick="window.print()">
@@ -324,6 +344,75 @@
     color: white;
 }
 
+/* Full image (no cropping) inside announcement body */
+.announcement-image-wrapper {
+    margin: 0 0 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f8f9fa;
+}
+
+.announcement-full-image {
+    width: 100%;
+    height: auto;
+    max-height: 520px;
+    object-fit: contain;
+    display: block;
+}
+
+.image-lightbox-trigger {
+    appearance: none;
+    border: 0;
+    background: transparent;
+    padding: 0;
+    width: 100%;
+    cursor: zoom-in;
+}
+
+/* Lightbox */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1050;
+}
+
+.lightbox-overlay.open {
+    display: flex;
+}
+
+.lightbox-image {
+    max-width: 95vw;
+    max-height: 90vh;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-close {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #2c3e50;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+    z-index: 1060;
+}
+
+.lightbox-close:hover {
+    background: white;
+    border-color: #0056d2;
+    color: #0056d2;
+}
+
 @media (max-width: 768px) {
     .announcement-header {
         flex-direction: column;
@@ -344,15 +433,28 @@
     .announcement-body {
         padding: 1.5rem;
     }
+    
+    .announcement-full-image {
+        max-height: 320px;
+    }
 }
 </style>
 
+<!-- Image Lightbox -->
+<div id="announcement-lightbox" class="lightbox-overlay" onclick="closeAnnouncementLightbox(event)">
+    <img id="announcement-lightbox-image" class="lightbox-image" alt="Preview">
+    <button type="button" class="lightbox-close" onclick="closeAnnouncementLightbox(event)">Close</button>
+</div>
+
 <script>
 function shareAnnouncement() {
+    var title = '{{ $title }}';
+    var content = '{{ $isArray ? Str::limit($announcement["content"] ?? "", 100) : Str::limit($announcement->content ?? "", 100) }}';
+    
     if (navigator.share) {
         navigator.share({
-            title: '{{ $announcement["title"] }}',
-            text: '{{ Str::limit($announcement["content"], 100) }}',
+            title: title,
+            text: content,
             url: window.location.href
         });
     } else {
@@ -362,5 +464,35 @@ function shareAnnouncement() {
         });
     }
 }
+
+function openAnnouncementLightbox(src) {
+    var overlay = document.getElementById('announcement-lightbox');
+    var image = document.getElementById('announcement-lightbox-image');
+    image.src = src;
+    overlay.classList.add('open');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeAnnouncementLightbox(event) {
+    // close if clicking backdrop or close button
+    var overlay = document.getElementById('announcement-lightbox');
+    if (event && event.target) {
+        var isBackdrop = event.target.id === 'announcement-lightbox';
+        var isCloseBtn = event.target.classList.contains('lightbox-close');
+        if (!isBackdrop && !isCloseBtn) return;
+    }
+    overlay.classList.remove('open');
+    document.body.style.overflow = '';
+}
+
+// Close on Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        var overlay = document.getElementById('announcement-lightbox');
+        if (overlay && overlay.classList.contains('open')) {
+            closeAnnouncementLightbox(e);
+        }
+    }
+});
 </script>
 @endsection
