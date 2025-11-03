@@ -40,7 +40,9 @@ class AdminController extends Controller
 
     private function checkAdminAccess()
     {
-        if (!Auth::check() || (!Auth::user()->isAdmin() && !Auth::user()->isStaff())) {
+        /** @var User|null $user */
+        $user = Auth::user();
+        if (!$user || (!$user->isAdmin() && !$user->isStaff())) {
             abort(403, 'Unauthorized access.');
         }
     }
@@ -2022,7 +2024,8 @@ if ($returnCode === 0) {
                 copy($sourceFile, $publicFile);
             }
             
-            $qrCodeUrl = Storage::disk('public')->url($qrCodePath);
+            // Generate URL for the QR code (using asset since file is in public storage)
+            $qrCodeUrl = asset('storage/' . $qrCodePath);
 
             return response()->json([
                 'success' => true,
