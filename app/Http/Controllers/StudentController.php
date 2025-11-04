@@ -1248,7 +1248,7 @@ class StudentController extends Controller
             ->with(['payment', 'studentBill'])
             ->firstOrFail();
 
-        $pdf = \PDF::loadView('receipts.pdf', compact('receipt', 'user'));
+        $pdf = PDF::loadView('receipts.pdf', compact('receipt', 'user'));
         
         return $pdf->download('receipt-' . $receipt->receipt_number . '.pdf');
     }
@@ -1269,7 +1269,7 @@ class StudentController extends Controller
             ->with(['payment', 'studentBill'])
             ->firstOrFail();
 
-        $pdf = \PDF::loadView('receipts.pdf', compact('receipt', 'user'));
+        $pdf = PDF::loadView('receipts.pdf', compact('receipt', 'user'));
         
         return $pdf->stream('receipt-' . $receipt->receipt_number . '.pdf');
     }
@@ -1290,7 +1290,7 @@ class StudentController extends Controller
             ->firstOrFail();
 
         $invoice = null; // Set invoice to null since we're using StudentBill
-        $pdf = \PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
+        $pdf = PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
         
         return $pdf->download('invoice-' . $bill->bill_number . '.pdf');
     }
@@ -1311,7 +1311,7 @@ class StudentController extends Controller
             ->firstOrFail();
 
         $invoice = null; // Set invoice to null since we're using StudentBill
-        $pdf = \PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
+        $pdf = PDF::loadView('invoices.pdf', compact('bill', 'user', 'invoice'));
         
         return $pdf->stream('invoice-' . $bill->bill_number . '.pdf');
     }

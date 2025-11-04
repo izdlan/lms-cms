@@ -49,13 +49,13 @@
                             <!-- Student Login Fields -->
                             <div id="student-fields" class="login-fields">
                                 <div class="form-group mb-3">
-                                    <label for="ic" class="form-label">IC Number</label>
+                                    <label for="ic" class="form-label">IC Number / Passport</label>
                                     <input type="text" 
                                            class="form-control @error('ic') is-invalid @enderror" 
                                            id="ic" 
                                            name="ic" 
                                            value="{{ old('ic') }}" 
-                                           placeholder="Enter your IC number"
+                                           placeholder="Enter your IC number / Passport"
                                            required>
                                     @error('ic')
                                         <div class="invalid-feedback">
