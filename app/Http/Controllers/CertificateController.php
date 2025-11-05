@@ -14,7 +14,6 @@ use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpWord\Settings;
 use App\Services\CustomTemplateProcessor;
 use App\Services\CpanelCertificateService;
-use setasign\Fpdi\Tcpdf\Fpdi as TcpdfFpdi;
 
 class CertificateController extends Controller
 {
@@ -236,10 +235,15 @@ class CertificateController extends Controller
             }
 
             // Generate QR Code - Fixed URL for all students (points to ex-student login page)
+            // ALL students get the SAME QR code (same URL = same QR code image)
             $qrCodeUrl = url('/ex-student/login');
             
+            // Initialize QR code path variable
+            $qrCodePath = null;
+            $qrCodeExtension = 'png';
+            
             // Generate QR Code as PNG (required for Word templates)
-            // Use the login URL directly (same QR code for all students)
+            // Use the login URL directly (same QR code for ALL students)
             $encodedQrData = $qrCodeUrl;
             
             $qrCode = null;
@@ -361,18 +365,25 @@ class CertificateController extends Controller
                                 $qrCodeType = 'png';
                                 Log::info('QR Code SVG converted to PNG using improved GD method');
                             } else {
-                                // Last resort: Use SVG directly (some Word processors accept SVG)
-                                // But Word templates typically need PNG, so log a warning
-                                Log::error('All PNG conversion methods failed - QR code will be SVG (may not work in Word)', [
-                                    'student_id' => $exStudent->student_id,
-                                    'imagick_loaded' => extension_loaded('imagick'),
-                                    'gd_loaded' => extension_loaded('gd'),
-                                    'svg_size' => strlen($qrCodeSvg)
-                                ]);
-                                // Store SVG as fallback - but we need PNG for Word
-                                $qrCode = $qrCodeSvg;
-                                $qrCodeType = 'svg';
-                                // Don't throw exception - let it try with SVG and see if it works
+                                // Last resort: Use basic GD QR code generator (creates scannable QR code)
+                                Log::info('All SVG to PNG conversion methods failed, using basic GD QR code generator');
+                                $qrCode = $this->createBasicQrCodePng($encodedQrData, 150);
+                                if ($qrCode && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                                    $qrCodeType = 'png';
+                                    Log::info('QR Code generated using basic GD method', [
+                                        'png_size' => strlen($qrCode)
+                                    ]);
+                                } else {
+                                    // Final fallback: Use SVG directly
+                                    Log::error('All PNG conversion methods failed - QR code will be SVG (may not work in Word)', [
+                                        'student_id' => $exStudent->student_id,
+                                        'imagick_loaded' => extension_loaded('imagick'),
+                                        'gd_loaded' => extension_loaded('gd'),
+                                        'svg_size' => strlen($qrCodeSvg)
+                                    ]);
+                                    $qrCode = $qrCodeSvg;
+                                    $qrCodeType = 'svg';
+                                }
                             }
                         } else {
                             Log::error('SVG to PNG conversion failed and GD is not available', [
@@ -432,39 +443,44 @@ class CertificateController extends Controller
             
             // Determine file extension - must be PNG for Word templates
             // If we have PNG data, use PNG extension regardless of detection
-            if ($qrCodeType === 'png' || ($qrCode && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n")) {
+            if (isset($qrCodeType) && $qrCodeType === 'png') {
                 $qrCodeExtension = 'png';
-            } elseif ($qrCodeType === 'svg' || ($qrCode && strpos($qrCode, '<svg') !== false)) {
+            } elseif (isset($qrCode) && is_string($qrCode) && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                $qrCodeExtension = 'png';
+            } elseif (isset($qrCodeType) && $qrCodeType === 'svg' || (isset($qrCode) && is_string($qrCode) && strpos($qrCode, '<svg') !== false)) {
                 // If we only have SVG, we need to convert it - try one more time with improved method
                 Log::warning('QR code is SVG, attempting final conversion to PNG', [
-                    'content_preview' => substr($qrCode, 0, 100)
+                    'content_preview' => isset($qrCode) && is_string($qrCode) ? substr($qrCode, 0, 100) : 'unknown'
                 ]);
                 
                 // Try improved conversion one more time
-                $convertedPng = $this->convertSvgToPngImproved($qrCode, 150);
-                if ($convertedPng && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
-                    $qrCode = $convertedPng;
-                    $qrCodeType = 'png';
-                    $qrCodeExtension = 'png';
-                    Log::info('QR code SVG successfully converted to PNG on final attempt');
+                if (isset($qrCode) && is_string($qrCode)) {
+                    $convertedPng = $this->convertSvgToPngImproved($qrCode, 150);
+                    if ($convertedPng && strlen($convertedPng) >= 8 && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                        $qrCode = $convertedPng;
+                        $qrCodeType = 'png';
+                        $qrCodeExtension = 'png';
+                        Log::info('QR code SVG successfully converted to PNG on final attempt');
+                    } else {
+                        // Still SVG - this is a problem for Word templates
+                        $qrCodeExtension = 'png'; // Force PNG extension even if content is SVG
+                        Log::error('QR code remains SVG - Word template may not display correctly', [
+                            'student_id' => $exStudent->student_id,
+                            'imagick_loaded' => extension_loaded('imagick'),
+                            'gd_loaded' => extension_loaded('gd')
+                        ]);
+                    }
                 } else {
-                    // Still SVG - this is a problem for Word templates
-                    $qrCodeExtension = 'png'; // Force PNG extension even if content is SVG
-                    Log::error('QR code remains SVG - Word template may not display correctly', [
-                        'student_id' => $exStudent->student_id,
-                        'imagick_loaded' => extension_loaded('imagick'),
-                        'gd_loaded' => extension_loaded('gd')
-                    ]);
+                    $qrCodeExtension = 'png';
                 }
             } else {
                 // Unknown type - default to PNG
                 $qrCodeExtension = 'png';
             }
             
-            $qrCodePath = null;
-            
             // Save QR code image - MUST be PNG for Word templates
-            if ($qrCode !== null && is_string($qrCode) && strlen($qrCode) > 0) {
+            // ALL students get the SAME QR code (same URL = same QR code image)
+            if (isset($qrCode) && $qrCode !== null && is_string($qrCode) && strlen($qrCode) > 0) {
                 // Always use PNG extension for Word template compatibility
                 $qrCodePath = $tempDir . DIRECTORY_SEPARATOR . 'qr_' . $exStudent->id . '_' . time() . '.png';
                 $bytesWritten = @file_put_contents($qrCodePath, $qrCode);
@@ -572,26 +588,34 @@ class CertificateController extends Controller
                     
                     // Verify it's actually PNG (check file signature)
                     $fileContent = @file_get_contents($qrCodePath, false, null, 0, 8);
-                    $isPng = $fileContent && substr($fileContent, 0, 8) === "\x89PNG\r\n\x1a\n";
+                    $isPng = false;
+                    
+                    if ($fileContent && strlen($fileContent) >= 8) {
+                        $isPng = substr($fileContent, 0, 8) === "\x89PNG\r\n\x1a\n";
+                    }
                     
                     if (!$isPng) {
-                        Log::error('QR code file is not valid PNG - attempting final conversion', [
+                        Log::warning('QR code file is not valid PNG - attempting final conversion', [
                             'path' => $qrCodePath,
                             'extension' => $qrCodeExtension,
-                            'file_signature' => $fileContent ? bin2hex($fileContent) : 'empty',
+                            'file_signature' => $fileContent ? bin2hex(substr($fileContent, 0, min(8, strlen($fileContent)))) : 'empty',
                             'file_size' => $fileSize
                         ]);
                         
                         // If file is SVG, try to convert it one more time
-                        if ($fileContent && strpos($fileContent, '<svg') !== false) {
-                            $svgContent = file_get_contents($qrCodePath);
-                            $convertedPng = $this->convertSvgToPngImproved($svgContent, 150);
-                            if ($convertedPng && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
-                                // Save converted PNG
-                                file_put_contents($qrCodePath, $convertedPng);
-                                $isPng = true;
-                                Log::info('QR code SVG successfully converted to PNG on final attempt');
+                        try {
+                            $fullFileContent = @file_get_contents($qrCodePath);
+                            if ($fullFileContent && strpos($fullFileContent, '<svg') !== false) {
+                                $convertedPng = $this->convertSvgToPngImproved($fullFileContent, 150);
+                                if ($convertedPng && strlen($convertedPng) >= 8 && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                                    // Save converted PNG
+                                    @file_put_contents($qrCodePath, $convertedPng);
+                                    $isPng = true;
+                                    Log::info('QR code SVG successfully converted to PNG on final attempt');
+                                }
                             }
+                        } catch (\Exception $conversionError) {
+                            Log::warning('Final SVG to PNG conversion attempt failed: ' . $conversionError->getMessage());
                         }
                     }
                     
@@ -934,22 +958,38 @@ class CertificateController extends Controller
                 $formattedGraduationDate = $exStudent->graduation_date ?? $exStudent->graduation_year ?? 'Unknown';
             }
 
-            // Check if PDF or DOCX template exists
+            // Check if PDF or DOCX template exists - USING EXACT PATHS USER SPECIFIED
             $pdfTemplatePath = storage_path('app/templates/certificate_template.pdf');
             $docxTemplatePath = storage_path('app/templates/certificate_template.docx');
+            
+            // Verify exact paths
+            $pdfTemplatePathFull = realpath($pdfTemplatePath) ?: $pdfTemplatePath;
+            $docxTemplatePathFull = realpath($docxTemplatePath) ?: $docxTemplatePath;
             
             $usePdfTemplate = File::exists($pdfTemplatePath);
             $useDocxTemplate = File::exists($docxTemplatePath);
             
+            Log::info('Checking template files from specified paths', [
+                'pdf_template_path' => $pdfTemplatePath,
+                'pdf_template_exists' => $usePdfTemplate,
+                'pdf_template_realpath' => $pdfTemplatePathFull,
+                'docx_template_path' => $docxTemplatePath,
+                'docx_template_exists' => $useDocxTemplate,
+                'docx_template_realpath' => $docxTemplatePathFull
+            ]);
+            
             if (!$usePdfTemplate && !$useDocxTemplate) {
                 return response()->json([
-                    'error' => 'Template not found. Please upload either certificate_template.pdf or certificate_template.docx to storage/app/templates/'
+                    'error' => 'Template not found at: ' . $pdfTemplatePath . ' or ' . $docxTemplatePath . '. Please upload certificate_template.pdf or certificate_template.docx to storage/app/templates/'
                 ], 404);
             }
 
             Log::info('Starting PDF certificate generation from template', [
+                'pdf_template_path' => $pdfTemplatePath,
                 'pdf_template_exists' => $usePdfTemplate,
+                'docx_template_path' => $docxTemplatePath,
                 'docx_template_exists' => $useDocxTemplate,
+                'template_being_used' => $useDocxTemplate ? 'DOCX' : ($usePdfTemplate ? 'PDF' : 'NONE'),
                 'student_name' => $exStudent->name,
                 'student_id' => $exStudent->id,
                 'short_program_name' => $shortProgramName,
@@ -990,12 +1030,24 @@ class CertificateController extends Controller
             $pdfContent = null;
             $pdfFileName = 'certificate_' . $exStudent->student_id . '_' . time() . '.pdf';
             
-            // Method 1: Use DOCX template (best placeholder replacement)
-            if ($useDocxTemplate) {
+            // Method 1: PDF template method disabled - requires FPDF or TCPDF dependency
+            // FPDI requires either setasign/fpdf or tecnickcom/tcpdf to be installed
+            // Since we're using cPanel and these may not be available, we skip PDF template method
+            // and use DOCX template instead (which is more reliable on shared hosting)
+            // To enable: Install either "setasign/fpdf" or "tecnickcom/tcpdf" via Composer
+            
+            // Method 2: Use DOCX template from: storage/app/templates/certificate_template.docx
+            if ($useDocxTemplate && !$pdfContent) {
                 try {
-                    Log::info('Using DOCX template for certificate generation (preferred method - replaces all placeholders)');
+                    Log::info('Using DOCX template for certificate generation', [
+                        'template_path' => $docxTemplatePath,
+                        'template_realpath' => realpath($docxTemplatePath) ?: $docxTemplatePath,
+                        'template_size' => filesize($docxTemplatePath),
+                        'method' => 'DOCX template with placeholder replacement'
+                    ]);
                     
                     // Use shared template processing method (same as Word generation)
+                    // This loads the template from: C:\xampp\htdocs\lms-cms\storage\app\templates\certificate_template.docx
                     $templateProcessor = $this->processWordTemplate($docxTemplatePath, $exStudent, $qrCodePath, $qrCodeExtension);
 
                     // Generate Word certificate temporarily
@@ -1053,10 +1105,9 @@ class CertificateController extends Controller
                         $pdfContent = file_get_contents($pdfPath);
                         @unlink($pdfPath);
                         Log::info('PDF generated successfully using DOCX template with LibreOffice');
-            } else {
+                    } else {
                         // Try PhpWord PDF writer as fallback
-                        // Note: This often fails with XML parsing errors due to special characters
-                        // The FPDI + TCPDF fallback below is more reliable
+                        // Note: PhpWord uses DomPDF internally, which may fail with XML parsing errors
             try {
                 Settings::setPdfRendererName(\PhpOffice\PhpWord\Settings::PDF_RENDERER_DOMPDF);
                 Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
@@ -1070,38 +1121,146 @@ class CertificateController extends Controller
                             $pdfPath = $tempDir . DIRECTORY_SEPARATOR . $wordFileName . '.pdf';
                             $pdfWriter->save($pdfPath);
                             
-                            if (file_exists($pdfPath) && filesize($pdfPath) > 10000) {
-                                // Use PhpWord PDF directly - no TCPDF extraction needed
-                                $pdfContent = file_get_contents($pdfPath);
-                                @unlink($pdfPath);
-                                Log::info('PDF generated successfully using DOCX template with PhpWord');
+                            // Check if PDF was created and is valid
+                            if (file_exists($pdfPath)) {
+                                $pdfSize = filesize($pdfPath);
+                                
+                                // Check if it's a valid PDF (not an error PDF)
+                                if ($pdfSize > 10000) {
+                                    // Read PDF content to verify it's not an error PDF
+                                    $pdfTestContent = file_get_contents($pdfPath);
+                                    
+                                    // Check PDF signature
+                                    if (substr($pdfTestContent, 0, 4) === '%PDF') {
+                                        // Check if it contains error messages
+                                        $pdfPreview = substr($pdfTestContent, 0, 500);
+                                        if (stripos($pdfPreview, 'Error') === false && 
+                                            stripos($pdfPreview, 'Exception') === false &&
+                                            stripos($pdfPreview, 'Fatal') === false) {
+                                            // Valid PDF - use it
+                                            $pdfContent = $pdfTestContent;
+                                            @unlink($pdfPath);
+                                            Log::info('PDF generated successfully using DOCX template with PhpWord', [
+                                                'pdf_size' => $pdfSize
+                                            ]);
+                                        } else {
+                                            // Error PDF detected
+                                            Log::error('PhpWord PDF conversion produced an error PDF', [
+                                                'pdf_size' => $pdfSize,
+                                                'pdf_preview' => substr($pdfPreview, 0, 200)
+                                            ]);
+                                            @unlink($pdfPath);
+                                            $pdfContent = null;
+                                        }
+                                    } else {
+                                        // Invalid PDF signature
+                                        Log::error('PhpWord PDF conversion produced invalid PDF (wrong signature)', [
+                                            'pdf_size' => $pdfSize,
+                                            'pdf_signature' => bin2hex(substr($pdfTestContent, 0, 10))
+                                        ]);
+                                        @unlink($pdfPath);
+                                        $pdfContent = null;
+                                    }
+                                } else {
+                                    // PDF too small - likely an error PDF
+                                    Log::error('PhpWord PDF conversion produced invalid file (too small)', [
+                                        'exists' => true,
+                                        'size' => $pdfSize,
+                                        'pdf_path' => $pdfPath
+                                    ]);
+                                    
+                                    // Check what's in the file
+                                    if ($pdfSize > 0) {
+                                        $pdfTestContent = file_get_contents($pdfPath);
+                                        Log::error('PhpWord PDF file content preview', [
+                                            'content_preview' => substr($pdfTestContent, 0, 200),
+                                            'is_error_pdf' => stripos($pdfTestContent, 'Error') !== false
+                                        ]);
+                                    }
+                                    
+                                    @unlink($pdfPath);
+                                    $pdfContent = null; // Clear invalid PDF
+                                }
                             } else {
-                                Log::warning('PhpWord PDF conversion produced invalid file', [
-                                    'exists' => file_exists($pdfPath),
-                                    'size' => file_exists($pdfPath) ? filesize($pdfPath) : 0
+                                Log::warning('PhpWord PDF conversion failed - file not created', [
+                                    'expected_path' => $pdfPath
                                 ]);
-                }
+                                $pdfContent = null;
+                            }
             } catch (\Exception $e) {
-                            Log::warning('PhpWord PDF conversion failed (this is expected with special characters): ' . $e->getMessage());
-                            // This is expected - PhpWord has issues with XML entities like & in "Information & Communication Technology"
-                            // The FPDI + TCPDF method below will handle this better
+                            Log::error('PhpWord PDF conversion failed with exception', [
+                                'error' => $e->getMessage(),
+                                'trace' => $e->getTraceAsString()
+                            ]);
+                            $pdfContent = null; // Clear failed PDF
+                        }
+                        
+                        // HTML-to-PDF fallback removed - DomPDF HTML conversion was producing invalid PDFs
+                        // If both LibreOffice and PhpWord fail, we'll keep the Word file and offer it as download
+                        if (!$pdfContent && file_exists($wordPath)) {
+                            Log::warning('All PDF conversion methods failed. Keeping Word certificate file for download.', [
+                                'word_path' => $wordPath,
+                                'word_size' => filesize($wordPath),
+                                'libreoffice_available' => function_exists('exec'),
+                                'phppword_pdf_available' => true
+                            ]);
+                            // Don't delete Word file - we'll return it as a fallback
+                            $pdfContent = null;
                         }
                     }
                     
-                    // Clean up Word file
-                    if (file_exists($wordPath)) {
-                        unlink($wordPath);
-                }
-            } catch (\Exception $e) {
+                    // Only clean up Word file if PDF was successfully generated
+                    if ($pdfContent && file_exists($wordPath)) {
+                        @unlink($wordPath);
+                    }
+        } catch (\Exception $e) {
                     Log::error('DOCX template processing failed: ' . $e->getMessage());
                 }
             }
             
-            // Method 3: Final fallback - return error if all methods failed
+            // Final fallback - return Word certificate if PDF generation failed
             if (!$pdfContent) {
-                return response()->json([
-                    'error' => 'Failed to generate PDF certificate. Please check server logs for details.'
-                ], 500);
+                // Check if Word file is still available
+                if (isset($wordPath) && file_exists($wordPath)) {
+                    Log::warning('PDF generation failed, returning Word certificate as fallback', [
+                        'student_id' => $studentId,
+                        'student_name' => $exStudent->name ?? 'unknown',
+                        'word_file_path' => $wordPath,
+                        'word_file_size' => filesize($wordPath),
+                        'libreoffice_available' => function_exists('exec'),
+                        'imagick_loaded' => extension_loaded('imagick'),
+                        'gd_loaded' => extension_loaded('gd')
+                    ]);
+                    
+                    // Return Word certificate as fallback
+                    $wordContent = file_get_contents($wordPath);
+                    $wordFileName = 'certificate_' . $exStudent->student_id . '_' . time() . '.docx';
+                    
+                    // Clean up Word file after reading
+                    @unlink($wordPath);
+                    
+                    return response($wordContent, 200, [
+                        'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'Content-Disposition' => 'attachment; filename="' . $wordFileName . '"',
+                        'Content-Length' => strlen($wordContent)
+                    ]);
+                } else {
+                    // Log detailed error information
+                    Log::error('All PDF generation methods failed and Word file not available', [
+                        'student_id' => $studentId,
+                        'student_name' => $exStudent->name ?? 'unknown',
+                        'word_file_exists' => isset($wordPath) && file_exists($wordPath),
+                        'word_file_size' => isset($wordPath) && file_exists($wordPath) ? filesize($wordPath) : 0,
+                        'libreoffice_available' => function_exists('exec'),
+                        'imagick_loaded' => extension_loaded('imagick'),
+                        'gd_loaded' => extension_loaded('gd')
+                    ]);
+                    
+                    return response()->json([
+                        'error' => 'Failed to generate PDF certificate. All conversion methods failed. Please check server logs for details.',
+                        'suggestion' => 'Try downloading the Word certificate instead, or contact your hosting provider to enable LibreOffice or Imagick extension.'
+                    ], 500);
+                }
             }
 
             // Clean up temporary QR code file
@@ -1280,108 +1439,6 @@ class CertificateController extends Controller
                 }
             }
             
-            // Method 2: Fallback to PDF template (if DOCX failed or doesn't exist)
-            if ($usePdfTemplate && class_exists('TCPDF')) {
-                try {
-                    // Use FPDI with TCPDF (same as download function)
-                    $pdf = new TcpdfFpdi();
-                    $pdf->SetAutoPageBreak(false, 0);
-                    
-                    $pdf->setSourceFile($pdfTemplatePath);
-                    $templateId = $pdf->importPage(1);
-                    $size = $pdf->getTemplateSize($templateId);
-                    $width = $size['width'];
-                    $height = $size['height'];
-                    
-                    $orientation = $width > $height ? 'L' : 'P';
-                    $pdf->AddPage($orientation, [$width, $height]);
-                    $pdf->useTemplate($templateId, 0, 0, $width, $height, true);
-
-                    // Get program names and formatted date (same as download function)
-                    $shortProgramName = $student->program_short ?? $student->program ?? 'Not Specified';
-                    $fullProgramName = $student->program_full ?? $student->program_short ?? $student->program ?? 'Not Specified';
-                    $formattedGraduationDate = $student->formatted_graduation_date;
-                    
-                    // Sanitize values for PDF
-                    $shortProgramName = htmlspecialchars_decode($shortProgramName, ENT_QUOTES);
-                    $fullProgramName = htmlspecialchars_decode($fullProgramName, ENT_QUOTES);
-                    $formattedGraduationDate = htmlspecialchars_decode($formattedGraduationDate, ENT_QUOTES);
-
-                    // Disable all borders globally
-                    $pdf->SetLineWidth(0.001);
-                    $pdf->SetDrawColor(255, 255, 255);
-                    $pdf->SetFillColor(255, 255, 255);
-                    
-                    // Cover placeholder areas with white rectangles
-                    $pdf->Rect($width * 0.05, $height * 0.10, $width * 0.9, $height * 0.15, 'F');
-                    $pdf->Rect($width * 0.05, $height * 0.20, $width * 0.9, $height * 0.15, 'F');
-                    $pdf->Rect($width * 0.05, $height * 0.30, $width * 0.9, $height * 0.12, 'F');
-                    $pdf->Rect($width * 0.05, $height * 0.40, $width * 0.9, $height * 0.15, 'F');
-                    $pdf->Rect($width * 0.60, $height * 0.80, $width * 0.35, $height * 0.12, 'F');
-                    $pdf->Rect($width * 0.75, $height * 0.75, $width * 0.20, $height * 0.20, 'F');
-
-                    // Add text (NO BORDERS)
-                    $pdf->SetFont('helvetica', 'B', 32);
-                    $pdf->SetTextColor(0, 0, 0);
-                    $pdf->SetXY($width * 0.1, $height * 0.15);
-                    $pdf->MultiCell($width * 0.8, 15, $shortProgramName, 0, 'C');
-                    
-                    $pdf->SetFont('helvetica', 'B', 28);
-                    $pdf->SetXY($width * 0.1, $height * 0.25);
-                    $pdf->MultiCell($width * 0.8, 15, strtoupper($student->name), 0, 'C');
-                    
-                    $pdf->SetFont('helvetica', '', 16);
-                    $pdf->SetXY($width * 0.1, $height * 0.35);
-                    $pdf->MultiCell($width * 0.8, 12, $fullProgramName, 0, 'C');
-                    
-                    $pdf->SetFont('helvetica', '', 12);
-                    $pdf->SetXY($width * 0.1, $height * 0.48);
-                    $pdf->MultiCell($width * 0.8, 10, $formattedGraduationDate, 0, 'C');
-                    
-                    $pdf->SetFont('helvetica', 'B', 10);
-                    $pdf->SetTextColor(139, 0, 0);
-                    $pdf->SetXY($width * 0.65, $height * 0.88);
-                    $pdf->Cell($width * 0.25, 8, $student->student_id, 0, 0, 'R');
-
-                    // Add QR Code (NO BORDER)
-                    if ($qrCodePath && file_exists($qrCodePath) && $qrCodeExtension === 'png') {
-                        $qrSize = min($width * 0.10, $height * 0.10, 100);
-                        $qrX = $width * 0.88;
-                        $qrY = $height * 0.85;
-                        
-                        try {
-                            $pdf->Image($qrCodePath, $qrX, $qrY, $qrSize, $qrSize, 'PNG', '', '', true, 150, '', false, false, 0, false, false, false);
-                        } catch (\Exception $imgError) {
-                            Log::warning('QR Code image insertion failed: ' . $imgError->getMessage());
-                        }
-                    }
-
-                    // Generate PDF to temporary file
-                    $tempPdfPath = $tempDir . '/preview_' . $student->id . '_' . time() . '.pdf';
-                    $pdf->Output($tempPdfPath, 'F');
-                    
-                    // Clean up QR code
-                    if (file_exists($qrCodePath)) {
-                        @unlink($qrCodePath);
-                    }
-                    
-                    if (file_exists($tempPdfPath) && filesize($tempPdfPath) > 0) {
-                        Log::info('PDF preview generated successfully using PDF template: ' . $tempPdfPath);
-                        
-                        return response()->file($tempPdfPath, [
-                            'Content-Type' => 'application/pdf',
-                            'Content-Disposition' => 'inline; filename="certificate_preview.pdf"',
-                            'Cache-Control' => 'no-cache, no-store, must-revalidate',
-                            'Pragma' => 'no-cache',
-                            'Expires' => '0',
-                            'X-Frame-Options' => 'SAMEORIGIN'
-                        ]);
-                    }
-        } catch (\Exception $e) {
-                    Log::error('PDF template preview failed: ' . $e->getMessage());
-                }
-            }
-
             // Clean up QR code if not already cleaned
             if (file_exists($qrCodePath)) {
                 @unlink($qrCodePath);
@@ -1601,8 +1658,9 @@ class CertificateController extends Controller
         }
     }
 
-    // TCPDF extraction methods removed - using LibreOffice conversion directly
-    // TCPDF/FPDI is only used for PDF template fallback (Method 2)
+    // PDF template methods removed - requires FPDF or TCPDF dependency
+    // To enable PDF template support: Install "setasign/fpdf" or "tecnickcom/tcpdf" via Composer
+    // Then use: \setasign\Fpdi\Fpdf\Fpdi or \setasign\Fpdi\Tcpdf\Fpdi
 
     /**
      * Remove borders from DOCX file by modifying the XML structure
@@ -1738,96 +1796,6 @@ class CertificateController extends Controller
         @rmdir($dir);
     }
 
-    /**
-     * Remove borders/box lines from PDF by covering them with white rectangles
-     */
-    private function removeBordersFromPdf($pdfPath)
-    {
-        try {
-            if (!class_exists('TCPDF')) {
-                return null;
-            }
-
-            // Create output path for cleaned PDF
-            $cleanedPdfPath = str_replace('.pdf', '_cleaned.pdf', $pdfPath);
-            
-            // Use FPDI with TCPDF to load and process the PDF
-            $pdf = new TcpdfFpdi();
-            $pdf->SetAutoPageBreak(false, 0);
-            
-            // Disable all borders globally
-            $pdf->SetLineWidth(0.001);
-            $pdf->SetDrawColor(255, 255, 255);
-            
-            // Load source PDF
-            $pageCount = $pdf->setSourceFile($pdfPath);
-            
-            // Process each page
-            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                $templateId = $pdf->importPage($pageNo);
-                $size = $pdf->getTemplateSize($templateId);
-                $width = $size['width'];
-                $height = $size['height'];
-                
-                // Add page
-                $orientation = $width > $height ? 'L' : 'P';
-                $pdf->AddPage($orientation, [$width, $height]);
-                
-                // Import the template (this includes all content including borders)
-                $pdf->useTemplate($templateId, 0, 0, $width, $height, true);
-                
-                // AGGRESSIVE border removal: Cover entire areas with white rectangles
-                // Since borders are part of the template, we need to cover the entire bordered areas
-                // and then re-add the content on top
-                $pdf->SetFillColor(255, 255, 255);
-                
-                // Cover ALL signature areas completely - left side (entire signature blocks)
-                $pdf->Rect($width * 0.03, $height * 0.68, $width * 0.28, $height * 0.18, 'F');
-                $pdf->Rect($width * 0.03, $height * 0.72, $width * 0.28, $height * 0.16, 'F');
-                
-                // Cover ALL "Registrar" and signature areas - right side (entire text blocks)
-                $pdf->Rect($width * 0.69, $height * 0.68, $width * 0.28, $height * 0.18, 'F');
-                $pdf->Rect($width * 0.69, $height * 0.72, $width * 0.28, $height * 0.16, 'F');
-                
-                // Cover QR code areas completely - bottom right (entire QR code boxes)
-                // Cover multiple QR code positions (there might be 2 stacked)
-                $pdf->Rect($width * 0.73, $height * 0.78, $width * 0.24, $height * 0.20, 'F');
-                $pdf->Rect($width * 0.76, $height * 0.80, $width * 0.19, $height * 0.17, 'F');
-                // Cover second QR code if it exists
-                $pdf->Rect($width * 0.76, $height * 0.75, $width * 0.19, $height * 0.17, 'F');
-                
-                // Cover certificate number area completely - bottom right
-                $pdf->Rect($width * 0.64, $height * 0.87, $width * 0.33, $height * 0.11, 'F');
-                
-                // Cover entire bottom-right area (QR codes + Registrar + Certificate number)
-                $pdf->Rect($width * 0.63, $height * 0.75, $width * 0.35, $height * 0.23, 'F');
-                
-                // Cover any other signature areas - bottom left
-                $pdf->Rect($width * 0.03, $height * 0.85, $width * 0.32, $height * 0.12, 'F');
-                
-                // Cover entire bottom section where borders typically appear
-                $pdf->Rect($width * 0.02, $height * 0.75, $width * 0.96, $height * 0.23, 'F');
-            }
-            
-            // Save cleaned PDF
-            $pdf->Output($cleanedPdfPath, 'F');
-            
-            if (file_exists($cleanedPdfPath) && filesize($cleanedPdfPath) > 0) {
-                Log::info('Borders removed from PDF successfully', [
-                    'original' => $pdfPath,
-                    'cleaned' => $cleanedPdfPath,
-                    'size' => filesize($cleanedPdfPath)
-                ]);
-                return $cleanedPdfPath;
-            }
-            
-            return null;
-            
-        } catch (\Exception $e) {
-            Log::error('Failed to remove borders from PDF: ' . $e->getMessage());
-            return null;
-        }
-    }
 
     /**
      * Convert Word document to PDF using LibreOffice
@@ -1835,8 +1803,67 @@ class CertificateController extends Controller
     private function convertWordToPdfWithLibreOffice($wordPath)
     {
         try {
+            // Check if exec() is available (often disabled on cPanel/shared hosting)
+            if (!function_exists('exec')) {
+                Log::info('exec() function is not available - skipping LibreOffice conversion');
+                return null;
+            }
+            
             $outputDir = dirname($wordPath);
-            $libreOfficePath = '"C:\Program Files\LibreOffice\program\soffice.exe"';
+            
+            // Detect OS and set appropriate LibreOffice path
+            $isWindows = strtoupper(substr(PHP_OS, 0, 3)) === 'WIN';
+            
+            if ($isWindows) {
+                // Windows paths
+                $possiblePaths = [
+                    '"C:\Program Files\LibreOffice\program\soffice.exe"',
+                    '"C:\Program Files (x86)\LibreOffice\program\soffice.exe"',
+                ];
+            } else {
+                // Linux/Unix paths (common on cPanel/servers)
+                $possiblePaths = [
+                    'soffice',
+                    '/usr/bin/soffice',
+                    '/usr/local/bin/soffice',
+                    '/opt/libreoffice*/program/soffice',
+                ];
+            }
+            
+            // Find the first available LibreOffice executable
+            $libreOfficePath = null;
+            foreach ($possiblePaths as $path) {
+                // For Linux, check if command exists
+                if (!$isWindows) {
+                    // Try to find the executable using 'which' command
+                    $whichOutput = [];
+                    $whichReturnCode = 0;
+                    @exec("which soffice 2>&1", $whichOutput, $whichReturnCode);
+                    if ($whichReturnCode === 0 && !empty($whichOutput)) {
+                        $libreOfficePath = '"' . trim($whichOutput[0]) . '"';
+                        break;
+                    }
+                    // Try direct path check
+                    $cleanPath = trim($path, '"');
+                    if (file_exists($cleanPath) && is_executable($cleanPath)) {
+                        $libreOfficePath = '"' . $cleanPath . '"';
+                        break;
+                    }
+                } else {
+                    // Windows - check if file exists
+                    $cleanPath = trim($path, '"');
+                    if (file_exists($cleanPath)) {
+                        $libreOfficePath = $path;
+                        break;
+                    }
+                }
+            }
+            
+            // If LibreOffice not found, return null (will use fallback)
+            if (!$libreOfficePath) {
+                Log::info('LibreOffice not found - will use PhpWord fallback');
+                return null;
+            }
             
             // Escape the paths for the command
             $wordPathEscaped = '"' . $wordPath . '"';
@@ -1849,7 +1876,7 @@ class CertificateController extends Controller
             
             $output = [];
             $returnCode = 0;
-            exec($command, $output, $returnCode);
+            @exec($command, $output, $returnCode);
             
             Log::info('LibreOffice output: ' . implode("\n", $output));
             Log::info('LibreOffice return code: ' . $returnCode);
@@ -2151,13 +2178,33 @@ class CertificateController extends Controller
             // These provide better SVG to PNG conversion than GD's limited SVG support
             
             // Method 1: Try rsvg-convert (if available on server)
-            $tempSvgPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.svg';
-            $tempPngPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.png';
+            $tempDir = sys_get_temp_dir();
+            $tempSvgPath = $tempDir . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.svg';
+            $tempPngPath = $tempDir . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.png';
             
-            @file_put_contents($tempSvgPath, $svgContent);
+            // Ensure temp directory is writable
+            if (!is_writable($tempDir)) {
+                Log::warning('Temp directory is not writable for SVG conversion', ['path' => $tempDir]);
+                return null;
+            }
+            
+            $bytesWritten = @file_put_contents($tempSvgPath, $svgContent);
+            if ($bytesWritten === false || $bytesWritten === 0) {
+                Log::warning('Failed to write SVG temp file', ['path' => $tempSvgPath]);
+                return null;
+            }
             
             // Try rsvg-convert (common on Linux servers)
+            // Note: exec() might be disabled on some shared hosting - this is handled gracefully
+            if (!function_exists('exec')) {
+                Log::warning('exec() function is disabled on this server');
+                @unlink($tempSvgPath);
+                return null;
+            }
+            
             $rsvgCommand = "rsvg-convert -w {$size} -h {$size} \"{$tempSvgPath}\" -o \"{$tempPngPath}\" 2>&1";
+            $output = [];
+            $returnCode = 0;
             @exec($rsvgCommand, $output, $returnCode);
             
             if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
@@ -2173,6 +2220,8 @@ class CertificateController extends Controller
             
             // Method 2: Try Inkscape (if available)
             $inkscapeCommand = "inkscape \"{$tempSvgPath}\" --export-type=png --export-filename=\"{$tempPngPath}\" --export-width={$size} --export-height={$size} 2>&1";
+            $output = [];
+            $returnCode = 0;
             @exec($inkscapeCommand, $output, $returnCode);
             
             if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
@@ -2188,6 +2237,8 @@ class CertificateController extends Controller
             
             // Method 3: Try ImageMagick command line (if available)
             $convertCommand = "convert -background transparent -size {$size}x{$size} \"{$tempSvgPath}\" \"{$tempPngPath}\" 2>&1";
+            $output = [];
+            $returnCode = 0;
             @exec($convertCommand, $output, $returnCode);
             
             if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
@@ -2380,6 +2431,75 @@ class CertificateController extends Controller
         } catch (\Exception $e) {
             Log::error('SVG to PNG conversion error: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    /**
+     * Clean HTML content for DomPDF conversion
+     * Fixes common issues with PhpWord HTML output
+     */
+    private function cleanHtmlForPdf($htmlContent)
+    {
+        try {
+            // Remove any invalid characters that might break XML/HTML parsing
+            $htmlContent = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $htmlContent);
+            
+            // Fix common encoding issues
+            $htmlContent = mb_convert_encoding($htmlContent, 'UTF-8', 'UTF-8');
+            
+            // Remove any script tags that might cause issues
+            $htmlContent = preg_replace('/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/mi', '', $htmlContent);
+            
+            // Remove style tags that might have complex CSS
+            $htmlContent = preg_replace('/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/mi', '', $htmlContent);
+            
+            // Ensure all images have proper paths or are removed
+            // PhpWord HTML might reference images that don't exist
+            $htmlContent = preg_replace('/<img[^>]+src=["\']([^"\']+)["\'][^>]*>/i', '', $htmlContent);
+            
+            // Remove empty paragraphs and divs
+            $htmlContent = preg_replace('/<p[^>]*>\s*<\/p>/i', '', $htmlContent);
+            $htmlContent = preg_replace('/<div[^>]*>\s*<\/div>/i', '', $htmlContent);
+            
+            // Ensure proper HTML structure with complete DOCTYPE and meta tags
+            if (stripos($htmlContent, '<html') === false) {
+                // Wrap in complete HTML structure with proper encoding
+                $htmlContent = '<!DOCTYPE html>' . "\n" .
+                    '<html lang="en">' . "\n" .
+                    '<head>' . "\n" .
+                    '<meta charset="UTF-8">' . "\n" .
+                    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' . "\n" .
+                    '<title>Certificate</title>' . "\n" .
+                    '</head>' . "\n" .
+                    '<body style="font-family: DejaVu Sans, Arial, sans-serif; margin: 0; padding: 20px;">' . "\n" .
+                    $htmlContent . "\n" .
+                    '</body>' . "\n" .
+                    '</html>';
+            } else {
+                // Ensure charset meta tag exists
+                if (stripos($htmlContent, 'charset') === false) {
+                    $htmlContent = str_replace('<head>', '<head><meta charset="UTF-8">', $htmlContent);
+                }
+            }
+            
+            // Add basic CSS for better rendering
+            $cssStyle = '<style type="text/css">
+                body { font-family: DejaVu Sans, Arial, sans-serif; margin: 0; padding: 20px; }
+                p { margin: 5px 0; }
+                table { border-collapse: collapse; width: 100%; }
+                td, th { padding: 5px; }
+            </style>';
+            
+            // Insert CSS before closing </head> tag
+            if (stripos($htmlContent, '</head>') !== false) {
+                $htmlContent = str_replace('</head>', $cssStyle . "\n</head>", $htmlContent);
+            }
+            
+            return $htmlContent;
+        } catch (\Exception $e) {
+            Log::warning('HTML cleaning failed: ' . $e->getMessage());
+            // Return original content if cleaning fails
+            return $htmlContent;
         }
     }
 }
