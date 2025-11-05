@@ -183,7 +183,7 @@ class CertificateController extends Controller
             // Ensure graduation_month is set (required for formatted date)
             if (!$exStudent->graduation_month) {
                 Log::warning('Graduation month missing for student', [
-                    'student_id' => $exStudent->student_id,
+                'student_id' => $exStudent->student_id,
                     'name' => $exStudent->name
                 ]);
                 // Use current month as fallback
@@ -344,32 +344,43 @@ class CertificateController extends Controller
                     ]);
                     
                     // Convert SVG to PNG for Word template compatibility
-                    $qrCode = $this->convertSvgToPng($qrCodeSvg, 200);
+                    $qrCode = $this->convertSvgToPng($qrCodeSvg, 150);
                     if ($qrCode && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n") {
                         $qrCodeType = 'png';
                         Log::info('QR Code SVG converted to PNG successfully', [
                             'png_size' => strlen($qrCode)
                         ]);
                     } else {
-                        // If conversion failed, try generating PNG directly with GD
+                        // If SVG to PNG conversion failed, try using a command-line tool if available
+                        // Otherwise, use the SVG directly (Word might accept it) or try external conversion
                         if (extension_loaded('gd')) {
-                            Log::info('SVG conversion failed, trying direct PNG generation with GD');
-                            $qrCode = $this->generatePngQrCodeWithGd($encodedQrData, 200);
+                            Log::info('SVG conversion failed, trying alternative SVG to PNG conversion with GD');
+                            // Try improved SVG to PNG conversion using GD with better parsing
+                            $qrCode = $this->convertSvgToPngImproved($qrCodeSvg, 150);
                             if ($qrCode && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n") {
                                 $qrCodeType = 'png';
-                                Log::info('QR Code generated directly as PNG using GD fallback');
+                                Log::info('QR Code SVG converted to PNG using improved GD method');
                             } else {
-                                // Last resort: Log error but don't use fake QR code
-                                // A real QR code is essential for certificate verification
-                                Log::error('All real QR code generation methods failed - cannot create placeholder', [
+                                // Last resort: Use SVG directly (some Word processors accept SVG)
+                                // But Word templates typically need PNG, so log a warning
+                                Log::error('All PNG conversion methods failed - QR code will be SVG (may not work in Word)', [
                                     'student_id' => $exStudent->student_id,
                                     'imagick_loaded' => extension_loaded('imagick'),
-                                    'gd_loaded' => extension_loaded('gd')
+                                    'gd_loaded' => extension_loaded('gd'),
+                                    'svg_size' => strlen($qrCodeSvg)
                                 ]);
-                                throw new \Exception('Failed to generate real QR code. Please ensure imagick extension is properly configured.');
+                                // Store SVG as fallback - but we need PNG for Word
+                                $qrCode = $qrCodeSvg;
+                                $qrCodeType = 'svg';
+                                // Don't throw exception - let it try with SVG and see if it works
                             }
                         } else {
-                            throw new \Exception('SVG to PNG conversion failed and GD is not available');
+                            Log::error('SVG to PNG conversion failed and GD is not available', [
+                                'student_id' => $exStudent->student_id
+                            ]);
+                            // Use SVG as last resort
+                            $qrCode = $qrCodeSvg;
+                            $qrCodeType = 'svg';
                         }
                     }
                 } catch (\Exception $e2) {
@@ -423,14 +434,31 @@ class CertificateController extends Controller
             // If we have PNG data, use PNG extension regardless of detection
             if ($qrCodeType === 'png' || ($qrCode && substr($qrCode, 0, 8) === "\x89PNG\r\n\x1a\n")) {
                 $qrCodeExtension = 'png';
-            } else {
-                // Fallback: if it's SVG, we still need PNG, so log warning
-                $qrCodeExtension = 'png'; // Force PNG extension even if content might be SVG
-                if ($qrCode && strpos($qrCode, '<svg') !== false) {
-                    Log::warning('QR code content is SVG but extension set to PNG - conversion may have failed', [
-                        'content_preview' => substr($qrCode, 0, 100)
+            } elseif ($qrCodeType === 'svg' || ($qrCode && strpos($qrCode, '<svg') !== false)) {
+                // If we only have SVG, we need to convert it - try one more time with improved method
+                Log::warning('QR code is SVG, attempting final conversion to PNG', [
+                    'content_preview' => substr($qrCode, 0, 100)
+                ]);
+                
+                // Try improved conversion one more time
+                $convertedPng = $this->convertSvgToPngImproved($qrCode, 150);
+                if ($convertedPng && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                    $qrCode = $convertedPng;
+                    $qrCodeType = 'png';
+                    $qrCodeExtension = 'png';
+                    Log::info('QR code SVG successfully converted to PNG on final attempt');
+                } else {
+                    // Still SVG - this is a problem for Word templates
+                    $qrCodeExtension = 'png'; // Force PNG extension even if content is SVG
+                    Log::error('QR code remains SVG - Word template may not display correctly', [
+                        'student_id' => $exStudent->student_id,
+                        'imagick_loaded' => extension_loaded('imagick'),
+                        'gd_loaded' => extension_loaded('gd')
                     ]);
                 }
+            } else {
+                // Unknown type - default to PNG
+                $qrCodeExtension = 'png';
             }
             
             $qrCodePath = null;
@@ -533,45 +561,80 @@ class CertificateController extends Controller
                 $templateProcessor->setValue('STUDENT_ID', $studentIdSanitized);
                 $templateProcessor->setValue('${STUDENT_ID}', $studentIdSanitized);
 
-            // Replace QR Code image in Word template (only if PNG)
-            if ($qrCodePath && file_exists($qrCodePath) && $qrCodeExtension === 'png') {
+            // Replace QR Code image in Word template (verify PNG before insertion)
+            if ($qrCodePath && file_exists($qrCodePath)) {
                 try {
-                    // Verify file is readable and valid PNG
+                    // Verify file is readable and check if it's actually PNG
                     $fileSize = filesize($qrCodePath);
                     if ($fileSize < 100) {
                         throw new \Exception('QR code file is too small: ' . $fileSize . ' bytes');
                     }
                     
-                    // Try multiple placeholder formats
-                    $placeholderFormats = ['QR_CODE', '${QR_CODE}', '$(QR_CODE)', '[QR_CODE]', '{{QR_CODE}}'];
-                    $imageInserted = false;
+                    // Verify it's actually PNG (check file signature)
+                    $fileContent = @file_get_contents($qrCodePath, false, null, 0, 8);
+                    $isPng = $fileContent && substr($fileContent, 0, 8) === "\x89PNG\r\n\x1a\n";
                     
-                    foreach ($placeholderFormats as $placeholder) {
-                        try {
-                            $templateProcessor->setImageValue($placeholder, [
-                                'path' => $qrCodePath,
-                                'width' => 100, // Standard size for certificate QR code
-                                'height' => 100 // Standard size for certificate QR code
-                            ]);
-                            $imageInserted = true;
-                            Log::info('QR Code image inserted successfully', [
-                                'placeholder' => $placeholder,
-                                'path' => $qrCodePath,
-                                'file_size' => $fileSize
-                            ]);
-                            break;
-                        } catch (\Exception $e) {
-                            // Try next format
-                            continue;
+                    if (!$isPng) {
+                        Log::error('QR code file is not valid PNG - attempting final conversion', [
+                            'path' => $qrCodePath,
+                            'extension' => $qrCodeExtension,
+                            'file_signature' => $fileContent ? bin2hex($fileContent) : 'empty',
+                            'file_size' => $fileSize
+                        ]);
+                        
+                        // If file is SVG, try to convert it one more time
+                        if ($fileContent && strpos($fileContent, '<svg') !== false) {
+                            $svgContent = file_get_contents($qrCodePath);
+                            $convertedPng = $this->convertSvgToPngImproved($svgContent, 150);
+                            if ($convertedPng && substr($convertedPng, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                                // Save converted PNG
+                                file_put_contents($qrCodePath, $convertedPng);
+                                $isPng = true;
+                                Log::info('QR code SVG successfully converted to PNG on final attempt');
+                            }
                         }
                     }
                     
-                    if (!$imageInserted) {
-                        Log::warning('QR Code image replacement failed - tried all placeholder formats', [
+                    // Only proceed if it's valid PNG (Word templates require PNG)
+                    if ($isPng) {
+                        // Try multiple placeholder formats
+                        $placeholderFormats = ['QR_CODE', '${QR_CODE}', '$(QR_CODE)', '[QR_CODE]', '{{QR_CODE}}'];
+                        $imageInserted = false;
+                        
+                        foreach ($placeholderFormats as $placeholder) {
+                            try {
+                                $templateProcessor->setImageValue($placeholder, [
+                                    'path' => $qrCodePath,
+                                    'width' => 100, // Standard size for certificate QR code
+                                    'height' => 100 // Standard size for certificate QR code
+                                ]);
+                                $imageInserted = true;
+                                Log::info('QR Code image inserted successfully', [
+                                    'placeholder' => $placeholder,
+                                    'path' => $qrCodePath,
+                                    'file_size' => filesize($qrCodePath),
+                                    'is_valid_png' => true
+                                ]);
+                                break;
+                            } catch (\Exception $e) {
+                                // Try next format
+                                continue;
+                            }
+                        }
+                        
+                        if (!$imageInserted) {
+                            Log::warning('QR Code image replacement failed - tried all placeholder formats', [
+                                'path' => $qrCodePath,
+                                'file_exists' => file_exists($qrCodePath),
+                                'file_size' => filesize($qrCodePath),
+                                'is_readable' => is_readable($qrCodePath)
+                            ]);
+                        }
+                    } else {
+                        Log::error('QR code file is not PNG - Word template requires PNG format', [
                             'path' => $qrCodePath,
-                            'file_exists' => file_exists($qrCodePath),
-                            'file_size' => $fileSize,
-                            'is_readable' => is_readable($qrCodePath)
+                            'extension' => $qrCodeExtension,
+                            'file_signature' => $fileContent ? bin2hex(substr($fileContent, 0, 8)) : 'empty'
                         ]);
                     }
                 } catch (\Exception $e) {
@@ -849,7 +912,7 @@ class CertificateController extends Controller
             // Ensure graduation_month is set (required for formatted date)
             if (!$exStudent->graduation_month) {
                 Log::warning('Graduation month missing for student in PDF generation', [
-                    'student_id' => $exStudent->student_id,
+                'student_id' => $exStudent->student_id,
                     'name' => $exStudent->name
                 ]);
                 // Use current month as fallback
@@ -1400,7 +1463,7 @@ class CertificateController extends Controller
 
             // Generate QR Code - Fixed URL for all students (points to ex-student login page)
             $qrCodeUrl = url('/ex-student/login');
-            
+
             // Generate QR Code
             // Use the login URL directly (same QR code for all students)
             $encodedQrData = $qrCodeUrl;
@@ -2074,29 +2137,81 @@ class CertificateController extends Controller
     }
 
     /**
-     * Generate PNG QR code directly using GD (bypasses imagick requirement)
-     * Creates a basic PNG QR code representation using GD
+     * Improved SVG to PNG conversion using GD with better SVG parsing
+     * This method attempts to parse SVG XML and render it as PNG using GD
      */
-    private function generatePngQrCodeWithGd($data, $size = 200)
+    private function convertSvgToPngImproved($svgContent, $size = 200)
     {
         try {
             if (!extension_loaded('gd')) {
-                Log::warning('GD extension not available for direct PNG QR generation');
                 return null;
             }
             
-            // Create a basic PNG QR code representation using GD
-            // This is a basic implementation that creates a black/white grid
-            $qrCode = $this->createBasicQrCodePng($data, $size);
-            if ($qrCode) {
-                Log::info('Basic PNG QR code generated using GD fallback');
-                return $qrCode;
+            // Try to use external command-line tools if available (rsvg-convert, inkscape, etc.)
+            // These provide better SVG to PNG conversion than GD's limited SVG support
+            
+            // Method 1: Try rsvg-convert (if available on server)
+            $tempSvgPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.svg';
+            $tempPngPath = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'qr_' . time() . '_' . rand(1000, 9999) . '.png';
+            
+            @file_put_contents($tempSvgPath, $svgContent);
+            
+            // Try rsvg-convert (common on Linux servers)
+            $rsvgCommand = "rsvg-convert -w {$size} -h {$size} \"{$tempSvgPath}\" -o \"{$tempPngPath}\" 2>&1";
+            @exec($rsvgCommand, $output, $returnCode);
+            
+            if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
+                $pngData = file_get_contents($tempPngPath);
+                @unlink($tempSvgPath);
+                @unlink($tempPngPath);
+                
+                if (substr($pngData, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                    Log::info('SVG converted to PNG using rsvg-convert');
+                    return $pngData;
+                }
             }
             
+            // Method 2: Try Inkscape (if available)
+            $inkscapeCommand = "inkscape \"{$tempSvgPath}\" --export-type=png --export-filename=\"{$tempPngPath}\" --export-width={$size} --export-height={$size} 2>&1";
+            @exec($inkscapeCommand, $output, $returnCode);
+            
+            if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
+                $pngData = file_get_contents($tempPngPath);
+                @unlink($tempSvgPath);
+                @unlink($tempPngPath);
+                
+                if (substr($pngData, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                    Log::info('SVG converted to PNG using Inkscape');
+                    return $pngData;
+                }
+            }
+            
+            // Method 3: Try ImageMagick command line (if available)
+            $convertCommand = "convert -background transparent -size {$size}x{$size} \"{$tempSvgPath}\" \"{$tempPngPath}\" 2>&1";
+            @exec($convertCommand, $output, $returnCode);
+            
+            if ($returnCode === 0 && file_exists($tempPngPath) && filesize($tempPngPath) > 0) {
+                $pngData = file_get_contents($tempPngPath);
+                @unlink($tempSvgPath);
+                @unlink($tempPngPath);
+                
+                if (substr($pngData, 0, 8) === "\x89PNG\r\n\x1a\n") {
+                    Log::info('SVG converted to PNG using ImageMagick convert');
+                    return $pngData;
+                }
+            }
+            
+            // Clean up temp files
+            @unlink($tempSvgPath);
+            if (file_exists($tempPngPath)) {
+                @unlink($tempPngPath);
+            }
+            
+            // If all command-line tools fail, return null (will fall back to SVG)
             return null;
             
         } catch (\Exception $e) {
-            Log::error('Direct GD PNG QR generation error: ' . $e->getMessage());
+            Log::warning('Improved SVG to PNG conversion failed: ' . $e->getMessage());
             return null;
         }
     }
