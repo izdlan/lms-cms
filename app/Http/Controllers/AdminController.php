@@ -1888,7 +1888,8 @@ if ($returnCode === 0) {
             'graduation_month' => 'required|string',
             'graduation_day' => 'required|integer|min:1|max:31',
             'cgpa' => 'nullable|numeric|min:0|max:4',
-            'academic_records' => 'nullable|array',
+            'academic_records' => 'nullable',
+            'academic_records_paste' => 'nullable|string',
             'certificate_data' => 'nullable|array',
         ]);
 
@@ -1898,6 +1899,18 @@ if ($returnCode === 0) {
             'graduation_year', 'graduation_month', 'graduation_day', 
             'cgpa', 'academic_records', 'certificate_data'
         ]);
+
+        // Parse academic records from structured/paste/JSON into structured array
+        $parsedRecords = $this->parseAcademicRecordsFromRequest($request);
+        if (!is_null($parsedRecords)) {
+            $data['academic_records'] = $parsedRecords;
+        } elseif ($request->filled('academic_records')) {
+            // Force-decode JSON string if provided
+            $forced = json_decode($request->input('academic_records'), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($forced)) {
+                $data['academic_records'] = $forced;
+            }
+        }
 
         // If program is not provided, use program_full as fallback
         if (empty($data['program'])) {
@@ -1916,6 +1929,51 @@ if ($returnCode === 0) {
         return view('admin.edit-ex-student', compact('exStudent'));
     }
 
+    /**
+     * Parse academic records from request (paste/JSON/array)
+     */
+    private function parseAcademicRecordsFromRequest(Request $request): ?array
+    {
+        // If already structured
+        $existing = $request->input('academic_records');
+        if (is_array($existing)) {
+            return $existing;
+        }
+
+        // Paste-from-Excel/CSV/TSV
+        $paste = trim((string) $request->input('academic_records_paste', ''));
+        if ($paste !== '') {
+            $lines = preg_split("/\r\n|\r|\n/", $paste);
+            $records = [];
+            foreach ($lines as $line) {
+                $line = trim($line);
+                if ($line === '') { continue; }
+                $delimiter = (strpos($line, "\t") !== false) ? "\t" : ',';
+                $cols = array_map('trim', preg_split('/' . preg_quote($delimiter, '/') . '/', $line));
+                if (count($cols) >= 3) {
+                    $records[] = [
+                        'code' => $cols[0] ?? null,
+                        'name' => $cols[1] ?? null,
+                        'credits' => is_numeric($cols[2] ?? null) ? (int) $cols[2] : null,
+                        'grade' => $cols[3] ?? null,
+                        'points' => is_numeric($cols[4] ?? null) ? (float) $cols[4] : null,
+                    ];
+                }
+            }
+            return !empty($records) ? $records : null;
+        }
+
+        // JSON fallback
+        if (is_string($existing) && trim($existing) !== '') {
+            $decoded = json_decode($existing, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                return $decoded;
+            }
+        }
+
+        return null;
+    }
+
     public function updateExStudent(Request $request, ExStudent $exStudent)
     {
         $this->checkAdminAccess();
@@ -1932,7 +1990,8 @@ if ($returnCode === 0) {
             'graduation_month' => 'required|string',
             'graduation_day' => 'required|integer|min:1|max:31',
             'cgpa' => 'nullable|numeric|min:0|max:4',
-            'academic_records' => 'nullable|array',
+            'academic_records' => 'nullable',
+            'academic_records_paste' => 'nullable|string',
             'certificate_data' => 'nullable|array',
         ]);
 
@@ -1942,6 +2001,17 @@ if ($returnCode === 0) {
             'graduation_year', 'graduation_month', 'graduation_day', 
             'cgpa', 'academic_records', 'certificate_data'
         ]);
+
+        // Parse academic records from structured/paste/JSON into structured array
+        $parsedRecords = $this->parseAcademicRecordsFromRequest($request);
+        if (!is_null($parsedRecords)) {
+            $data['academic_records'] = $parsedRecords;
+        } elseif ($request->filled('academic_records')) {
+            $forced = json_decode($request->input('academic_records'), true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($forced)) {
+                $data['academic_records'] = $forced;
+            }
+        }
 
         // If program is not provided, use program_full as fallback
         if (empty($data['program'])) {
