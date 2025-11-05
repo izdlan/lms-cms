@@ -206,12 +206,50 @@
                                 <h6>Academic Records</h6>
                             </div>
                             <div class="card-body">
+                                <!-- Structured entry (Year/Semester/Subject rows) -->
                                 <div class="mb-3">
-                                    <label for="academic_records_json" class="form-label">Academic Records (JSON)</label>
-                                    <textarea class="form-control" id="academic_records_json" name="academic_records_json" 
-                                              rows="6">{{ old('academic_records_json', json_encode($exStudent->academic_records, JSON_PRETTY_PRINT)) }}</textarea>
-                                    <div class="form-text">Enter academic records in JSON format.</div>
+                                    <label class="form-label">Structured Entry (Year / Semester / Subject)</label>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered align-middle" id="recordsTable">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th style="width: 110px;">Year</th>
+                                                    <th style="width: 110px;">Semester</th>
+                                                    <th style="width: 120px;">Code</th>
+                                                    <th>Subject Name</th>
+                                                    <th style="width: 90px;">Mark</th>
+                                                    <th style="width: 100px;">Grade</th>
+                                                    <th style="width: 110px;">Points</th>
+                                                    <th style="width: 60px;"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><input type="text" class="form-control form-control-sm" placeholder="e.g., 2008/09"></td>
+                                                    <td>
+                                                        <select class="form-select form-select-sm">
+                                                            <option value="">-</option>
+                                                            <option value="1">Year 1</option>
+                                                            <option value="2">Year 2</option>
+                                                            <option value="3">Year 3</option>
+                                                        </select>
+                                                    </td>
+                                                    <td><input type="text" class="form-control form-control-sm" placeholder="BICT101"></td>
+                                                    <td><input type="text" class="form-control form-control-sm" placeholder="Subject name"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" placeholder="78" step="1" min="0" max="100"></td>
+                                                    <td><input type="text" class="form-control form-control-sm" placeholder="B+"></td>
+                                                    <td><input type="number" class="form-control form-control-sm" placeholder="3.00" step="0.01" min="0" max="4"></td>
+                                                    <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row">&times;</button></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <button type="button" class="btn btn-outline-primary" id="addRowBtn" onclick="addRecordRow()">
+                                        <i data-feather="plus" width="16" height="16"></i> Add Subject Row
+                                    </button>
                                 </div>
+                                
+                                <!-- JSON input hidden for simplicity -->
                             </div>
                         </div>
 
@@ -348,7 +386,9 @@ document.getElementById('downloadQrBtn').addEventListener('click', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-    feather.replace();
+    if (window.feather && typeof feather.replace === 'function') {
+        feather.replace();
+    }
     
     // Auto-format student ID
     document.getElementById('student_id').addEventListener('input', function(e) {
@@ -415,38 +455,113 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Parse JSON inputs
     const form = document.querySelector('form');
+    // Structured rows handling
+    const tableBody = document.querySelector('#recordsTable tbody');
+    const addBtn = document.getElementById('addRowBtn');
+    if (addBtn) addBtn.addEventListener('click', () => addRecordRow());
+
+    window.addRecordRow = function(row={}) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="form-control form-control-sm" placeholder="e.g., 2008/09" value="${row.year||''}"></td>
+            <td>
+                <select class="form-select form-select-sm">
+                    <option value="">-</option>
+                    <option value="1" ${row.semester=='1'?'selected':''}>Year 1</option>
+                    <option value="2" ${row.semester=='2'?'selected':''}>Year 2</option>
+                    <option value="3" ${row.semester=='3'?'selected':''}>Year 3</option>
+                </select>
+            </td>
+            <td><input type="text" class="form-control form-control-sm" placeholder="BICT101" value="${row.code||''}"></td>
+            <td><input type="text" class="form-control form-control-sm" placeholder="Subject name" value="${row.name||''}"></td>
+            <td><input type="number" class="form-control form-control-sm" placeholder="78" value="${row.mark||''}" step="1" min="0" max="100"></td>
+            <td><input type="text" class="form-control form-control-sm" placeholder="B+" value="${row.grade||''}"></td>
+            <td><input type="number" class="form-control form-control-sm" placeholder="3.00" value="${row.points||''}" step="0.01" min="0" max="4"></td>
+            <td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger remove-row">&times;</button></td>`;
+        tableBody.appendChild(tr);
+        const removeBtn = tr.querySelector('.remove-row');
+        if (removeBtn) removeBtn.addEventListener('click', ()=> tr.remove());
+    }
+
+    // Prefill existing records if available
+    try {
+        const existing = @json($exStudent->academic_records ?? []);
+        const flat = [];
+        Object.keys(existing||{}).forEach(year => {
+            Object.keys(existing[year]||{}).forEach(semKey => {
+                const sem = (semKey.match(/(\d+)/)||[])[1] || '1';
+                (existing[year][semKey]||[]).forEach(r => flat.push({year, semester: sem, code:r.code, name:r.name, mark:r.mark, grade:r.grade, points:r.points}));
+            });
+        });
+        if (flat.length) flat.forEach(r => addRecordRow(r)); else addRecordRow();
+    } catch (e) { addRecordRow(); }
+
     form.addEventListener('submit', function(e) {
+        // Build academic_records from structured rows
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+        const grouped = {};
+        rows.forEach(tr => {
+            const cells = tr.querySelectorAll('input,select');
+            const [yearEl, semEl, codeEl, nameEl, markEl, gradeEl, pointsEl] = cells;
+            const year = (yearEl.value||'').trim();
+            const sem = (semEl.value||'').trim() || '1';
+            const rec = {
+                code: (codeEl.value||'').trim(),
+                name: (nameEl.value||'').trim(),
+                mark: markEl.value ? parseFloat(markEl.value) : null,
+                grade: (gradeEl.value||'').trim(),
+                points: pointsEl.value ? parseFloat(pointsEl.value) : null,
+            };
+            if (!rec.code && !rec.name) return;
+            const ykey = year || 'Year';
+            if (!grouped[ykey]) grouped[ykey] = {};
+            if (!grouped[ykey][`semester_${sem}`]) grouped[ykey][`semester_${sem}`] = [];
+            grouped[ykey][`semester_${sem}`].push(rec);
+        });
+        // Always attach hidden field (even if empty)
+        const hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'academic_records';
+        hidden.value = JSON.stringify(grouped);
+        form.appendChild(hidden);
+        
         // Parse academic records JSON
-        const academicRecordsText = document.getElementById('academic_records_json').value;
-        if (academicRecordsText.trim()) {
-            try {
-                const academicRecords = JSON.parse(academicRecordsText);
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'academic_records';
-                hiddenInput.value = JSON.stringify(academicRecords);
-                form.appendChild(hiddenInput);
-            } catch (error) {
-                alert('Invalid JSON format in Academic Records field');
-                e.preventDefault();
-                return;
+        const arJsonEl = document.getElementById('academic_records_json');
+        if (arJsonEl) {
+            const academicRecordsText = arJsonEl.value;
+            if (academicRecordsText.trim()) {
+                try {
+                    const academicRecords = JSON.parse(academicRecordsText);
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'academic_records';
+                    hiddenInput.value = JSON.stringify(academicRecords);
+                    form.appendChild(hiddenInput);
+                } catch (error) {
+                    alert('Invalid JSON format in Academic Records field');
+                    e.preventDefault();
+                    return;
+                }
             }
         }
         
         // Parse certificate data JSON
-        const certificateDataText = document.getElementById('certificate_data_json').value;
-        if (certificateDataText.trim()) {
-            try {
-                const certificateData = JSON.parse(certificateDataText);
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = 'certificate_data';
-                hiddenInput.value = JSON.stringify(certificateData);
-                form.appendChild(hiddenInput);
-            } catch (error) {
-                alert('Invalid JSON format in Certificate Data field');
-                e.preventDefault();
-                return;
+        const certJsonEl = document.getElementById('certificate_data_json');
+        if (certJsonEl) {
+            const certificateDataText = certJsonEl.value;
+            if (certificateDataText.trim()) {
+                try {
+                    const certificateData = JSON.parse(certificateDataText);
+                    const hiddenInput = document.createElement('input');
+                    hiddenInput.type = 'hidden';
+                    hiddenInput.name = 'certificate_data';
+                    hiddenInput.value = JSON.stringify(certificateData);
+                    form.appendChild(hiddenInput);
+                } catch (error) {
+                    alert('Invalid JSON format in Certificate Data field');
+                    e.preventDefault();
+                    return;
+                }
             }
         }
     });

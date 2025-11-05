@@ -299,6 +299,34 @@
             </a>
         </div>
         
+        @php 
+            $candidates = [];
+            $ic = isset($exStudent->ic) ? $exStudent->ic : (isset($exStudent->ic_passport) ? $exStudent->ic_passport : '');
+            $studentIdRaw = (string)($exStudent->student_id ?? '');
+            $icRaw = (string)$ic;
+            $icDigits = preg_replace('/\D/', '', $icRaw);
+            $sidDigits = preg_replace('/\D/', '', $studentIdRaw);
+            // Build candidate base names in priority order
+            // Only store digits-only versions (as requested)
+            foreach ([$icDigits, $sidDigits] as $base) {
+                if ($base && !in_array($base, $candidates, true)) $candidates[] = $base;
+            }
+            $imagePath = null;
+            $exts = ['png','jpg','jpeg'];
+            foreach ($candidates as $name) {
+                foreach ($exts as $ext) {
+                    $rel = 'assets/default/img/transcript/' . $name . '.' . $ext;
+                    if (file_exists(public_path($rel))) { $imagePath = asset($rel); break 2; }
+                }
+            }
+        @endphp
+
+        @if($imagePath)
+        <!-- Static PNG transcript -->
+        <div class="text-center mb-4">
+            <img src="{{ $imagePath }}" alt="Transcript Image" style="width:100%; max-width:1000px; height:auto; border:1px solid #ddd; border-radius:6px;"/>
+        </div>
+        @else
         <!-- Transcript -->
         <div class="transcript">
             <div class="transcript-header">
@@ -339,10 +367,21 @@
                 </div>
             </div>
             
+            @php
+                $records = $exStudent->academic_records ?? [];
+                $yearKeys = array_keys($records);
+                $firstYearKey = $yearKeys[0] ?? 'Year 1';
+                $sem1 = $records[$firstYearKey]['semester_1'] ?? ($records[$firstYearKey]['year_1'] ?? []);
+                $sem2 = $records[$firstYearKey]['semester_2'] ?? ($records[$firstYearKey]['year_2'] ?? []);
+                $totalCredits = 0; $weighted = 0;
+                foreach (($sem1 ?? []) as $r) { $totalCredits += (int)($r['credits'] ?? 0); $weighted += ((float)($r['points'] ?? 0)) * (int)($r['credits'] ?? 0); }
+                foreach (($sem2 ?? []) as $r) { $totalCredits += (int)($r['credits'] ?? 0); $weighted += ((float)($r['points'] ?? 0)) * (int)($r['credits'] ?? 0); }
+                $gpa = $totalCredits > 0 ? number_format($weighted / $totalCredits, 2) : 'N/A';
+            @endphp
             <div class="academic-records">
                 <!-- Semester 1 -->
                 <div class="semester-header">
-                    Semester 1 - Academic Year 2021/2022
+                    Semester 1 - Academic Year {{ is_string($firstYearKey) ? $firstYearKey : 'Year 1' }}
                 </div>
                 <table class="courses-table">
                     <thead>
@@ -350,52 +389,30 @@
                             <th>Course Code</th>
                             <th>Course Name</th>
                             <th>Credit Hours</th>
+                            <th>Mark</th>
                             <th>Grade</th>
                             <th>Grade Points</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @forelse(($sem1 ?? []) as $row)
                         <tr>
-                            <td>CS101</td>
-                            <td>Introduction to Programming</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A</td>
-                            <td>4.00</td>
+                            <td>{{ $row['code'] ?? '' }}</td>
+                            <td>{{ $row['name'] ?? '' }}</td>
+                            <td>{{ $row['credits'] ?? '' }}</td>
+                            <td>{{ $row['mark'] ?? '' }}</td>
+                            <td class="{{ (($row['points'] ?? 0) >= 3.67) ? 'grade-excellent' : ((($row['points'] ?? 0) >= 3.0) ? 'grade-good' : 'grade-average') }}">{{ $row['grade'] ?? '' }}</td>
+                            <td>{{ number_format((float)($row['points'] ?? 0), 2) }}</td>
                         </tr>
-                        <tr>
-                            <td>MATH101</td>
-                            <td>Calculus I</td>
-                            <td>4</td>
-                            <td class="grade-good">B+</td>
-                            <td>3.33</td>
-                        </tr>
-                        <tr>
-                            <td>ENG101</td>
-                            <td>English Communication</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A-</td>
-                            <td>3.67</td>
-                        </tr>
-                        <tr>
-                            <td>PHY101</td>
-                            <td>Physics I</td>
-                            <td>4</td>
-                            <td class="grade-good">B</td>
-                            <td>3.00</td>
-                        </tr>
-                        <tr>
-                            <td>CS102</td>
-                            <td>Computer Fundamentals</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A</td>
-                            <td>4.00</td>
-                        </tr>
+                        @empty
+                        <tr><td colspan="5" class="text-center text-muted">No subjects recorded</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
                 
                 <!-- Semester 2 -->
                 <div class="semester-header">
-                    Semester 2 - Academic Year 2021/2022
+                    Semester 2 - Academic Year {{ is_string($firstYearKey) ? $firstYearKey : 'Year 1' }}
                 </div>
                 <table class="courses-table">
                     <thead>
@@ -403,64 +420,42 @@
                             <th>Course Code</th>
                             <th>Course Name</th>
                             <th>Credit Hours</th>
+                            <th>Mark</th>
                             <th>Grade</th>
                             <th>Grade Points</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @forelse(($sem2 ?? []) as $row)
                         <tr>
-                            <td>CS201</td>
-                            <td>Data Structures</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A</td>
-                            <td>4.00</td>
+                            <td>{{ $row['code'] ?? '' }}</td>
+                            <td>{{ $row['name'] ?? '' }}</td>
+                            <td>{{ $row['credits'] ?? '' }}</td>
+                            <td>{{ $row['mark'] ?? '' }}</td>
+                            <td class="{{ (($row['points'] ?? 0) >= 3.67) ? 'grade-excellent' : ((($row['points'] ?? 0) >= 3.0) ? 'grade-good' : 'grade-average') }}">{{ $row['grade'] ?? '' }}</td>
+                            <td>{{ number_format((float)($row['points'] ?? 0), 2) }}</td>
                         </tr>
-                        <tr>
-                            <td>MATH201</td>
-                            <td>Calculus II</td>
-                            <td>4</td>
-                            <td class="grade-good">B+</td>
-                            <td>3.33</td>
-                        </tr>
-                        <tr>
-                            <td>ENG201</td>
-                            <td>Technical Writing</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A-</td>
-                            <td>3.67</td>
-                        </tr>
-                        <tr>
-                            <td>PHY201</td>
-                            <td>Physics II</td>
-                            <td>4</td>
-                            <td class="grade-good">B</td>
-                            <td>3.00</td>
-                        </tr>
-                        <tr>
-                            <td>CS203</td>
-                            <td>Database Systems</td>
-                            <td>3</td>
-                            <td class="grade-excellent">A</td>
-                            <td>4.00</td>
-                        </tr>
+                        @empty
+                        <tr><td colspan="5" class="text-center text-muted">No subjects recorded</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
             
             <div class="summary-section">
-                <div class="summary-title">Academic Summary - Year 1</div>
+                <div class="summary-title">Academic Summary - {{ is_string($firstYearKey) ? $firstYearKey : 'Year 1' }}</div>
                 <div class="summary-grid">
                     <div class="summary-item">
                         <div class="summary-label">Total Credits</div>
-                        <div class="summary-value">34</div>
+                        <div class="summary-value">{{ $totalCredits }}</div>
                     </div>
                     <div class="summary-item">
-                        <div class="summary-label">GPA Year 1</div>
-                        <div class="summary-value">3.67</div>
+                        <div class="summary-label">GPA</div>
+                        <div class="summary-value">{{ $gpa }}</div>
                     </div>
                     <div class="summary-item">
                         <div class="summary-label">Status</div>
-                        <div class="summary-value">Good Standing</div>
+                        <div class="summary-value">{{ ($gpa !== 'N/A' && (float)$gpa >= 2.0) ? 'Good Standing' : 'Academic Warning' }}</div>
                     </div>
                 </div>
             </div>
@@ -477,6 +472,7 @@
                 </div>
             </div>
         </div>
+        @endif
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
