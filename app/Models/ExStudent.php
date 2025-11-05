@@ -13,8 +13,11 @@ class ExStudent extends Model
         'email',
         'phone',
         'program',
+        'program_short',
+        'program_full',
         'graduation_year',
         'graduation_month',
+        'graduation_day',
         'cgpa',
         'certificate_number',
         'qr_code',
@@ -85,7 +88,7 @@ class ExStudent extends Model
     }
 
     /**
-     * Get formatted graduation date
+     * Get formatted graduation date (old format: "June 2011")
      */
     public function getGraduationDateAttribute(): string
     {
@@ -94,6 +97,83 @@ class ExStudent extends Model
                 ->format('F Y');
         }
         return $this->graduation_year;
+    }
+
+    /**
+     * Get formatted graduation date in ordinal format (e.g., "Tenth day of June 2011")
+     */
+    public function getFormattedGraduationDateAttribute(): string
+    {
+        if (!$this->graduation_year || !$this->graduation_month) {
+            return $this->graduation_year ?? 'Unknown';
+        }
+
+        $day = (int)($this->graduation_day ?? 1);
+        // Handle month as string (e.g., "01", "06") or integer
+        $month = (int)$this->graduation_month;
+        $year = $this->graduation_year;
+
+        // Validate day range
+        if ($day < 1 || $day > 31) {
+            $day = 1;
+        }
+
+        // Validate month range
+        if ($month < 1 || $month > 12) {
+            // Try to parse month name if it's not a number
+            $monthNames = [
+                'january' => 1, 'february' => 2, 'march' => 3, 'april' => 4,
+                'may' => 5, 'june' => 6, 'july' => 7, 'august' => 8,
+                'september' => 9, 'october' => 10, 'november' => 11, 'december' => 12
+            ];
+            $monthLower = strtolower(trim($this->graduation_month));
+            if (isset($monthNames[$monthLower])) {
+                $month = $monthNames[$monthLower];
+            } else {
+                // Invalid month, return fallback
+                return $this->graduation_year ?? 'Unknown';
+            }
+        }
+
+        // Convert day number to ordinal word
+        $ordinalDays = [
+            1 => 'First', 2 => 'Second', 3 => 'Third', 4 => 'Fourth', 5 => 'Fifth',
+            6 => 'Sixth', 7 => 'Seventh', 8 => 'Eighth', 9 => 'Ninth', 10 => 'Tenth',
+            11 => 'Eleventh', 12 => 'Twelfth', 13 => 'Thirteenth', 14 => 'Fourteenth', 15 => 'Fifteenth',
+            16 => 'Sixteenth', 17 => 'Seventeenth', 18 => 'Eighteenth', 19 => 'Nineteenth', 20 => 'Twentieth',
+            21 => 'Twenty-first', 22 => 'Twenty-second', 23 => 'Twenty-third', 24 => 'Twenty-fourth', 25 => 'Twenty-fifth',
+            26 => 'Twenty-sixth', 27 => 'Twenty-seventh', 28 => 'Twenty-eighth', 29 => 'Twenty-ninth', 30 => 'Thirtieth',
+            31 => 'Thirty-first'
+        ];
+
+        $ordinalDay = $ordinalDays[$day] ?? $day;
+
+        // Convert month number to month name
+        $monthNames = [
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
+        ];
+
+        $monthName = $monthNames[$month] ?? 'Unknown';
+
+        return "{$ordinalDay} day of {$monthName} {$year}";
+    }
+
+    /**
+     * Get short program name (fallback to program if not set)
+     */
+    public function getShortProgramNameAttribute(): string
+    {
+        return $this->program_short ?? $this->program ?? 'Not Specified';
+    }
+
+    /**
+     * Get full program name (fallback to program_short or program if not set)
+     */
+    public function getFullProgramNameAttribute(): string
+    {
+        return $this->program_full ?? $this->program_short ?? $this->program ?? 'Not Specified';
     }
 
     /**
@@ -197,9 +277,12 @@ class ExStudent extends Model
             'name' => $data['name'],
             'email' => $data['email'] ?? null,
             'phone' => $data['phone'] ?? null,
-            'program' => $data['program'] ?? null,
+            'program' => $data['program'] ?? $data['program_full'] ?? null,
+            'program_short' => $data['program_short'] ?? null,
+            'program_full' => $data['program_full'] ?? null,
             'graduation_year' => $data['graduation_year'],
             'graduation_month' => $data['graduation_month'] ?? null,
+            'graduation_day' => $data['graduation_day'] ?? 1,
             'cgpa' => $data['cgpa'] ?? null,
             'certificate_number' => $certificateNumber,
             'qr_code' => $qrCodeData,

@@ -1881,19 +1881,28 @@ if ($returnCode === 0) {
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:ex_students,email',
             'phone' => 'nullable|string',
-            'program' => 'nullable|string',
+            'program_short' => 'required|string|max:255',
+            'program_full' => 'required|string|max:255',
+            'program' => 'nullable|string', // Keep for backward compatibility
             'graduation_year' => 'required|string',
-            'graduation_month' => 'nullable|string',
+            'graduation_month' => 'required|string',
+            'graduation_day' => 'required|integer|min:1|max:31',
             'cgpa' => 'nullable|numeric|min:0|max:4',
             'academic_records' => 'nullable|array',
             'certificate_data' => 'nullable|array',
         ]);
 
         $data = $request->only([
-            'student_id', 'name', 'email', 'phone', 'program', 
-            'graduation_year', 'graduation_month', 'cgpa', 
-            'academic_records', 'certificate_data'
+            'student_id', 'name', 'email', 'phone', 
+            'program_short', 'program_full', 'program',
+            'graduation_year', 'graduation_month', 'graduation_day', 
+            'cgpa', 'academic_records', 'certificate_data'
         ]);
+
+        // If program is not provided, use program_full as fallback
+        if (empty($data['program'])) {
+            $data['program'] = $data['program_full'];
+        }
 
         // Create ex-student record
         $exStudent = ExStudent::createExStudent($data);
@@ -1916,19 +1925,28 @@ if ($returnCode === 0) {
             'name' => 'required|string|max:255',
             'email' => 'nullable|email|unique:ex_students,email,' . $exStudent->id,
             'phone' => 'nullable|string',
-            'program' => 'nullable|string',
+            'program_short' => 'required|string|max:255',
+            'program_full' => 'required|string|max:255',
+            'program' => 'nullable|string', // Keep for backward compatibility
             'graduation_year' => 'required|string',
-            'graduation_month' => 'nullable|string',
+            'graduation_month' => 'required|string',
+            'graduation_day' => 'required|integer|min:1|max:31',
             'cgpa' => 'nullable|numeric|min:0|max:4',
             'academic_records' => 'nullable|array',
             'certificate_data' => 'nullable|array',
         ]);
 
         $data = $request->only([
-            'student_id', 'name', 'email', 'phone', 'program', 
-            'graduation_year', 'graduation_month', 'cgpa', 
-            'academic_records', 'certificate_data'
+            'student_id', 'name', 'email', 'phone', 
+            'program_short', 'program_full', 'program',
+            'graduation_year', 'graduation_month', 'graduation_day', 
+            'cgpa', 'academic_records', 'certificate_data'
         ]);
+
+        // If program is not provided, use program_full as fallback
+        if (empty($data['program'])) {
+            $data['program'] = $data['program_full'];
+        }
 
         $exStudent->update($data);
 

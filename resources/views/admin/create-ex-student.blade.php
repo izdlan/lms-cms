@@ -77,12 +77,26 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="program" class="form-label">Program</label>
-                                    <input type="text" class="form-control" id="program" name="program" 
-                                           value="{{ old('program') }}" placeholder="e.g., Bachelor of Computer Science">
+                                    <label for="program_short" class="form-label">Program (Short) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="program_short" name="program_short" 
+                                           value="{{ old('program_short') }}" required
+                                           placeholder="e.g., Bachelor of Science">
+                                    <div class="form-text">Short program name for certificate display (e.g., "Bachelor of Science")</div>
                                 </div>
                             </div>
                             <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="program_full" class="form-label">Program (Full) <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="program_full" name="program_full" 
+                                           value="{{ old('program_full') }}" required
+                                           placeholder="e.g., Bachelor of Science (Hons) in Information & Communication Technology">
+                                    <div class="form-text">Full program name for certificate body (e.g., "Bachelor of Science (Hons) in ICT")</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="cgpa" class="form-label">CGPA</label>
                                     <input type="number" class="form-control" id="cgpa" name="cgpa" 
@@ -90,10 +104,7 @@
                                            placeholder="3.75">
                                 </div>
                             </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="graduation_year" class="form-label">Graduation Year <span class="text-danger">*</span></label>
                                     <select class="form-select" id="graduation_year" name="graduation_year" required>
@@ -106,10 +117,10 @@
                                     </select>
                                 </div>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="mb-3">
-                                    <label for="graduation_month" class="form-label">Graduation Month</label>
-                                    <select class="form-select" id="graduation_month" name="graduation_month">
+                                    <label for="graduation_month" class="form-label">Graduation Month <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="graduation_month" name="graduation_month" required>
                                         <option value="">Select Month</option>
                                         @for($month = 1; $month <= 12; $month++)
                                             <option value="{{ str_pad($month, 2, '0', STR_PAD_LEFT) }}" 
@@ -118,6 +129,31 @@
                                             </option>
                                         @endfor
                                     </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="graduation_day" class="form-label">Graduation Day <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="graduation_day" name="graduation_day" required>
+                                        <option value="">Select Day</option>
+                                        @for($day = 1; $day <= 31; $day++)
+                                            <option value="{{ $day }}" {{ old('graduation_day') == $day ? 'selected' : '' }}>
+                                                {{ $day }} ({{ $day === 1 ? 'First' : ($day === 2 ? 'Second' : ($day === 3 ? 'Third' : ($day === 21 ? 'Twenty-first' : ($day === 22 ? 'Twenty-second' : ($day === 23 ? 'Twenty-third' : ($day === 31 ? 'Thirty-first' : $day . 'th')))))) }})
+                                            </option>
+                                        @endfor
+                                    </select>
+                                    <div class="form-text">Day of month for graduation date (will be formatted as "Tenth day of June 2011")</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Preview Graduation Date</label>
+                                    <div class="form-control bg-light" id="graduation_date_preview" style="min-height: 38px; padding: 0.375rem 0.75rem; display: flex; align-items: center;">
+                                        <span class="text-muted">Select year, month, and day to preview</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -191,6 +227,59 @@ document.addEventListener('DOMContentLoaded', function() {
                 formatted += '-' + value.substring(8, 12);
             }
             e.target.value = formatted;
+        }
+    });
+    
+    // Ordinal day conversion
+    function getOrdinalDay(day) {
+        const ordinals = {
+            1: 'First', 2: 'Second', 3: 'Third', 4: 'Fourth', 5: 'Fifth',
+            6: 'Sixth', 7: 'Seventh', 8: 'Eighth', 9: 'Ninth', 10: 'Tenth',
+            11: 'Eleventh', 12: 'Twelfth', 13: 'Thirteenth', 14: 'Fourteenth', 15: 'Fifteenth',
+            16: 'Sixteenth', 17: 'Seventeenth', 18: 'Eighteenth', 19: 'Nineteenth', 20: 'Twentieth',
+            21: 'Twenty-first', 22: 'Twenty-second', 23: 'Twenty-third', 24: 'Twenty-fourth', 25: 'Twenty-fifth',
+            26: 'Twenty-sixth', 27: 'Twenty-seventh', 28: 'Twenty-eighth', 29: 'Twenty-ninth', 30: 'Thirtieth',
+            31: 'Thirty-first'
+        };
+        return ordinals[day] || day;
+    }
+    
+    // Month names
+    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'September', 'October', 'November', 'December'];
+    
+    // Update graduation date preview
+    function updateGraduationDatePreview() {
+        const year = document.getElementById('graduation_year').value;
+        const month = document.getElementById('graduation_month').value;
+        const day = document.getElementById('graduation_day').value;
+        const preview = document.getElementById('graduation_date_preview');
+        
+        if (year && month && day) {
+            const monthName = monthNames[parseInt(month) - 1];
+            const ordinalDay = getOrdinalDay(parseInt(day));
+            preview.innerHTML = `<strong>${ordinalDay} day of ${monthName} ${year}</strong>`;
+            preview.classList.remove('bg-light', 'text-muted');
+            preview.classList.add('bg-info', 'text-white');
+        } else {
+            preview.innerHTML = '<span class="text-muted">Select year, month, and day to preview</span>';
+            preview.classList.remove('bg-info', 'text-white');
+            preview.classList.add('bg-light', 'text-muted');
+        }
+    }
+    
+    // Add event listeners for graduation date fields
+    document.getElementById('graduation_year').addEventListener('change', updateGraduationDatePreview);
+    document.getElementById('graduation_month').addEventListener('change', updateGraduationDatePreview);
+    document.getElementById('graduation_day').addEventListener('change', updateGraduationDatePreview);
+    
+    // Auto-fill program_full when program_short is entered (optional helper)
+    document.getElementById('program_short').addEventListener('blur', function() {
+        const programShort = this.value;
+        const programFull = document.getElementById('program_full');
+        if (programShort && !programFull.value) {
+            // Suggest full program name based on short name
+            programFull.placeholder = programShort + ' (Hons) in [Specialization]';
         }
     });
     
