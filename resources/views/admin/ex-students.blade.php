@@ -179,7 +179,7 @@
                 <div id="qrInfo" class="mt-3" style="display: none;">
                     <h6>Student Information</h6>
                     <p><strong>Student ID:</strong> <span id="qrStudentId"></span></p>
-                    <p><strong>Verification URL:</strong> <span id="qrVerificationUrl"></span></p>
+                    <p><strong>Login URL:</strong> <span id="qrLoginUrl"></span></p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -233,7 +233,7 @@ function generateQR(exStudentId) {
             
             // Show info
             document.getElementById('qrStudentId').textContent = data.student_id;
-            document.getElementById('qrVerificationUrl').textContent = data.verification_url;
+            document.getElementById('qrLoginUrl').textContent = data.login_url;
             document.getElementById('qrInfo').style.display = 'block';
             document.getElementById('downloadQrBtn').style.display = 'inline-block';
         } else {

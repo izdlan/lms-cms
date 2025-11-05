@@ -1989,21 +1989,10 @@ if ($returnCode === 0) {
         $this->checkAdminAccess();
 
         try {
-            // Generate QR Code data for verification (compatible with verification system)
-            $qrCodeData = [
-                'student_id' => $exStudent->student_id,
-                'student_name' => $exStudent->name,
-                'certificate_number' => $exStudent->certificate_number,
-                'course' => $exStudent->program ?? 'Not Specified',
-                'graduation_date' => $exStudent->graduation_date,
-                'verification_url' => url('/certificates/verify/' . $exStudent->certificate_number),
-                'certificate_download_url' => url('/certificates/generate/' . $exStudent->id),
-                'generated_at' => now()->toISOString()
-            ];
-
-            // Generate QR Code (try PNG first, fallback to SVG)
-            // Encode data as base64 JSON for verification system compatibility
-            $encodedQrData = base64_encode(json_encode($qrCodeData));
+            // Generate QR Code - Fixed URL for all students (points to ex-student login page)
+            // Use the login URL directly (same QR code for all students)
+            $loginUrl = url('/ex-student/login');
+            $encodedQrData = $loginUrl;
             
             try {
                 $qrCode = QrCode::format('png')
@@ -2042,13 +2031,13 @@ if ($returnCode === 0) {
                 copy($sourceFile, $publicFile);
             }
             
-            // Generate URL for the QR code (using asset since file is in public storage)
-            $qrCodeUrl = asset('storage/' . $qrCodePath);
+            // Generate URL for the QR code image (using asset since file is in public storage)
+            $qrCodeImageUrl = asset('storage/' . $qrCodePath);
 
             return response()->json([
                 'success' => true,
-                'qr_code_url' => $qrCodeUrl,
-                'verification_url' => url('/certificates/verify/' . $exStudent->certificate_number),
+                'qr_code_url' => $qrCodeImageUrl,
+                'login_url' => $loginUrl,
                 'certificate_download_url' => url('/certificates/generate/' . $exStudent->id),
                 'student_id' => $exStudent->student_id
             ]);

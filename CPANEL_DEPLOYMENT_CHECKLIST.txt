@@ -1,0 +1,130 @@
+================================================================================
+CERTIFICATE GENERATION - CPANEL DEPLOYMENT CHECKLIST
+================================================================================
+
+STEP 1: PHP EXTENSIONS (Check in cPanel → Select PHP Version)
+================================================================================
+✓ zip          - For DOCX file handling
+✓ gd           - For QR code generation (basic support)
+✓ imagick      - REQUIRED for PNG QR code generation (SimpleSoftwareIO library needs it)
+✓ xml          - For XML processing
+✓ mbstring     - For string handling
+✓ dom          - For DOMDocument operations
+
+ACTION: Enable these in cPanel if not already enabled
+⚠️  IMPORTANT: imagick is REQUIRED - without it, QR codes will be SVG and won't appear in Word certificates
+
+
+STEP 2: INSTALL COMPOSER DEPENDENCIES
+================================================================================
+Via SSH or cPanel Terminal:
+cd /home/username/public_html/lms-cms
+composer install --no-dev --optimize-autoloader
+
+Required packages (already in composer.json):
+✓ phpoffice/phpword
+✓ setasign/fpdi
+✓ tecnickcom/tcpdf
+✓ simplesoftwareio/simple-qrcode
+✓ barryvdh/laravel-dompdf
+
+
+STEP 3: CREATE DIRECTORIES AND SET PERMISSIONS
+================================================================================
+Via cPanel File Manager or SSH:
+
+# Create directories if they don't exist
+mkdir -p storage/app/templates
+mkdir -p storage/app/temp
+mkdir -p storage/app/certificates
+
+# Set permissions
+chmod 755 storage/app/templates
+chmod 777 storage/app/temp  # Needs write access for temporary files
+chmod 755 storage/app/certificates
+chmod 755 storage/app/public
+
+
+STEP 4: UPLOAD TEMPLATE FILES
+================================================================================
+Upload to: storage/app/templates/
+
+Files needed:
+✓ certificate_template.docx
+✓ certificate_template.pdf
+
+Set permissions: 644 (readable)
+
+
+STEP 5: RUN DATABASE MIGRATION
+================================================================================
+Via SSH or cPanel Terminal:
+php artisan migrate
+
+This adds fields: program_short, program_full, graduation_day
+
+
+STEP 6: PHP CONFIGURATION (Check in cPanel → Select PHP Version → Options)
+================================================================================
+✓ memory_limit: 256M (minimum, 512M recommended)
+✓ max_execution_time: 300 (5 minutes for PDF generation)
+✓ upload_max_filesize: 10M (for template uploads)
+✓ post_max_size: 10M
+
+ACTION: Adjust these values in cPanel → Select PHP Version → Options
+
+
+STEP 7: TEST THE FEATURE
+================================================================================
+1. Create/edit an ex-student with:
+   - Program (Short): "Bachelor of Science"
+   - Program (Full): "Bachelor of Science (Hons) Information & Communication Technology"
+   - Graduation Day: 10
+   - Graduation Month: "February"
+
+2. Test Word certificate download
+3. Test PDF certificate download
+
+4. Check logs: storage/logs/laravel.log
+
+
+IMPORTANT NOTES:
+================================================================================
+⚠ LibreOffice is NOT available on cPanel shared hosting
+  → System automatically uses PhpWord PDF conversion or PDF template fallback
+  → This is normal and expected behavior
+
+⚠ If borders appear in PDFs:
+  → Remove borders manually from certificate_template.docx in Microsoft Word
+  → Right-click each element → Format Shape/Picture → Line → No Line
+
+⚠ If PDF generation fails:
+  → Check storage/logs/laravel.log for detailed errors
+  → Verify all file permissions are correct
+  → Ensure all Composer packages are installed
+
+
+TROUBLESHOOTING:
+================================================================================
+Error: "Certificate template not found"
+→ Check templates are in storage/app/templates/
+→ Check file names are exact: certificate_template.docx, certificate_template.pdf
+→ Check permissions (644)
+
+Error: "Permission denied"
+→ Run: chmod 755 storage/app/templates
+→ Run: chmod 777 storage/app/temp
+→ Run: chmod 755 storage/app/certificates
+
+Error: "QR code generation failed"
+→ Check if 'gd' extension is enabled in PHP
+→ Check if 'imagick' extension is enabled (alternative)
+→ Check storage/app/temp/ permissions (777)
+
+Error: "PhpWord PDF conversion failed"
+→ This is normal for special characters (like & in program names)
+→ System will automatically use PDF template fallback method
+→ This is expected behavior
+
+================================================================================
+
