@@ -316,7 +316,12 @@
             foreach ($candidates as $name) {
                 foreach ($exts as $ext) {
                     $rel = 'assets/default/img/transcript/' . $name . '.' . $ext;
-                    if (file_exists(public_path($rel))) { $imagePath = asset($rel); break 2; }
+                    $full = public_path($rel);
+                    if (file_exists($full)) {
+                        $ver = @filemtime($full) ?: time();
+                        $imagePath = asset($rel) . '?v=' . $ver; // cache-bust when file changes
+                        break 2;
+                    }
                 }
             }
         @endphp
