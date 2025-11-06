@@ -46,4 +46,8 @@ return [
         'credentials_path' => env('GOOGLE_SHEETS_CREDENTIALS_PATH'),
     ],
 
+    'convertapi' => [
+        'secret' => env('CONVERT_API_SECRET'),
+    ],
+
 ];

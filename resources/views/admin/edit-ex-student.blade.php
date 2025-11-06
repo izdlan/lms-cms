@@ -45,8 +45,7 @@
                                     <label for="student_id" class="form-label">Student ID <span class="text-danger">*</span></label>
                                     <input type="text" class="form-control" id="student_id" name="student_id" 
                                            value="{{ old('student_id', $exStudent->student_id) }}" required 
-                                           placeholder="e.g., 670219-08-6113">
-                                    <div class="form-text">Format: YYMMDD-GG-XXXX</div>
+                                           placeholder="Enter student ID">
                                 </div>
                             </div>
                             <div class="col-md-6">
@@ -389,23 +388,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (window.feather && typeof feather.replace === 'function') {
         feather.replace();
     }
-    
-    // Auto-format student ID
-    document.getElementById('student_id').addEventListener('input', function(e) {
-        let value = e.target.value.replace(/\D/g, ''); // Remove non-digits
-        
-        if (value.length >= 6) {
-            // Format as YYMMDD-GG-XXXX
-            let formatted = value.substring(0, 6);
-            if (value.length > 6) {
-                formatted += '-' + value.substring(6, 8);
-            }
-            if (value.length > 8) {
-                formatted += '-' + value.substring(8, 12);
-            }
-            e.target.value = formatted;
-        }
-    });
     
     // Ordinal day conversion
     function getOrdinalDay(day) {

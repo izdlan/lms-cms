@@ -12,8 +12,8 @@ use PhpOffice\PhpWord\Writer\HTML;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 use Barryvdh\DomPDF\Facade\Pdf as PDF;
 use PhpOffice\PhpWord\Settings;
-use App\Services\CustomTemplateProcessor;
 use App\Services\CpanelCertificateService;
+use App\Services\CertificateConverter;
 
 class CertificateController extends Controller
 {
@@ -60,33 +60,49 @@ class CertificateController extends Controller
                 return $value;
             };
             
-            // Replace placeholders - use new format
+            // Helper function to set value with all possible placeholder formats
+            $setPlaceholderValue = function($placeholder, $value) use ($templateProcessor) {
+                // Try all possible placeholder formats that PhpWord might recognize
+                $formats = [
+                    $placeholder,                    // Plain: STUDENT_NAME
+                    '${' . $placeholder . '}',       // Dollar brace: ${STUDENT_NAME}
+                    '{{' . $placeholder . '}}',     // Double brace: {{STUDENT_NAME}}
+                    '$(' . $placeholder . ')',       // Dollar paren: $(STUDENT_NAME)
+                    '[' . $placeholder . ']',        // Square bracket: [STUDENT_NAME]
+                    '{' . $placeholder . '}',        // Single brace: {STUDENT_NAME}
+                    '<' . $placeholder . '>',        // Angle bracket: <STUDENT_NAME>
+                ];
+                
+                foreach ($formats as $format) {
+                    try {
+                        $templateProcessor->setValue($format, $value);
+                    } catch (\Exception $e) {
+                        // Continue to next format
+                        continue;
+                    }
+                }
+            };
+            
+            // Replace placeholders - use new format with all variations
             $studentName = $sanitize($exStudent->name);
-            $templateProcessor->setValue('STUDENT_NAME', $studentName);
-            $templateProcessor->setValue('${STUDENT_NAME}', $studentName);
+            $setPlaceholderValue('STUDENT_NAME', $studentName);
             
             $shortProgramNameSanitized = $sanitize($shortProgramName);
-            $templateProcessor->setValue('COURSE_NAME', $shortProgramNameSanitized);
-            $templateProcessor->setValue('${COURSE_NAME}', $shortProgramNameSanitized);
+            $setPlaceholderValue('COURSE_NAME', $shortProgramNameSanitized);
             
             $fullProgramNameSanitized = $sanitize($fullProgramName);
-            $templateProcessor->setValue('PROGRAM_NAME', $fullProgramNameSanitized);
-            $templateProcessor->setValue('${PROGRAM_NAME}', $fullProgramNameSanitized);
-            $templateProcessor->setValue('FULL_PROGRAM_NAME', $fullProgramNameSanitized);
-            $templateProcessor->setValue('${FULL_PROGRAM_NAME}', $fullProgramNameSanitized);
+            $setPlaceholderValue('PROGRAM_NAME', $fullProgramNameSanitized);
+            $setPlaceholderValue('FULL_PROGRAM_NAME', $fullProgramNameSanitized);
             
             $formattedDateSanitized = $sanitize($formattedGraduationDate);
-            $templateProcessor->setValue('GRADUATION_DATE', $formattedDateSanitized);
-            $templateProcessor->setValue('${GRADUATION_DATE}', $formattedDateSanitized);
+            $setPlaceholderValue('GRADUATION_DATE', $formattedDateSanitized);
             
             // Replace CERTIFICATE_NUMBER with Student ID instead (as per user request)
             $studentIdForCert = $sanitize($exStudent->student_id);
-            $templateProcessor->setValue('CERTIFICATE_NUMBER', $studentIdForCert);
-            $templateProcessor->setValue('${CERTIFICATE_NUMBER}', $studentIdForCert);
+            $setPlaceholderValue('CERTIFICATE_NUMBER', $studentIdForCert);
             
             $studentIdSanitized = $sanitize($exStudent->student_id);
-            $templateProcessor->setValue('STUDENT_ID', $studentIdSanitized);
-            $templateProcessor->setValue('${STUDENT_ID}', $studentIdSanitized);
+            $setPlaceholderValue('STUDENT_ID', $studentIdSanitized);
 
             // Replace QR Code image in Word template (only if PNG)
             if ($qrCodePath && file_exists($qrCodePath) && $qrCodeExtension === 'png') {
@@ -97,8 +113,16 @@ class CertificateController extends Controller
                         throw new \Exception('QR code file is too small: ' . $fileSize . ' bytes');
                     }
                     
-                    // Try multiple placeholder formats
-                    $placeholderFormats = ['QR_CODE', '${QR_CODE}', '$(QR_CODE)', '[QR_CODE]', '{{QR_CODE}}'];
+                    // Try multiple placeholder formats that PhpWord might recognize
+                    $placeholderFormats = [
+                        'QR_CODE',                    // Plain: QR_CODE
+                        '${QR_CODE}',                 // Dollar brace: ${QR_CODE}
+                        '{{QR_CODE}}',                // Double brace: {{QR_CODE}}
+                        '$(QR_CODE)',                 // Dollar paren: $(QR_CODE)
+                        '[QR_CODE]',                  // Square bracket: [QR_CODE]
+                        '{QR_CODE}',                  // Single brace: {QR_CODE}
+                        '<QR_CODE>',                  // Angle bracket: <QR_CODE>
+                    ];
                     $imageInserted = false;
                     
                     foreach ($placeholderFormats as $placeholder) {
@@ -543,39 +567,55 @@ class CertificateController extends Controller
                 return $value;
             };
 
-            // Replace placeholders - use new format
+            // Helper function to set value with all possible placeholder formats
+            $setPlaceholderValue = function($placeholder, $value) use ($templateProcessor) {
+                // Try all possible placeholder formats that PhpWord might recognize
+                $formats = [
+                    $placeholder,                    // Plain: STUDENT_NAME
+                    '${' . $placeholder . '}',       // Dollar brace: ${STUDENT_NAME}
+                    '{{' . $placeholder . '}}',     // Double brace: {{STUDENT_NAME}}
+                    '$(' . $placeholder . ')',       // Dollar paren: $(STUDENT_NAME)
+                    '[' . $placeholder . ']',        // Square bracket: [STUDENT_NAME]
+                    '{' . $placeholder . '}',        // Single brace: {STUDENT_NAME}
+                    '<' . $placeholder . '>',        // Angle bracket: <STUDENT_NAME>
+                ];
+                
+                foreach ($formats as $format) {
+                    try {
+                        $templateProcessor->setValue($format, $value);
+                    } catch (\Exception $e) {
+                        // Continue to next format
+                        continue;
+                    }
+                }
+            };
+
+            // Replace placeholders - use new format with all variations
             try {
                 // Student name
                 $studentName = $sanitize($exStudent->name);
-                $templateProcessor->setValue('STUDENT_NAME', $studentName);
-                $templateProcessor->setValue('${STUDENT_NAME}', $studentName);
+                $setPlaceholderValue('STUDENT_NAME', $studentName);
                 
                 // Course name (short program - e.g., "Bachelor of Science")
                 $shortProgramNameSanitized = $sanitize($shortProgramName);
-                $templateProcessor->setValue('COURSE_NAME', $shortProgramNameSanitized);
-                $templateProcessor->setValue('${COURSE_NAME}', $shortProgramNameSanitized);
+                $setPlaceholderValue('COURSE_NAME', $shortProgramNameSanitized);
                 
                 // Full program name (e.g., "Bachelor of Science (Hons) in Information & Communication Technology")
                 $fullProgramNameSanitized = $sanitize($fullProgramName);
-                $templateProcessor->setValue('PROGRAM_NAME', $fullProgramNameSanitized);
-                $templateProcessor->setValue('${PROGRAM_NAME}', $fullProgramNameSanitized);
-                $templateProcessor->setValue('FULL_PROGRAM_NAME', $fullProgramNameSanitized);
-                $templateProcessor->setValue('${FULL_PROGRAM_NAME}', $fullProgramNameSanitized);
+                $setPlaceholderValue('PROGRAM_NAME', $fullProgramNameSanitized);
+                $setPlaceholderValue('FULL_PROGRAM_NAME', $fullProgramNameSanitized);
                 
                 // Graduation date (formatted as "Tenth day of June 2011")
                 $formattedDateSanitized = $sanitize($formattedGraduationDate);
-                $templateProcessor->setValue('GRADUATION_DATE', $formattedDateSanitized);
-                $templateProcessor->setValue('${GRADUATION_DATE}', $formattedDateSanitized);
+                $setPlaceholderValue('GRADUATION_DATE', $formattedDateSanitized);
                 
                 // Certificate number - Replace with Student ID instead
                 $studentIdForCert = $sanitize($exStudent->student_id);
-                $templateProcessor->setValue('CERTIFICATE_NUMBER', $studentIdForCert);
-                $templateProcessor->setValue('${CERTIFICATE_NUMBER}', $studentIdForCert);
+                $setPlaceholderValue('CERTIFICATE_NUMBER', $studentIdForCert);
                 
                 // Student ID
                 $studentIdSanitized = $sanitize($exStudent->student_id);
-                $templateProcessor->setValue('STUDENT_ID', $studentIdSanitized);
-                $templateProcessor->setValue('${STUDENT_ID}', $studentIdSanitized);
+                $setPlaceholderValue('STUDENT_ID', $studentIdSanitized);
 
             // Replace QR Code image in Word template (verify PNG before insertion)
             if ($qrCodePath && file_exists($qrCodePath)) {
@@ -621,8 +661,16 @@ class CertificateController extends Controller
                     
                     // Only proceed if it's valid PNG (Word templates require PNG)
                     if ($isPng) {
-                        // Try multiple placeholder formats
-                        $placeholderFormats = ['QR_CODE', '${QR_CODE}', '$(QR_CODE)', '[QR_CODE]', '{{QR_CODE}}'];
+                        // Try multiple placeholder formats that PhpWord might recognize
+                        $placeholderFormats = [
+                            'QR_CODE',                    // Plain: QR_CODE
+                            '${QR_CODE}',                 // Dollar brace: ${QR_CODE}
+                            '{{QR_CODE}}',                // Double brace: {{QR_CODE}}
+                            '$(QR_CODE)',                 // Dollar paren: $(QR_CODE)
+                            '[QR_CODE]',                  // Square bracket: [QR_CODE]
+                            '{QR_CODE}',                  // Single brace: {QR_CODE}
+                            '<QR_CODE>',                  // Angle bracket: <QR_CODE>
+                        ];
                         $imageInserted = false;
                         
                         foreach ($placeholderFormats as $placeholder) {
@@ -1089,28 +1137,65 @@ class CertificateController extends Controller
                         'full_program' => $fullProgramName
                     ]);
 
-                    // Convert Word to PDF using LibreOffice (if available)
-                    $pdfPath = $this->convertWordToPdfWithLibreOffice($wordPath);
+                    // Method 1: Try ConvertAPI first (best for cPanel/shared hosting)
+                    $pdfPath = null;
+                    $pdfContent = null;
                     
-                    if ($pdfPath && file_exists($pdfPath)) {
-                        // NOTE: Border removal is disabled because borders come from the Word template itself
-                        // The best solution is to remove borders directly in the Word template:
-                        // 1. Open certificate_template.docx in Microsoft Word
-                        // 2. Select each text box/image that has borders
-                        // 3. Right-click → Format Shape/Picture → Line → No Line
-                        // 4. Save the template
-                        // This will permanently remove borders from future certificates
+                    if (config('services.convertapi.secret')) {
+                        try {
+                            Log::info('Attempting PDF conversion using ConvertAPI');
+                            $pdfPath = CertificateConverter::docxToPdf($wordPath);
+                            
+                            if ($pdfPath && file_exists($pdfPath)) {
+                                $pdfContent = file_get_contents($pdfPath);
+                                @unlink($pdfPath);
+                                Log::info('PDF generated successfully using ConvertAPI', [
+                                    'pdf_size' => strlen($pdfContent)
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            Log::warning('ConvertAPI conversion failed, trying fallback methods', [
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                    
+                    // Method 2: Try LibreOffice if ConvertAPI failed or not configured
+                    if (!$pdfContent) {
+                        $pdfPath = $this->convertWordToPdfWithLibreOffice($wordPath);
                         
-                        // For now, use the PDF as-is (borders will be visible but content is correct)
-                        $pdfContent = file_get_contents($pdfPath);
-                        @unlink($pdfPath);
-                        Log::info('PDF generated successfully using DOCX template with LibreOffice');
-                    } else {
+                        if ($pdfPath && file_exists($pdfPath)) {
+                            // NOTE: Border removal is disabled because borders come from the Word template itself
+                            // The best solution is to remove borders directly in the Word template:
+                            // 1. Open certificate_template.docx in Microsoft Word
+                            // 2. Select each text box/image that has borders
+                            // 3. Right-click → Format Shape/Picture → Line → No Line
+                            // 4. Save the template
+                            // This will permanently remove borders from future certificates
+                            
+                            // For now, use the PDF as-is (borders will be visible but content is correct)
+                            $pdfContent = file_get_contents($pdfPath);
+                            @unlink($pdfPath);
+                            Log::info('PDF generated successfully using DOCX template with LibreOffice');
+                        }
+                    }
+                    
+                    // Method 3: Try PhpWord PDF writer as final fallback
+                    if (!$pdfContent) {
                         // Try PhpWord PDF writer as fallback
                         // Note: PhpWord uses DomPDF internally, which may fail with XML parsing errors
             try {
+                $dompdfPath = base_path('vendor/dompdf/dompdf');
+                if (!file_exists($dompdfPath)) {
+                    Log::warning('DomPDF renderer path does not exist', [
+                        'expected_path' => $dompdfPath,
+                        'fallback' => 'Will attempt without explicit path'
+                    ]);
+                } else {
+                    Settings::setPdfRendererPath($dompdfPath);
+                }
+                
                 Settings::setPdfRendererName(\PhpOffice\PhpWord\Settings::PDF_RENDERER_DOMPDF);
-                Settings::setPdfRendererPath(base_path('vendor/dompdf/dompdf'));
                 
                             // Load the Word document
                             $phpWord = \PhpOffice\PhpWord\IOFactory::load($wordPath);
@@ -1121,72 +1206,65 @@ class CertificateController extends Controller
                             $pdfPath = $tempDir . DIRECTORY_SEPARATOR . $wordFileName . '.pdf';
                             $pdfWriter->save($pdfPath);
                             
+                            // Wait for file to be written (especially important on cPanel/slow filesystems)
+                            usleep(300000); // 300ms
+                            clearstatcache(true, $pdfPath);
+                            
                             // Check if PDF was created and is valid
                             if (file_exists($pdfPath)) {
                                 $pdfSize = filesize($pdfPath);
                                 
-                                // Check if it's a valid PDF (not an error PDF)
-                                if ($pdfSize > 10000) {
-                                    // Read PDF content to verify it's not an error PDF
-                                    $pdfTestContent = file_get_contents($pdfPath);
+                                // Read PDF content to verify
+                                $pdfTestContent = file_get_contents($pdfPath);
+                                
+                                // Check PDF signature (must start with %PDF)
+                                if (substr($pdfTestContent, 0, 4) === '%PDF') {
+                                    // Check if it contains error messages (common in DomPDF error PDFs)
+                                    // Only check first 2000 bytes for errors (not the whole file)
+                                    $pdfPreview = substr($pdfTestContent, 0, min(2000, $pdfSize));
+                                    $hasError = stripos($pdfPreview, 'Error') !== false || 
+                                               stripos($pdfPreview, 'Exception') !== false ||
+                                               stripos($pdfPreview, 'Fatal') !== false ||
+                                               (stripos($pdfPreview, 'Warning') !== false && stripos($pdfPreview, 'Font') === false); // Ignore font warnings
                                     
-                                    // Check PDF signature
-                                    if (substr($pdfTestContent, 0, 4) === '%PDF') {
-                                        // Check if it contains error messages
-                                        $pdfPreview = substr($pdfTestContent, 0, 500);
-                                        if (stripos($pdfPreview, 'Error') === false && 
-                                            stripos($pdfPreview, 'Exception') === false &&
-                                            stripos($pdfPreview, 'Fatal') === false) {
-                                            // Valid PDF - use it
-                                            $pdfContent = $pdfTestContent;
-                                            @unlink($pdfPath);
-                                            Log::info('PDF generated successfully using DOCX template with PhpWord', [
-                                                'pdf_size' => $pdfSize
-                                            ]);
-                                        } else {
-                                            // Error PDF detected
-                                            Log::error('PhpWord PDF conversion produced an error PDF', [
-                                                'pdf_size' => $pdfSize,
-                                                'pdf_preview' => substr($pdfPreview, 0, 200)
-                                            ]);
-                                            @unlink($pdfPath);
-                                            $pdfContent = null;
-                                        }
-                                    } else {
-                                        // Invalid PDF signature
-                                        Log::error('PhpWord PDF conversion produced invalid PDF (wrong signature)', [
+                                    // Very lenient size check - accept any PDF with valid signature
+                                    // Only reject if it's clearly an error PDF (very small AND has errors)
+                                    if ($hasError && $pdfSize < 500) {
+                                        // Error PDF detected (very small error PDF)
+                                        Log::error('PhpWord PDF conversion produced an error PDF', [
                                             'pdf_size' => $pdfSize,
-                                            'pdf_signature' => bin2hex(substr($pdfTestContent, 0, 10))
+                                            'pdf_preview' => substr($pdfPreview, 0, 200)
                                         ]);
                                         @unlink($pdfPath);
                                         $pdfContent = null;
-                                    }
-                                } else {
-                                    // PDF too small - likely an error PDF
-                                    Log::error('PhpWord PDF conversion produced invalid file (too small)', [
-                                        'exists' => true,
-                                        'size' => $pdfSize,
-                                        'pdf_path' => $pdfPath
-                                    ]);
-                                    
-                                    // Check what's in the file
-                                    if ($pdfSize > 0) {
-                                        $pdfTestContent = file_get_contents($pdfPath);
-                                        Log::error('PhpWord PDF file content preview', [
-                                            'content_preview' => substr($pdfTestContent, 0, 200),
-                                            'is_error_pdf' => stripos($pdfTestContent, 'Error') !== false
+                                    } else {
+                                        // Valid PDF - use it (accept even if it has warnings, as long as it's a real PDF)
+                                        $pdfContent = $pdfTestContent;
+                                        @unlink($pdfPath);
+                                        Log::info('PDF generated successfully using DOCX template with PhpWord', [
+                                            'pdf_size' => $pdfSize,
+                                            'has_warnings' => $hasError && $pdfSize >= 500
                                         ]);
                                     }
-                                    
+                                } else {
+                                    // Invalid PDF signature
+                                    Log::error('PhpWord PDF conversion produced invalid PDF (wrong signature)', [
+                                        'pdf_size' => $pdfSize,
+                                        'pdf_signature' => bin2hex(substr($pdfTestContent, 0, 10)),
+                                        'first_50_chars' => substr($pdfTestContent, 0, 50)
+                                    ]);
                                     @unlink($pdfPath);
-                                    $pdfContent = null; // Clear invalid PDF
+                                    $pdfContent = null;
                                 }
                             } else {
                                 Log::warning('PhpWord PDF conversion failed - file not created', [
-                                    'expected_path' => $pdfPath
+                                    'expected_path' => $pdfPath,
+                                    'temp_dir' => $tempDir,
+                                    'temp_dir_exists' => is_dir($tempDir),
+                                    'temp_dir_writable' => is_writable($tempDir)
                                 ]);
                                 $pdfContent = null;
-                            }
+                }
             } catch (\Exception $e) {
                             Log::error('PhpWord PDF conversion failed with exception', [
                                 'error' => $e->getMessage(),
@@ -1212,27 +1290,37 @@ class CertificateController extends Controller
                     // Only clean up Word file if PDF was successfully generated
                     if ($pdfContent && file_exists($wordPath)) {
                         @unlink($wordPath);
-                    }
-        } catch (\Exception $e) {
+                }
+            } catch (\Exception $e) {
                     Log::error('DOCX template processing failed: ' . $e->getMessage());
                 }
             }
             
-            // Final fallback - return Word certificate if PDF generation failed
+            // Final fallback - try to return Word certificate if PDF generation failed
+            // NOTE: This is a fallback - ideally PDF should always be generated
             if (!$pdfContent) {
+                // Log detailed error information first
+                Log::error('PDF generation failed - attempting fallback', [
+                    'student_id' => $studentId,
+                    'student_name' => $exStudent->name ?? 'unknown',
+                    'word_file_exists' => isset($wordPath) && file_exists($wordPath),
+                    'word_file_size' => isset($wordPath) && file_exists($wordPath) ? filesize($wordPath) : 0,
+                    'libreoffice_available' => function_exists('exec'),
+                    'imagick_loaded' => extension_loaded('imagick'),
+                    'gd_loaded' => extension_loaded('gd'),
+                    'docx_template_exists' => $useDocxTemplate,
+                    'pdf_template_exists' => $usePdfTemplate
+                ]);
+                
                 // Check if Word file is still available
                 if (isset($wordPath) && file_exists($wordPath)) {
                     Log::warning('PDF generation failed, returning Word certificate as fallback', [
                         'student_id' => $studentId,
-                        'student_name' => $exStudent->name ?? 'unknown',
                         'word_file_path' => $wordPath,
-                        'word_file_size' => filesize($wordPath),
-                        'libreoffice_available' => function_exists('exec'),
-                        'imagick_loaded' => extension_loaded('imagick'),
-                        'gd_loaded' => extension_loaded('gd')
+                        'word_file_size' => filesize($wordPath)
                     ]);
                     
-                    // Return Word certificate as fallback
+                    // Return Word certificate as fallback with a warning in headers
                     $wordContent = file_get_contents($wordPath);
                     $wordFileName = 'certificate_' . $exStudent->student_id . '_' . time() . '.docx';
                     
@@ -1242,10 +1330,12 @@ class CertificateController extends Controller
                     return response($wordContent, 200, [
                         'Content-Type' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
                         'Content-Disposition' => 'attachment; filename="' . $wordFileName . '"',
-                        'Content-Length' => strlen($wordContent)
+                        'Content-Length' => strlen($wordContent),
+                        'X-PDF-Generation-Failed' => 'true',
+                        'X-Fallback-To-Word' => 'true'
                     ]);
                 } else {
-                    // Log detailed error information
+                    // No Word file available either
                     Log::error('All PDF generation methods failed and Word file not available', [
                         'student_id' => $studentId,
                         'student_name' => $exStudent->name ?? 'unknown',
@@ -1258,7 +1348,12 @@ class CertificateController extends Controller
                     
                     return response()->json([
                         'error' => 'Failed to generate PDF certificate. All conversion methods failed. Please check server logs for details.',
-                        'suggestion' => 'Try downloading the Word certificate instead, or contact your hosting provider to enable LibreOffice or Imagick extension.'
+                        'suggestion' => 'Try downloading the Word certificate instead, or contact your hosting provider to enable LibreOffice or Imagick extension.',
+                        'debug_info' => [
+                            'libreoffice_available' => function_exists('exec'),
+                            'imagick_loaded' => extension_loaded('imagick'),
+                            'gd_loaded' => extension_loaded('gd')
+                        ]
                     ], 500);
                 }
             }
@@ -1408,8 +1503,27 @@ class CertificateController extends Controller
                         Log::warning('Failed to remove borders from DOCX for preview (this is not critical): ' . $borderError->getMessage());
                     }
 
-            // Convert Word to PDF using LibreOffice
-                    $pdfPath = $this->convertWordToPdfWithLibreOffice($wordPath);
+            // Convert Word to PDF - try ConvertAPI first, then LibreOffice
+                    $pdfPath = null;
+                    
+                    // Method 1: Try ConvertAPI first
+                    if (config('services.convertapi.secret')) {
+                        try {
+                            $pdfPath = CertificateConverter::docxToPdf($wordPath);
+                            if ($pdfPath && file_exists($pdfPath)) {
+                                Log::info('PDF preview generated successfully using ConvertAPI');
+                            }
+                        } catch (\Exception $e) {
+                            Log::warning('ConvertAPI conversion failed for preview, trying LibreOffice', [
+                                'error' => $e->getMessage()
+                            ]);
+                        }
+                    }
+                    
+                    // Method 2: Fallback to LibreOffice
+                    if (!$pdfPath || !file_exists($pdfPath)) {
+                        $pdfPath = $this->convertWordToPdfWithLibreOffice($wordPath);
+                    }
                     
                     // Clean up Word file
                     if (file_exists($wordPath)) {
@@ -1548,22 +1662,116 @@ class CertificateController extends Controller
                 return response()->json(['error' => 'Certificate template not found. Please upload the template to storage/app/templates/certificate_template.docx'], 404);
             }
 
+            // Get program names and formatted date (using new format)
+            $shortProgramName = $exStudent->program_short ?? $exStudent->program ?? 'Not Specified';
+            $fullProgramName = $exStudent->program_full ?? $exStudent->program_short ?? $exStudent->program ?? 'Not Specified';
+            
+            // Ensure graduation_day is set (default to 1 if missing)
+            if (!$exStudent->graduation_day || $exStudent->graduation_day < 1 || $exStudent->graduation_day > 31) {
+                $exStudent->graduation_day = 1;
+                $exStudent->save();
+            }
+            
+            // Ensure graduation_month is set (required for formatted date)
+            if (!$exStudent->graduation_month) {
+                $exStudent->graduation_month = date('m');
+                $exStudent->save();
+            }
+            
+            try {
+                $formattedGraduationDate = $exStudent->formatted_graduation_date;
+            } catch (\Exception $e) {
+                $formattedGraduationDate = $exStudent->graduation_date ?? $exStudent->graduation_year ?? 'Unknown';
+            }
+
             // Process Word template
             $templateProcessor = new TemplateProcessor($templatePath);
 
-            // Replace placeholders
-            $templateProcessor->setValue('STUDENT_NAME', $exStudent->name);
-            $templateProcessor->setValue('COURSE_NAME', $exStudent->program ?? 'Not Specified');
-            $templateProcessor->setValue('GRADUATION_DATE', $exStudent->graduation_date);
-            // Replace CERTIFICATE_NUMBER with Student ID instead
-            $templateProcessor->setValue('CERTIFICATE_NUMBER', $exStudent->student_id);
+            // Sanitize values to prevent Word XML corruption
+            $sanitize = function($value) {
+                if ($value === null) {
+                    return '';
+                }
+                $value = trim((string)$value);
+                $value = str_replace("\0", '', $value);
+                // Escape ampersands that are not already part of XML entities
+                $value = preg_replace('/&(?!(?:amp|lt|gt|quot|apos|#\d+|#x[0-9a-fA-F]+);)/i', '&amp;', $value);
+                return $value;
+            };
 
-            // Replace QR Code image
-            $templateProcessor->setImageValue('QR_CODE', [
-                'path' => storage_path('app/public/' . $qrCodePath),
+            // Helper function to set value with all possible placeholder formats
+            $setPlaceholderValue = function($placeholder, $value) use ($templateProcessor) {
+                // Try all possible placeholder formats that PhpWord might recognize
+                $formats = [
+                    $placeholder,                    // Plain: STUDENT_NAME
+                    '${' . $placeholder . '}',       // Dollar brace: ${STUDENT_NAME}
+                    '{{' . $placeholder . '}}',     // Double brace: {{STUDENT_NAME}}
+                    '$(' . $placeholder . ')',       // Dollar paren: $(STUDENT_NAME)
+                    '[' . $placeholder . ']',        // Square bracket: [STUDENT_NAME]
+                    '{' . $placeholder . '}',        // Single brace: {STUDENT_NAME}
+                    '<' . $placeholder . '>',        // Angle bracket: <STUDENT_NAME>
+                ];
+                
+                foreach ($formats as $format) {
+                    try {
+                        $templateProcessor->setValue($format, $value);
+                    } catch (\Exception $e) {
+                        // Continue to next format
+                        continue;
+                    }
+                }
+            };
+
+            // Replace placeholders with all variations
+            $studentName = $sanitize($exStudent->name);
+            $setPlaceholderValue('STUDENT_NAME', $studentName);
+            
+            $shortProgramNameSanitized = $sanitize($shortProgramName);
+            $setPlaceholderValue('COURSE_NAME', $shortProgramNameSanitized);
+            
+            $fullProgramNameSanitized = $sanitize($fullProgramName);
+            $setPlaceholderValue('PROGRAM_NAME', $fullProgramNameSanitized);
+            $setPlaceholderValue('FULL_PROGRAM_NAME', $fullProgramNameSanitized);
+            
+            $formattedDateSanitized = $sanitize($formattedGraduationDate);
+            $setPlaceholderValue('GRADUATION_DATE', $formattedDateSanitized);
+            
+            // Replace CERTIFICATE_NUMBER with Student ID instead (as per user request)
+            $studentIdForCert = $sanitize($exStudent->student_id);
+            $setPlaceholderValue('CERTIFICATE_NUMBER', $studentIdForCert);
+            
+            $studentIdSanitized = $sanitize($exStudent->student_id);
+            $setPlaceholderValue('STUDENT_ID', $studentIdSanitized);
+
+            // Replace QR Code image - try all placeholder formats
+            $qrCodeFullPath = storage_path('app/public/' . $qrCodePath);
+            if (file_exists($qrCodeFullPath) && $qrCodeExtension === 'png') {
+                $placeholderFormats = [
+                    'QR_CODE',                    // Plain: QR_CODE
+                    '${QR_CODE}',                 // Dollar brace: ${QR_CODE}
+                    '{{QR_CODE}}',                // Double brace: {{QR_CODE}}
+                    '$(QR_CODE)',                 // Dollar paren: $(QR_CODE)
+                    '[QR_CODE]',                  // Square bracket: [QR_CODE]
+                    '{QR_CODE}',                  // Single brace: {QR_CODE}
+                    '<QR_CODE>',                  // Angle bracket: <QR_CODE>
+                ];
+                $imageInserted = false;
+                
+                foreach ($placeholderFormats as $placeholder) {
+                    try {
+                        $templateProcessor->setImageValue($placeholder, [
+                            'path' => $qrCodeFullPath,
                 'width' => 100,
                 'height' => 100
             ]);
+                        $imageInserted = true;
+                        break;
+                    } catch (\Exception $e) {
+                        // Try next format
+                        continue;
+                    }
+                }
+            }
 
             // Generate Word certificate temporarily
             $tempWordFileName = 'temp_certificate_' . $exStudent->id . '_' . time() . '.docx';
@@ -1576,8 +1784,27 @@ class CertificateController extends Controller
 
             $templateProcessor->saveAs($tempWordPath);
 
-            // Convert Word to PDF using LibreOffice
+            // Convert Word to PDF - try ConvertAPI first, then LibreOffice
+            $pdfPath = null;
+            
+            // Method 1: Try ConvertAPI first
+            if (config('services.convertapi.secret')) {
+                try {
+                    $pdfPath = CertificateConverter::docxToPdf($tempWordPath);
+                    if ($pdfPath && file_exists($pdfPath)) {
+                        Log::info('PDF preview generated successfully using ConvertAPI');
+                    }
+                } catch (\Exception $e) {
+                    Log::warning('ConvertAPI conversion failed for preview, trying LibreOffice', [
+                        'error' => $e->getMessage()
+                    ]);
+                }
+            }
+            
+            // Method 2: Fallback to LibreOffice
+            if (!$pdfPath || !file_exists($pdfPath)) {
             $pdfPath = $this->convertWordToPdfWithLibreOffice($tempWordPath);
+            }
 
             // Clean up temporary Word file and QR code
             Storage::disk('public')->delete($qrCodePath);

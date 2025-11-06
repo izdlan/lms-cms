@@ -112,9 +112,12 @@
                                                        title="Generate Word Certificate" target="_blank">
                                                         <i class="bi bi-file-text"></i>
                                                     </a>
-                                                    <a href="{{ url('/certificates/generate/pdf/' . $exStudent->id) }}" 
-                                                       class="btn-modern btn-modern-info btn-modern-sm" 
-                                                       title="Generate PDF Certificate" target="_blank">
+                                                    <a href="{{ route('certificate.generate.pdf', $exStudent->id) }}" 
+                                                       class="btn-modern btn-modern-info btn-modern-sm pdf-cert-btn" 
+                                                       data-student-id="{{ $exStudent->id }}"
+                                                       title="Generate PDF Certificate" 
+                                                       target="_blank"
+                                                       onclick="handlePdfGeneration(this, event)">
                                                         <i class="bi bi-file-pdf"></i>
                                                     </a>
                                                     <a href="{{ route('admin.ex-students.edit', $exStudent) }}" 
@@ -288,6 +291,25 @@ document.getElementById('downloadQrBtn').addEventListener('click', function() {
         window.open(`/admin/ex-students/${currentExStudentId}/download-qr`, '_blank');
     }
 });
+
+// Handle PDF generation with loading indicator
+function handlePdfGeneration(link, event) {
+    // Show loading state
+    const originalHTML = link.innerHTML;
+    const originalTitle = link.title;
+    link.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+    link.title = 'Generating PDF...';
+    link.style.pointerEvents = 'none';
+    link.classList.add('disabled');
+    
+    // Reset after a delay (PDF will open in new tab)
+    setTimeout(() => {
+        link.innerHTML = originalHTML;
+        link.title = originalTitle;
+        link.style.pointerEvents = 'auto';
+        link.classList.remove('disabled');
+    }, 5000);
+}
 
 // Bootstrap Icons are already loaded via CDN
 </script>
