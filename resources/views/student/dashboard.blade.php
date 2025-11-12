@@ -22,10 +22,10 @@
                     <p class="text-muted">Here's your academic overview and course information.</p>
                 </div>
 
-                <!-- System Maintenance Banner -->
+                <!-- System Maintenance Banner 
                 <div class="maintenance-banner" role="alert">
                     <strong>Notice:</strong> Dear student, please be informed that your profile picture and password have been reset due to system maintenance. You may update them again upon your next login. Thank you for your understanding.
-                </div>
+                </div> -->
 
                 @if(auth('student')->user()->must_reset_password)
                     <div class="alert alert-warning alert-dismissible fade show" role="alert">
