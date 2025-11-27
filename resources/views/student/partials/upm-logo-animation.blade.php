@@ -12,6 +12,9 @@
         } elseif ($student->source_sheet === 'IUC LMS') {
             $brand = 'IUC';
             $subtitle = 'IUC';
+        } elseif (empty($student->source_sheet) || $student->source_sheet === 'N/A') {
+            $brand = 'Olympia';
+            $subtitle = 'Olympia Education';
         }
     }
 @endphp
